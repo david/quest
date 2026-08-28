@@ -37,6 +37,8 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 
 ## Goals
 
+- [ ] A desired outcome.
+
 ## Research
 
 ## Decisions
@@ -48,7 +50,7 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 ## Backlog
 ```
 
-- `Goals` records the current desired outcomes and boundaries.
+- `Goals` is an unchecked checklist of desired outcomes. Use concise supporting text for scope boundaries when needed.
 - `Research` indexes evidence, findings, uncertainties, open questions, and research tasks.
 - `Decisions` indexes accepted choices, rationale, superseded choices, and unresolved decision tasks.
 - `Implementation` indexes implementation plans, outcomes, and implementation tasks.
