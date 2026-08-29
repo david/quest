@@ -1,6 +1,6 @@
 ---
 name: quest
-description: Opens, creates, lists, and maintains context quests stored at a project-relative quest root. Uses each quest README as a living state record and index. Use when the user invokes the quest skill or asks to work with a quest.
+description: Opens, creates, lists, and maintains context quest records stored at a project-relative quest root. Defines their README structure, state semantics, recoverability invariant, and update rules. Use for quest record operations; use quest-master to advance substantive quest work through delegated workers.
 ---
 
 <!-- argument-hint: <open|new|list> [slug] -->
@@ -67,19 +67,15 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 
 Keep each section concise and link to focused artifacts for detail. Use a direct checklist in the relevant section rather than adding `Tasks` subsections or duplicating tasks across sections. Move a task when its classification changes. Use `Backlog` only when a task is deferred or does not yet belong to another section.
 
-Before starting substantive quest work, reuse a matching existing task or add one concise unchecked task to the relevant section; never duplicate it merely to record activity. Point `Current State` at that task and record the intended next action before advancing it. During the work, keep the task, handoff, and linked artifacts current. When the work finishes, add a short result or artifact link but leave the checkbox unchecked. Record the completed checkpoint and user approval as the next action. An unchecked task with a result or outcome link awaits user approval; an unchecked task without one remains pending. Only the user can authorize changing `- [ ]` to `- [x]`. Agents, delegated workers, implementers, reviewers, and supervisors must never infer that approval or check a task on their own.
-
-`Current State`, the section checklists, and linked artifacts form the state record. Checked tasks show user-approved past work. Unchecked tasks with results show work awaiting approval. Unchecked tasks without results show present or future work.
+Keep `Current State`, the section checklists, and linked artifacts consistent; together they form the state record. An unchecked task without a result remains pending. An unchecked task with a result or outcome link awaits user approval. A checked task records user-approved past work. Only the user can authorize changing `- [ ]` to `- [x]`; agents must never infer that approval or check a task on their own.
 
 Create all stable headings for new quests. For an existing quest, add missing headings during the next substantive quest-material update, not as a side effect of `open` or `list`. Do not invent content merely to populate an empty section. Preserve useful unrelated organization while converging the README on this structure.
 
-## Session-Resettable State
+## Recoverability Invariant
 
-Keep every active quest session-resettable at each turn boundary. The README and the focused artifacts it links must let an agent with no conversation or session history recover the current goal, active task, latest completed or attempted work, exact next action, blockers or required approvals, relevant files or worktrees, and validation state.
+After every quest-material update, the README and the focused artifacts it links must let an agent with no conversation or session history recover the current goal, active task, latest completed or attempted work, exact next action, blockers or required approvals, relevant files or worktrees, and validation state.
 
-Before ending any turn that starts, advances, delegates, blocks, or fails substantive quest work, checkpoint the task, `Current State`, and relevant artifacts. Persist useful tool and worker results before the final response. Treat chat history, transient tool output, live process state, and session-local identifiers as non-durable context rather than the sole record of progress. Maintain the checkpoint during the work instead of deferring every update until the final response.
-
-`open` and `list` may remain read-only because they do not advance quest work. When access limits or stronger instructions prevent a required checkpoint, stop at the last durable checkpoint and report that the quest was not advanced.
+This invariant defines a valid quest record regardless of which workflow updates it. Treat chat history, transient tool output, live process state, and session-local identifiers as non-durable context rather than the sole record of progress.
 
 ## Updating Quest Material
 
@@ -100,6 +96,8 @@ Never leave current and superseded guidance contradictory or unlabeled. When a d
 Rewrite a whole document only when most of it is invalid, its structure obscures the current state, or targeted edits would leave it incoherent. Before rewriting, account for every useful fact, observation, result, rationale, and remaining question so the rewrite does not silently lose information.
 
 ## Commands
+
+Use [Quest Master](../quest-master/SKILL.md) when a request advances substantive quest work through exploration, research, analysis, implementation, testing, or review.
 
 Before executing a command, read its dedicated reference. Do not load unrelated command references unless the request requires more than one command.
 
