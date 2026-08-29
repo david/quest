@@ -77,6 +77,18 @@ After every quest-material update, the README and the focused artifacts it links
 
 This invariant defines a valid quest record regardless of which workflow updates it. Treat chat history, transient tool output, live process state, and session-local identifiers as non-durable context rather than the sole record of progress.
 
+### Reset-Readiness Audit
+
+When the user asks whether a quest or session is ready for reset, handoff, compaction, or a new session, complete this audit before declaring readiness:
+
+1. Reread `Current State`, the active task, and the focused artifacts linked for its checkpoint, next action, blockers, decisions, plan, and validation evidence.
+2. Reconcile every explicit user decision and useful worker or tool result produced since the last durable checkpoint.
+3. Search the active artifacts for approval gates, open questions, blockers, residual risks, superseded requirements, and named contract terms affected by recent decisions. Remove or reclassify resolved items everywhere they appear.
+4. Confirm that `Current State`, section checklists, decision artifacts, active plans, blocker records, and embedded acceptance or residual-risk summaries describe one consistent current contract.
+5. Confirm that `Next action` names the first genuinely unresolved step and that referenced worktree state, changed files, validation results, and in-flight work are accurate.
+
+A record that is durable but stale, contradictory, or missing a recent decision is not reset-ready. Reconcile it before reporting readiness.
+
 ## Updating Quest Material
 
 When an operation changes or attempts to change a quest's goals, findings, plans, implementation, review evidence, backlog, or linked artifacts, reconcile the relevant README sections, task item, and `Current State` before finishing.
