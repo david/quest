@@ -39,6 +39,13 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 
 - [ ] A desired outcome.
 
+## Current State
+
+- Active task: A task from a section below, or none.
+- Checkpoint: The latest durable progress or result.
+- Next action: The exact resumption step.
+- Blockers: None, or the unresolved blockers and approvals.
+
 ## Research
 
 ## Decisions
@@ -51,6 +58,7 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 ```
 
 - `Goals` is an unchecked checklist of desired outcomes. Use concise supporting text for scope boundaries when needed.
+- `Current State` is the single durable handoff. It names the active checklist task or says that none is active, records the latest checkpoint, gives the exact next action, and identifies blockers or approvals. Link to relevant artifacts, affected worktrees, and validation evidence instead of duplicating their detail.
 - `Research` indexes evidence, findings, uncertainties, open questions, and research tasks.
 - `Decisions` indexes accepted choices, rationale, superseded choices, and unresolved decision tasks.
 - `Implementation` indexes implementation plans, outcomes, and implementation tasks.
@@ -59,15 +67,23 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 
 Keep each section concise and link to focused artifacts for detail. Use a direct checklist in the relevant section rather than adding `Tasks` subsections or duplicating tasks across sections. Move a task when its classification changes. Use `Backlog` only when a task is deferred or does not yet belong to another section.
 
-Before starting substantive quest work, reuse a matching existing task or add one concise unchecked task to the relevant section; never duplicate it merely to record activity. During the work, keep that item and its linked artifacts current. When the work finishes, add a short result or artifact link but leave the checkbox unchecked. An unchecked task with a result or outcome link awaits user approval; an unchecked task without one remains pending. Only the user can authorize changing `- [ ]` to `- [x]`. Agents, delegated workers, implementers, reviewers, and supervisors must never infer that approval or check a task on their own.
+Before starting substantive quest work, reuse a matching existing task or add one concise unchecked task to the relevant section; never duplicate it merely to record activity. Point `Current State` at that task and record the intended next action before advancing it. During the work, keep the task, handoff, and linked artifacts current. When the work finishes, add a short result or artifact link but leave the checkbox unchecked. Record the completed checkpoint and user approval as the next action. An unchecked task with a result or outcome link awaits user approval; an unchecked task without one remains pending. Only the user can authorize changing `- [ ]` to `- [x]`. Agents, delegated workers, implementers, reviewers, and supervisors must never infer that approval or check a task on their own.
 
-The section checklists and linked artifacts are the state record. Checked tasks show user-approved past work. Unchecked tasks with results show work awaiting approval. Unchecked tasks without results show present or future work.
+`Current State`, the section checklists, and linked artifacts form the state record. Checked tasks show user-approved past work. Unchecked tasks with results show work awaiting approval. Unchecked tasks without results show present or future work.
 
 Create all stable headings for new quests. For an existing quest, add missing headings during the next substantive quest-material update, not as a side effect of `open` or `list`. Do not invent content merely to populate an empty section. Preserve useful unrelated organization while converging the README on this structure.
 
+## Session-Resettable State
+
+Keep every active quest session-resettable at each turn boundary. The README and the focused artifacts it links must let an agent with no conversation or session history recover the current goal, active task, latest completed or attempted work, exact next action, blockers or required approvals, relevant files or worktrees, and validation state.
+
+Before ending any turn that starts, advances, delegates, blocks, or fails substantive quest work, checkpoint the task, `Current State`, and relevant artifacts. Persist useful tool and worker results before the final response. Treat chat history, transient tool output, live process state, and session-local identifiers as non-durable context rather than the sole record of progress. Maintain the checkpoint during the work instead of deferring every update until the final response.
+
+`open` and `list` may remain read-only because they do not advance quest work. When access limits or stronger instructions prevent a required checkpoint, stop at the last durable checkpoint and report that the quest was not advanced.
+
 ## Updating Quest Material
 
-When an operation materially changes a quest's goals, findings, plans, implementation, review evidence, backlog, or linked artifacts, reconcile the relevant README sections and task item before finishing. Do not edit quest material during a read-only operation or when stronger instructions prohibit it; report the needed reconciliation instead.
+When an operation changes or attempts to change a quest's goals, findings, plans, implementation, review evidence, backlog, or linked artifacts, reconcile the relevant README sections, task item, and `Current State` before finishing.
 
 Keep current guidance clear without discarding useful evidence. When findings or decisions change existing quest material, prefer a new focused artifact plus the smallest reconciliation edits needed in existing indexes, statuses, and summaries. Do not create a new file merely to avoid correcting a contradiction elsewhere.
 
@@ -87,8 +103,8 @@ Rewrite a whole document only when most of it is invalid, its structure obscures
 
 Before executing a command, read its dedicated reference. Do not load unrelated command references unless the request requires more than one command.
 
-- `open` or `open current`: [Open](references/open.md)
+- `open`, `open current`, or `open current quest`: [Open](references/open.md)
 - `new`: [New](references/new.md)
 - `list`: [List](references/list.md)
 
-Never overwrite an existing quest or quest file.
+When creating a quest, never replace an existing quest directory or file. Edit existing quest material narrowly under the update rules above.
