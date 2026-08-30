@@ -9,10 +9,10 @@ description: Opens, creates, lists, and maintains context quest records stored a
 
 Resolve the quest root and any current quest context once per operation from the session's current working directory, never from the skill directory:
 
-1. First inspect the current working directory and its ancestors for a canonical quest directory. A candidate must have a slug basename, contain `README.md`, and have a parent named `quests`. When a match exists, it is the current quest and its parent is the quest root. Run this check before testing `./quests` so nested workspace content cannot be mistaken for the quest root.
-2. If the session is not inside a quest and `./quests` is an existing directory, the current working directory is the project support directory; use `./quests`.
-3. Otherwise, run `git rev-parse --show-toplevel` to locate the enclosing worktree root. From that root—not from the possibly nested current directory—resolve `../../quests` and use it only if it is an existing directory.
-4. If no candidate succeeds, stop and report the candidates checked. Do not create a `quests` directory merely to make root detection succeed, and do not fall back to a fixed path.
+1. First inspect the current working directory and its ancestors for a canonical quest directory. A candidate must have a slug basename, contain `README.md`, and have a parent named `quests`. When a match exists, it is the current quest and its parent is the quest root. Run this check before considering any configured root so a quest opened directly remains self-identifying.
+2. If the session is not inside a quest, inspect the applicable repository instructions already supplied in the session context for a declaration written as `Quest root: <path>`. Never search for instruction files. Resolve an absolute declaration directly and a relative declaration from the directory containing the declaring instruction file. The most specific applicable declaration wins. Use it only when it resolves to an existing directory named `quests`.
+3. If no applicable declaration exists and `./quests` is an existing directory, use it.
+4. If no candidate succeeds, stop and report the current-quest, declared-root, and `./quests` candidates checked. Do not create a `quests` directory merely to make root detection succeed, infer one from repository depth, or fall back to a fixed path.
 
 Canonicalize the selected quest root to an absolute path and use it for every quest read, write, and search in that operation.
 
@@ -67,7 +67,7 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 
 Keep each section concise and link to focused artifacts for detail. Use a direct checklist in the relevant section rather than adding `Tasks` subsections or duplicating tasks across sections. Move a task when its classification changes. Use `Backlog` only when a task is deferred or does not yet belong to another section.
 
-Keep `Current State`, the section checklists, and linked artifacts consistent; together they form the state record. An unchecked task without a result remains pending. An unchecked task with a result or outcome link awaits user approval. A checked task records user-approved past work. Only the user can authorize changing `- [ ]` to `- [x]`; agents must never infer that approval or check a task on their own.
+Keep `Current State`, the section checklists, and linked artifacts consistent; together they form the state record. An unchecked task without a result remains pending. An unchecked task with a result or outcome link awaits user approval. For the active task in that state, set `Current State`'s blockers to `Awaiting user approval` and make its next action request the user's acceptance or rejection; never rely on the result link alone to convey the distinction. A checked task records user-approved past work. Only the user can authorize changing `- [ ]` to `- [x]`; agents must never infer that approval or check a task on their own.
 
 Create all stable headings for new quests. For an existing quest, add missing headings during the next substantive quest-material update, not as a side effect of `open` or `list`. Do not invent content merely to populate an empty section. Preserve useful unrelated organization while converging the README on this structure.
 
