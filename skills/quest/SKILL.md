@@ -1,6 +1,6 @@
 ---
 name: quest
-description: Opens, creates, lists, and maintains context quest records stored at a project-relative quest root. Defines their README structure, state semantics, recoverability invariant, and update rules. Use for quest record operations; use quest-master to advance substantive quest work through delegated workers.
+description: Provides lightweight shared context for sessions working inside context quests and opens, creates, lists, and maintains quest records stored at a project-relative quest root. Use when a session needs to research, plan, implement, test, review, or update work within a quest.
 ---
 
 <!-- argument-hint: <open|new|list> [slug] -->
@@ -25,6 +25,12 @@ Canonicalize the selected quest root to an absolute path and use it for every qu
 Every quest is a free-form workspace. Its only required file is `README.md`. Beyond the stable README sections defined below, add files and directories only when the work calls for them; do not impose metadata, statuses, naming schemes, or an internal directory structure.
 
 Always read `README.md` first. Use its links to select only the files relevant to the current request. Do not read every linked file by default; expand incrementally only when needed.
+
+## Working in a Quest
+
+A quest supplies shared context and a durable coordination record. It does not assign the session a fixed role or restrict the session to quest-material edits. Perform the requested research, planning, implementation, testing, review, or other project work directly. Explore and modify project files, run commands, and delegate to subagents when the task calls for them.
+
+Read linked quest artifacts only when the current task, evidence, or next action requires them. Before changing shared quest material, reread the affected content and preserve unrelated updates. Record durable findings, results, blockers, and the exact next action under the update rules before finishing substantive work.
 
 A slug must match `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Reject paths and non-slug names.
 
@@ -109,9 +115,9 @@ Rewrite a whole document only when most of it is invalid, its structure obscures
 
 ## Commands
 
-Use [Quest Master](../quest-master/SKILL.md) when a request advances substantive quest work through exploration, research, analysis, implementation, testing, or review.
+Perform substantive quest work in the current session. Use subagents when delegation adds value rather than as a requirement.
 
-Before executing a command, read its dedicated reference. Do not load unrelated command references unless the request requires more than one command.
+Before executing a quest record command, read its dedicated reference. Do not load unrelated command references unless the request requires more than one command.
 
 - `open`, `open current`, or `open current quest`: [Open](references/open.md)
 - `new`: [New](references/new.md)
