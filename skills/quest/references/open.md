@@ -4,7 +4,7 @@
 
 When the session is inside a canonically detected quest workspace, open the current quest. If the session is not inside a quest, ask for a slug.
 
-After opening a quest, summarize its goals and `Current State`, then follow only the links needed to understand the active task and its exact next action. If `Current State` is absent, incomplete, or stale, report the handoff gap and use the first relevant pending unchecked task in section order as a fallback. An unchecked task with a result or outcome link awaits user approval and must not be repeated; `Current State` must identify that approval explicitly. An unchecked task without a result remains pending. Do not inspect a project worktree or modify the README merely because the quest was opened.
+After opening a quest, summarize its goals and `Current State`, then follow only the links needed to understand the active tasks and their exact next actions. If `Current State` is absent, incomplete, or stale, report the handoff gap and use the first relevant actionable unchecked task in section order as a fallback. An unchecked normal task remains pending. An unchecked `Approval:` item with a result or outcome link awaits user approval and must not cause the underlying work to be repeated; `Current State` must identify that approval explicitly. For quest material predating the `Approval:` convention, also preserve that behavior when `Current State` explicitly says the item awaits approval. Do not inspect a project worktree or modify the README merely because the quest was opened.
 
 ## `open <slug>`
 

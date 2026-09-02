@@ -47,14 +47,16 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 
 ## Current State
 
-- Active task: A task from a section below, or none.
+- Active work: One or more tasks from the sections below, or none.
 - Checkpoint: The latest durable progress or result.
-- Next action: The exact resumption step.
+- Next actions: The exact resumption step for each active task, or the next overall step.
 - Blockers: None, or the unresolved blockers and approvals.
 
 ## Research
 
 ## Decisions
+
+## Plan
 
 ## Implementation
 
@@ -63,23 +65,24 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 ## Backlog
 ```
 
-- `Goals` is an unchecked checklist of desired outcomes. Use concise supporting text for scope boundaries when needed.
-- `Current State` is the single durable handoff. It names the active checklist task or says that none is active, records the latest checkpoint, gives the exact next action, and identifies blockers or approvals. Link to relevant artifacts, affected worktrees, and validation evidence instead of duplicating their detail.
+- `Goals` is a checklist of desired outcomes. Use concise supporting text for scope boundaries when needed.
+- `Current State` is the single durable handoff. It names the active checklist tasks or says that none are active, records the latest checkpoint, gives the exact next action for each active task, and identifies blockers or approvals. Link to relevant artifacts, affected worktrees, and validation evidence instead of duplicating their detail.
 - `Research` indexes evidence, findings, uncertainties, open questions, and research tasks.
 - `Decisions` indexes accepted choices, rationale, superseded choices, and unresolved decision tasks.
-- `Implementation` indexes implementation plans, outcomes, and implementation tasks.
-- `Review` indexes independent verification, findings, and review tasks.
+- `Plan` indexes implementation strategy, task decomposition, dependencies, parallelizable work streams, implementation validation, and detailed plan artifacts. Keep formal review tasks under `Review`. Submit a plan for formal review only after the user says it is ready.
+- `Implementation` indexes executable implementation tasks and their outcomes. Keep each task independently assignable and verifiable where practical, and identify dependencies when tasks cannot run in parallel.
+- `Review` indexes formal independent verification of plans and implementations, along with its findings and tasks. Begin plan review only after the user says the plan is ready. Begin implementation review only after the implementation tasks in its scope are complete and their validation evidence is recorded. Assign every review task to an independent agent that did not produce the work being reviewed; self-checks and automated tests are validation, not review.
 - `Backlog` holds deferred or not-yet-classified work and stays last because it can grow large.
 
 Keep each section concise and link to focused artifacts for detail. Use a direct checklist in the relevant section rather than adding `Tasks` subsections or duplicating tasks across sections. Move a task when its classification changes. Use `Backlog` only when a task is deferred or does not yet belong to another section.
 
-Keep `Current State`, the section checklists, and linked artifacts consistent; together they form the state record. An unchecked task without a result remains pending. An unchecked task with a result or outcome link awaits user approval. For the active task in that state, set `Current State`'s blockers to `Awaiting user approval` and make its next action request the user's acceptance or rejection; never rely on the result link alone to convey the distinction. A checked task records user-approved past work. Only the user can authorize changing `- [ ]` to `- [x]`; agents must never infer that approval or check a task on their own.
+Keep `Current State`, the section checklists, and linked artifacts consistent; together they form the state record. An unchecked task remains pending. An agent may check a normal task after completing it and recording its outcome and validation evidence. Prefix a checklist item with `Approval:` only when an explicit user decision is required; for example, a deliberate plan gate can be `- [ ] Approval: Accept [implementation plan](plan.md)`. Do not make routine implementation tasks approval gates. Only explicit user authorization permits changing an `Approval:` item from `- [ ]` to `- [x]`. When an approval item has a result ready for decision, set `Current State`'s blockers to `Awaiting user approval` and make a next action request the user's acceptance or rejection; never rely on the result link alone to convey the gate. In existing quest material written before the `Approval:` convention, preserve an unchecked result as an approval gate only when `Current State` explicitly identifies it as awaiting approval, and add the prefix during the next substantive update.
 
 Create all stable headings for new quests. For an existing quest, add missing headings during the next substantive quest-material update, not as a side effect of `open` or `list`. Do not invent content merely to populate an empty section. Preserve useful unrelated organization while converging the README on this structure.
 
 ## Recoverability Invariant
 
-After every quest-material update, the README and the focused artifacts it links must let an agent with no conversation or session history recover the current goal, active task, latest completed or attempted work, exact next action, blockers or required approvals, relevant files or worktrees, and validation state.
+After every quest-material update, the README and the focused artifacts it links must let an agent with no conversation or session history recover the current goal, active tasks, latest completed or attempted work, exact next actions, blockers or required approvals, relevant files or worktrees, and validation state.
 
 This invariant defines a valid quest record regardless of which workflow updates it. Treat chat history, transient tool output, live process state, and session-local identifiers as non-durable context rather than the sole record of progress.
 
@@ -87,11 +90,11 @@ This invariant defines a valid quest record regardless of which workflow updates
 
 When the user asks whether a quest or session is ready for reset, handoff, compaction, or a new session, complete this audit before declaring readiness:
 
-1. Reread `Current State`, the active task, and the focused artifacts linked for its checkpoint, next action, blockers, decisions, plan, and validation evidence.
+1. Reread `Current State`, the active tasks, and the focused artifacts linked for their checkpoint, next actions, blockers, decisions, plan, and validation evidence.
 2. Reconcile every explicit user decision and useful worker or tool result produced since the last durable checkpoint.
 3. Search the active artifacts for approval gates, open questions, blockers, residual risks, superseded requirements, and named contract terms affected by recent decisions. Remove or reclassify resolved items everywhere they appear.
 4. Confirm that `Current State`, section checklists, decision artifacts, active plans, blocker records, and embedded acceptance or residual-risk summaries describe one consistent current contract.
-5. Confirm that `Next action` names the first genuinely unresolved step and that referenced worktree state, changed files, validation results, and in-flight work are accurate.
+5. Confirm that each next action names the first genuinely unresolved step for its task and that referenced worktree state, changed files, validation results, and in-flight work are accurate.
 
 A record that is durable but stale, contradictory, or missing a recent decision is not reset-ready. Reconcile it before reporting readiness.
 
