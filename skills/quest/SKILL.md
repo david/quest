@@ -38,9 +38,13 @@ Before dispatching coding work, divide it into independently assignable and veri
 
 Run independent implementation tasks concurrently when practical:
 
-- Use parallel coders in the same worktree only when their file ownership does not overlap and their edits, generated files, dependency operations, and validation commands will not interfere.
+- Use parallel coders in the same worktree only when their file ownership does not overlap and their edits, generated files, dependency operations, validation commands, and serialized commit operations will not interfere. If safe commit serialization cannot be guaranteed, use separate worktrees.
 - Use separate worktrees when changes may overlap, need isolated repository state, or can be developed and validated independently. Within one quest, create and record a branch and worktree for each stream, dispatch a scoped coder in each worktree, then reconcile validated results into the quest's designated integration worktree, normally `work/1`.
 - Do not let workers independently update the same shared quest material. The coordinating session reconciles worker results into the quest record and integration worktree, including mechanical integration, conflict resolution, and narrowly scoped integration fixes.
+
+Every coder must commit its intentional changes on its assigned branch before ending a run and report the commit hash and validation result. This includes incomplete implementations and implementations later rejected by review; record their status clearly rather than leaving work only in the working tree. A coder that produced no changes reports that fact instead of creating an empty commit. In a shared worktree, each coder stages only explicitly owned paths, never broad unrelated changes, and commit operations must be serialized because the index and `HEAD` are shared.
+
+Preserve implementation commits as the traceable history of the quest. Reviewers record findings without amending, reverting, resetting, or otherwise rewriting the commits under review. Address review findings with follow-up commits layered on the original implementation, and preserve that sequence when reconciling worktrees into `work/1`. Do not squash or rewrite implementation and review-fix commits unless the user explicitly requests history cleanup after review.
 
 The agent performing formal review or acceptance testing must be independent of the agent whose implementation it assesses. Author-run checks and automated tests are implementation validation, not independent review or acceptance testing. Incidental inspection needed to route work, mechanical quest-record edits, and integration-owner reconciliation are coordination rather than delegated research or coding; keep these exceptions narrow so they do not absorb substantive project work.
 
