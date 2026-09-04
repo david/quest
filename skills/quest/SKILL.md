@@ -44,6 +44,18 @@ Run independent implementation tasks concurrently when practical:
 
 The agent performing formal review or acceptance testing must be independent of the agent whose implementation it assesses. Author-run checks and automated tests are implementation validation, not independent review or acceptance testing. Incidental inspection needed to route work, mechanical quest-record edits, and integration-owner reconciliation are coordination rather than delegated research or coding; keep these exceptions narrow so they do not absorb substantive project work.
 
+### Next-step ownership
+
+Do not make the user repeatedly ask what happens next. When opening a quest, reporting progress, completing substantive work, or encountering a blocker:
+
+1. State one concrete recommended next step, selected from the first genuinely unresolved action in the quest record.
+2. Recommend a default when several viable options remain. Explain alternatives only when their tradeoffs materially affect the decision.
+3. Continue into the next non-blocked step when it is already authorized by the user's request and does not require a reserved approval. Do not stop merely to ask whether to do routine follow-through.
+4. When user input or approval is genuinely required, ask the smallest decision needed, recommend an option, and state what will happen immediately after the answer.
+5. When blocked externally, identify the owner or evidence needed and recommend the first action that can still advance the quest.
+
+Keep the durable `Next actions` field aligned with this recommendation. A list of unresolved choices without a recommended path is not an adequate handoff or final response.
+
 A slug must match `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Reject paths and non-slug names.
 
 ## README.md
@@ -61,7 +73,7 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 
 - Active work: One or more tasks from the sections below, or none.
 - Checkpoint: The latest durable progress or result.
-- Next actions: The exact resumption step for each active task, or the next overall step.
+- Next actions: The exact recommended resumption step for each active task, or the recommended next overall step.
 - Blockers: None, or the unresolved blockers and approvals.
 
 ## Research
@@ -78,7 +90,7 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 ```
 
 - `Goals` is a checklist of desired outcomes. Use concise supporting text for scope boundaries when needed.
-- `Current State` is the single durable handoff. It names the active checklist tasks or says that none are active, records the latest checkpoint, gives the exact next action for each active task, and identifies blockers or approvals. Link to relevant artifacts, affected worktrees, and validation evidence instead of duplicating their detail.
+- `Current State` is the single durable handoff. It names the active checklist tasks or says that none are active, records the latest checkpoint, gives the exact recommended next action for each active task, and identifies blockers or approvals. Link to relevant artifacts, affected worktrees, and validation evidence instead of duplicating their detail. Recommendations must select a path rather than merely enumerate options, unless choosing among those options is an explicit user approval gate.
 - `Research` indexes evidence, findings, uncertainties, open questions, and research tasks.
 - `Decisions` indexes accepted choices, rationale, superseded choices, and unresolved decision tasks.
 - `Plan` indexes implementation strategy, task decomposition, dependencies, parallelizable work streams, implementation validation, and detailed plan artifacts. Keep formal review tasks under `Review`. Submit a plan for formal review only after the user says it is ready, then obtain explicit user approval of the reviewed plan before implementation begins.
@@ -94,7 +106,7 @@ Create all stable headings for new quests. For an existing quest, add missing he
 
 ## Recoverability Invariant
 
-After every quest-material update, the README and the focused artifacts it links must let an agent with no conversation or session history recover the current goal, active tasks, latest completed or attempted work, exact next actions, blockers or required approvals, relevant files or worktrees, and validation state.
+After every quest-material update, the README and the focused artifacts it links must let an agent with no conversation or session history recover the current goal, active tasks, latest completed or attempted work, exact recommended next actions, blockers or required approvals, relevant files or worktrees, and validation state.
 
 This invariant defines a valid quest record regardless of which workflow updates it. Treat chat history, transient tool output, live process state, and session-local identifiers as non-durable context rather than the sole record of progress.
 
