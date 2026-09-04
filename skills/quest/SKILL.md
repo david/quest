@@ -1,20 +1,47 @@
 ---
 name: quest
-description: Provides lightweight shared context for sessions working inside context quests and opens, creates, lists, and maintains quest records stored at a project-relative quest root. Use when a session needs to research, plan, implement, test, review, or update work within a quest.
+description: >
+  Open, create, list, and maintain durable quest records for work that spans
+  sessions or needs a recoverable handoff. Use for quest workspace discovery,
+  current-state reconciliation, lifecycle commands, and routing work to an
+  optional quest capability skill.
 ---
 
 <!-- argument-hint: <open|new|list> [slug] -->
 
 # Quest
 
-Resolve the quest root and any current quest context once per operation from the session's current working directory, never from the skill directory:
+Use quests as lightweight shared context, not as a mandatory project process.
+A quest may involve any kind of work, and its activities need not follow a
+linear sequence.
 
-1. First inspect the current working directory and its ancestors for a canonical quest directory. A candidate must have a slug basename, contain `README.md`, and have a parent named `quests`. When a match exists, it is the current quest and its parent is the quest root. Run this check before considering any configured root so a quest opened directly remains self-identifying.
-2. If the session is not inside a quest, inspect the applicable repository instructions already supplied in the session context for a declaration written as `Quest root: <path>`. Never search for instruction files. Resolve an absolute declaration directly and a relative declaration from the directory containing the declaring instruction file. The most specific applicable declaration wins. Use it only when it resolves to an existing directory named `quests`.
-3. If no applicable declaration exists and `./quests` is an existing directory, use it.
-4. If no candidate succeeds, stop and report the current-quest, declared-root, and `./quests` candidates checked. Do not create a `quests` directory merely to make root detection succeed, infer one from repository depth, or fall back to a fixed path.
+## Resolve The Quest
 
-Canonicalize the selected quest root to an absolute path and use it for every quest read, write, and search in that operation.
+Resolve the quest root and any current quest context once per operation from
+the session's current working directory, never from the skill directory:
+
+1. First inspect the current working directory and its ancestors for a
+   canonical quest directory. A candidate must have a slug basename, contain
+   `README.md`, and have a parent named `quests`. When a match exists, it is the
+   current quest and its parent is the quest root. Run this check before
+   considering any configured root so a quest opened directly remains
+   self-identifying.
+2. If the session is not inside a quest, inspect the applicable repository
+   instructions already supplied in the session context for a declaration
+   written as `Quest root: <path>`. Never search for instruction files. Resolve
+   an absolute declaration directly and a relative declaration from the
+   directory containing the declaring instruction file. The most specific
+   applicable declaration wins. Use it only when it resolves to an existing
+   directory named `quests`.
+3. If no applicable declaration exists and `./quests` is an existing directory,
+   use it.
+4. If no candidate succeeds, stop and report the current-quest, declared-root,
+   and `./quests` candidates checked. Do not create a `quests` directory merely
+   to make root detection succeed, infer one from repository depth, or fall
+   back to a fixed path.
+
+Canonicalize the selected quest root to an absolute path and use it for every
+quest read, write, and search in that operation.
 
 ```text
 <quest-root>/
@@ -22,49 +49,19 @@ Canonicalize the selected quest root to an absolute path and use it for every qu
     └── README.md
 ```
 
-Every quest is a free-form workspace. Its only required file is `README.md`. Beyond the stable README sections defined below, add files and directories only when the work calls for them; do not impose metadata, statuses, naming schemes, or an internal directory structure.
-
-Always read `README.md` first. Use its links to select only the files relevant to the current request. Do not read every linked file by default; expand incrementally only when needed.
-
-## Working in a Quest
-
-A quest supplies shared context and a durable coordination record. The coordinating session owns planning, task decomposition, dispatch, quest-state maintenance, integration, and final reconciliation. It may inspect project files and run commands as needed to coordinate the work, but delegate substantive research, coding, formal review, and acceptance testing to subagents.
-
-Read linked quest artifacts only when the current task, evidence, or next action requires them. Before changing shared quest material, reread the affected content and preserve unrelated updates. Record durable findings, results, blockers, and the exact next action under the update rules before finishing substantive work.
-
-### Delegation and parallel implementation
-
-Before dispatching coding work, divide it into independently assignable and verifiable tasks when the resulting parallelism or ownership clarity justifies the coordination cost. Record each task's scope, dependencies, file ownership, worktree, validation requirements, and integration status in the quest. Do not subdivide work merely to create more assignments, and prefer sequential work when tasks share an evolving contract, overlap substantially, or require one result to shape the next.
-
-Run independent implementation tasks concurrently when practical:
-
-- Use parallel coders in the same worktree only when their file ownership does not overlap and their edits, generated files, dependency operations, validation commands, and serialized commit operations will not interfere. If safe commit serialization cannot be guaranteed, use separate worktrees.
-- Use separate worktrees when changes may overlap, need isolated repository state, or can be developed and validated independently. Within one quest, create and record a branch and worktree for each stream, dispatch a scoped coder in each worktree, then reconcile validated results into the quest's designated integration worktree, normally `work/1`.
-- Do not let workers independently update the same shared quest material. The coordinating session reconciles worker results into the quest record and integration worktree, including mechanical integration, conflict resolution, and narrowly scoped integration fixes.
-
-Every coder must commit its intentional changes on its assigned branch before ending a run and report the commit hash and validation result. This includes incomplete implementations and implementations later rejected by review; record their status clearly rather than leaving work only in the working tree. A coder that produced no changes reports that fact instead of creating an empty commit. In a shared worktree, each coder stages only explicitly owned paths, never broad unrelated changes, and commit operations must be serialized because the index and `HEAD` are shared.
-
-Preserve implementation commits as the traceable history of the quest. Reviewers record findings without amending, reverting, resetting, or otherwise rewriting the commits under review. Address review findings with follow-up commits layered on the original implementation, and preserve that sequence when reconciling worktrees into `work/1`. Do not squash or rewrite implementation and review-fix commits unless the user explicitly requests history cleanup after review.
-
-The agent performing formal review or acceptance testing must be independent of the agent whose implementation it assesses. Author-run checks and automated tests are implementation validation, not independent review or acceptance testing. Incidental inspection needed to route work, mechanical quest-record edits, and integration-owner reconciliation are coordination rather than delegated research or coding; keep these exceptions narrow so they do not absorb substantive project work.
-
-### Next-step ownership
-
-Do not make the user repeatedly ask what happens next. When opening a quest, reporting progress, completing substantive work, or encountering a blocker:
-
-1. State one concrete recommended next step, selected from the first genuinely unresolved action in the quest record.
-2. Recommend a default when several viable options remain. Explain alternatives only when their tradeoffs materially affect the decision.
-3. Continue into the next non-blocked step when it is already authorized by the user's request and does not require a reserved approval. Do not stop merely to ask whether to do routine follow-through.
-4. When user input or approval is genuinely required, ask the smallest decision needed, recommend an option, and state what will happen immediately after the answer.
-5. When blocked externally, identify the owner or evidence needed and recommend the first action that can still advance the quest.
-
-Keep the durable `Next actions` field aligned with this recommendation. A list of unresolved choices without a recommended path is not an adequate handoff or final response.
-
 A slug must match `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Reject paths and non-slug names.
 
-## README.md
+## Quest Record
 
-Treat the README as the quest's lean task record and artifact index. Use these stable sections in this order:
+Every quest is a free-form workspace. Its only required file is `README.md`.
+Do not impose metadata, statuses, naming schemes, or an internal directory
+structure beyond the stable README sections below.
+
+Always read `README.md` first. Follow only the links needed for the current
+request, active work, and exact next action. Before changing shared quest
+material, reread the affected content and preserve unrelated updates.
+
+Use these stable sections in order:
 
 ```markdown
 # Quest Title
@@ -93,65 +90,93 @@ Treat the README as the quest's lean task record and artifact index. Use these s
 ## Backlog
 ```
 
-- `Goals` is a checklist of desired outcomes. Use concise supporting text for scope boundaries when needed.
-- `Current State` is the single durable handoff. It names the active checklist tasks or says that none are active, records the latest checkpoint, gives the exact recommended next action for each active task, and identifies blockers or approvals. Link to relevant artifacts, affected worktrees, and validation evidence instead of duplicating their detail. Recommendations must select a path rather than merely enumerate options, unless choosing among those options is an explicit user approval gate.
-- `Research` indexes evidence, findings, uncertainties, open questions, and research tasks.
-- `Decisions` indexes accepted choices, rationale, superseded choices, and unresolved decision tasks.
-- `Plan` indexes implementation strategy, task decomposition, dependencies, parallelizable work streams, implementation validation, and detailed plan artifacts. Keep formal review tasks under `Review`. Submit a plan for formal review only after the user says it is ready, then obtain explicit user approval of the reviewed plan before implementation begins.
-- `Implementation` indexes executable implementation tasks and their outcomes. Keep each task independently assignable and verifiable where practical, and identify dependencies when tasks cannot run in parallel.
-- `Review` indexes formal independent verification of plans and implementations, along with its findings and tasks. Begin plan review only after the user says the plan is ready. Review completion does not approve the plan on the user's behalf. Begin implementation review only after the implementation tasks in its scope are complete and their validation evidence is recorded. Assign every review task to an independent agent that did not produce the work being reviewed; self-checks and automated tests are validation, not review.
-- `Backlog` holds deferred or not-yet-classified work and stays last because it can grow large.
+- `Goals` is a checklist of desired outcomes and concise scope boundaries.
+- `Current State` is the single durable handoff. Link to detail instead of
+  duplicating it.
+- `Research` and `Decisions` index evidence and accepted choices.
+- `Plan` indexes the intended strategy, boundaries, risks, and plan artifacts.
+- `Implementation` holds executable task checklists and their outcomes.
+- `Review` indexes assessment tasks, evidence, findings, and resolutions.
+- `Backlog` holds deferred or not-yet-classified work and stays last.
 
-Keep each section concise and link to focused artifacts for detail. Use a direct checklist in the relevant section rather than adding `Tasks` subsections or duplicating tasks across sections. Move a task when its classification changes. Use `Backlog` only when a task is deferred or does not yet belong to another section.
+Keep sections concise. Put each checklist item in the section that currently
+owns it; do not duplicate tasks or add `Tasks` subsections. An unchecked normal
+task remains pending. Check it only after recording its outcome and appropriate
+evidence. Add missing stable headings during the next substantive quest update,
+not merely because a quest was opened or listed. Do not invent content to
+populate an empty section.
 
-Keep `Current State`, the section checklists, and linked artifacts consistent; together they form the state record. An unchecked task remains pending. An agent may check a normal task after completing it and recording its outcome and validation evidence. Prefix a checklist item with `Approval:` only when an explicit user decision is required. Require approval for a reviewed implementation plan and for choices or consequential actions that the user explicitly reserves; do not require it for research, implementation, validation, review, documentation, or administrative completion. For example: `- [ ] Approval: Accept [implementation plan](plan.md)`. Only explicit user authorization permits changing an `Approval:` item from `- [ ]` to `- [x]`. When an approval item has a result ready for decision, set `Current State`'s blockers to `Awaiting user approval` and make a next action request the user's acceptance or rejection; never rely on the result link alone to convey the gate. In existing quest material written before the `Approval:` convention, preserve an unchecked result as an approval gate only when `Current State` explicitly identifies it as awaiting approval, and add the prefix during the next substantive update.
+## Shared Update Contract
 
-Create all stable headings for new quests. For an existing quest, add missing headings during the next substantive quest-material update, not as a side effect of `open` or `list`. Do not invent content merely to populate an empty section. Preserve useful unrelated organization while converging the README on this structure.
+When work changes or attempts to change a quest's goals, findings, decisions,
+plans, implementation, review evidence, backlog, or linked artifacts, reconcile
+the affected section, checklist item, links, and `Current State` before
+finishing.
 
-## Recoverability Invariant
+Before substantive work, confirm the active task's intended outcome, boundaries,
+authorization, dependencies, and expected evidence. Follow applicable project,
+environment, safety, and domain instructions; preserve unrelated work; and use
+the simplest approach that satisfies the current contract. Validate the result
+proportionately. A failed or incomplete attempt is still a result: preserve
+useful observations, state what remains, and do not present attempted work as
+complete.
 
-After every quest-material update, the README and the focused artifacts it links must let an agent with no conversation or session history recover the current goal, active tasks, latest completed or attempted work, exact recommended next actions, blockers or required approvals, relevant files or worktrees, and validation state.
+After every quest-material update, the README and focused artifacts it links
+must let an agent with no session history recover:
 
-This invariant defines a valid quest record regardless of which workflow updates it. Treat chat history, transient tool output, live process state, and session-local identifiers as non-durable context rather than the sole record of progress.
+- the current goal and active tasks;
+- the latest completed or attempted work;
+- exact recommended next actions;
+- blockers and required approvals;
+- relevant files or workspaces; and
+- the validation or evidence state.
 
-### Reset-Readiness Audit
+Treat chat history, transient output, live processes, and session-local IDs as
+non-durable. Correct false or obsolete guidance, label useful historical or
+superseded material clearly, preserve evidence that may prevent repeated work,
+and remove resolved or irrelevant open questions. Never leave current and
+superseded guidance contradictory or unlabeled. Prefer targeted edits; rewrite
+a document only when targeted changes would leave it incoherent.
 
-When the user asks whether a quest or session is ready for reset, handoff, compaction, or a new session, complete this audit before declaring readiness:
+Prefix a checklist item with `Approval:` only when an explicit user decision is
+actually required by the user, applicable policy, or a consequential reserved
+choice. Only explicit user authorization may check that item. When a result is
+ready for approval, set `Blockers` to `Awaiting user approval` and make the next
+action request acceptance or rejection. For older records without the prefix,
+treat an unchecked result as an approval gate only when `Current State`
+explicitly says it awaits approval, then add `Approval:` during the next
+substantive update.
 
-1. Reread `Current State`, the active tasks, and the focused artifacts linked for their checkpoint, next actions, blockers, decisions, plan, and validation evidence.
-2. Reconcile every explicit user decision and useful worker or tool result produced since the last durable checkpoint.
-3. Search the active artifacts for approval gates, open questions, blockers, residual risks, superseded requirements, and named contract terms affected by recent decisions. Remove or reclassify resolved items everywhere they appear.
-4. Confirm that `Current State`, section checklists, decision artifacts, active plans, blocker records, and embedded acceptance or residual-risk summaries describe one consistent current contract.
-5. Confirm that each next action names the first genuinely unresolved step for its task and that referenced worktree state, changed files, validation results, and in-flight work are accurate.
+## Next-Step Ownership
 
-A record that is durable but stale, contradictory, or missing a recent decision is not reset-ready. Reconcile it before reporting readiness.
+When opening a quest, reporting progress, completing substantive work, or
+encountering a blocker, state one concrete recommended next step from the first
+genuinely unresolved action. Recommend a default when alternatives exist and
+explain another option only when its tradeoff matters. Continue authorized,
+non-blocked routine follow-through; ask only for the smallest genuinely needed
+decision. Keep `Current State` aligned with the recommendation.
 
-## Updating Quest Material
+## Optional Capabilities
 
-When an operation changes or attempts to change a quest's goals, findings, plans, implementation, review evidence, backlog, or linked artifacts, reconcile the relevant README sections, task item, and `Current State` before finishing.
+Load only the capability needed for the current request. These are not required
+stages and may be used in any order or more than once:
 
-Keep current guidance clear without discarding useful evidence. When findings or decisions change existing quest material, prefer a new focused artifact plus the smallest reconciliation edits needed in existing indexes, statuses, and summaries. Do not create a new file merely to avoid correcting a contradiction elsewhere.
+- `quest-research` for evidence, investigation, and open questions;
+- `quest-planning` for deciding what should be done and why;
+- `quest-partitioning` for turning a stable plan into executable tasks;
+- `quest-review` for risk-based independent assessment; and
+- `quest-handoff` for reconciliation before reset, compaction, or transfer.
 
-Classify affected material before editing it:
-
-- Correct or remove factually false statements and obsolete instructions.
-- Replace superseded requirements with the current contract. Preserve the old requirement only when its rejection or evolution remains useful, and label it explicitly in past tense under a heading such as `Original concern`, `Investigated and rejected`, `Superseded requirement`, or `Historical evidence`.
-- Preserve observations, test results, failed approaches, and decision rationale that may prevent repeated work.
-- Mark resolved questions as resolved or remove them from open-question lists. Remove questions made irrelevant unless explaining why they became irrelevant has continuing value.
-- Do not preserve untested speculation merely for historical completeness.
-
-Never leave current and superseded guidance contradictory or unlabeled. When a decision resolves part of a challenge or risk, normally create or update the focused decision artifact, update the parent index status, and make a targeted status or wording change in the affected document while leaving unrelated investigation material intact.
-
-Rewrite a whole document only when most of it is invalid, its structure obscures the current state, or targeted edits would leave it incoherent. Before rewriting, account for every useful fact, observation, result, rationale, and remaining question so the rewrite does not silently lose information.
+Specialized skills may be used instead of or alongside these capabilities. Do
+not duplicate a specialist workflow inside the quest record.
 
 ## Commands
 
-Perform quest coordination in the current session and follow the delegation and parallel-implementation requirements above for substantive project work.
-
-Before executing a quest record command, read its dedicated reference. Do not load unrelated command references unless the request requires more than one command.
+Before running a command, read only its dedicated reference:
 
 - `open`, `open current`, or `open current quest`: [Open](references/open.md)
 - `new`: [New](references/new.md)
 - `list`: [List](references/list.md)
 
-When creating a quest, never replace an existing quest directory or file. Edit existing quest material narrowly under the update rules above.
+When creating a quest, never replace an existing quest directory or file. Edit
+existing quest material narrowly under the shared update contract.
