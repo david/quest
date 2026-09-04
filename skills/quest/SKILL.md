@@ -164,6 +164,7 @@ stages and may be used in any order or more than once:
 - `quest-research` for evidence, investigation, and open questions;
 - `quest-planning` for deciding what should be done and why;
 - `quest-partitioning` for turning a stable plan into executable tasks;
+- `quest-acceptance-planning` for creating a durable acceptance contract;
 - `quest-review` for risk-based independent assessment; and
 - `quest-handoff` for reconciliation before reset, compaction, or transfer.
 
