@@ -28,9 +28,21 @@ Always read `README.md` first. Use its links to select only the files relevant t
 
 ## Working in a Quest
 
-A quest supplies shared context and a durable coordination record. It does not assign the session a fixed role or restrict the session to quest-material edits. Perform the requested research, planning, implementation, testing, review, or other project work directly. Explore and modify project files, run commands, and delegate to subagents when the task calls for them.
+A quest supplies shared context and a durable coordination record. The coordinating session owns planning, task decomposition, dispatch, quest-state maintenance, integration, and final reconciliation. It may inspect project files and run commands as needed to coordinate the work, but delegate substantive research, coding, formal review, and acceptance testing to subagents.
 
 Read linked quest artifacts only when the current task, evidence, or next action requires them. Before changing shared quest material, reread the affected content and preserve unrelated updates. Record durable findings, results, blockers, and the exact next action under the update rules before finishing substantive work.
+
+### Delegation and parallel implementation
+
+Before dispatching coding work, divide it into independently assignable and verifiable tasks when the resulting parallelism or ownership clarity justifies the coordination cost. Record each task's scope, dependencies, file ownership, worktree, validation requirements, and integration status in the quest. Do not subdivide work merely to create more assignments, and prefer sequential work when tasks share an evolving contract, overlap substantially, or require one result to shape the next.
+
+Run independent implementation tasks concurrently when practical:
+
+- Use parallel coders in the same worktree only when their file ownership does not overlap and their edits, generated files, dependency operations, and validation commands will not interfere.
+- Use separate worktrees when changes may overlap, need isolated repository state, or can be developed and validated independently. Within one quest, create and record a branch and worktree for each stream, dispatch a scoped coder in each worktree, then reconcile validated results into the quest's designated integration worktree, normally `work/1`.
+- Do not let workers independently update the same shared quest material. The coordinating session reconciles worker results into the quest record and integration worktree, including mechanical integration, conflict resolution, and narrowly scoped integration fixes.
+
+The agent performing formal review or acceptance testing must be independent of the agent whose implementation it assesses. Author-run checks and automated tests are implementation validation, not independent review or acceptance testing. Incidental inspection needed to route work, mechanical quest-record edits, and integration-owner reconciliation are coordination rather than delegated research or coding; keep these exceptions narrow so they do not absorb substantive project work.
 
 A slug must match `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Reject paths and non-slug names.
 
@@ -118,7 +130,7 @@ Rewrite a whole document only when most of it is invalid, its structure obscures
 
 ## Commands
 
-Perform substantive quest work in the current session. Use subagents when delegation adds value rather than as a requirement.
+Perform quest coordination in the current session and follow the delegation and parallel-implementation requirements above for substantive project work.
 
 Before executing a quest record command, read its dedicated reference. Do not load unrelated command references unless the request requires more than one command.
 
