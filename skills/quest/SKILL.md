@@ -3,11 +3,11 @@ name: quest
 description: >
   Open, create, list, and maintain durable quest records for work that spans
   sessions or needs a recoverable handoff. Use for quest workspace discovery,
-  current-state reconciliation, lifecycle commands, and routing work to an
+  current-state reconciliation, project installation, lifecycle commands, and routing work to an
   optional quest capability skill.
 ---
 
-<!-- argument-hint: <open|new|list> [slug] -->
+<!-- argument-hint: <install|open|new|list> [path|slug] -->
 
 # Quest
 
@@ -21,6 +21,9 @@ orchestrator may direct the work independently.
 
 Resolve the quest root and any current quest context once per operation from
 the session's current working directory, never from the skill directory:
+
+Exception: `install` bootstraps a project that may not have a quest root yet.
+Use its dedicated reference to select the installation target instead.
 
 1. First inspect the current working directory and its ancestors for a
    canonical quest directory. A candidate must have a slug basename, contain
@@ -191,6 +194,7 @@ Before running a command, read only its dedicated reference:
 - `open`, `open current`, or `open current quest`: [Open](references/open.md)
 - `new`: [New](references/new.md)
 - `list`: [List](references/list.md)
+- `install`: [Install](references/install.md)
 
 When creating a quest, never replace an existing quest directory or file. Edit
 existing quest material narrowly under the shared update contract.
