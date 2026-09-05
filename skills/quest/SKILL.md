@@ -180,7 +180,7 @@ stages and may be used in any order or more than once:
 Specialized skills may be used instead of or alongside these capabilities. Do
 not duplicate a specialist workflow inside the quest record.
 
-`quest-orchestrator` is an opt-in guide for a default discovery-to-delivery
+`quest-master` is an opt-in guide for a default discovery-to-delivery
 workflow. Do not load it merely because a quest is opened or updated; using
 quest memory or an individual capability does not opt into orchestration.
 
