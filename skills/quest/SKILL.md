@@ -13,7 +13,9 @@ description: >
 
 Use quests as lightweight shared context, not as a mandatory project process.
 A quest may involve any kind of work, and its activities need not follow a
-linear sequence.
+linear sequence. This skill is the durable memory layer: it does not select or
+enforce a workflow. Users, individual capabilities, or an explicitly selected
+orchestrator may direct the work independently.
 
 ## Resolve The Quest
 
@@ -147,14 +149,18 @@ treat an unchecked result as an approval gate only when `Current State`
 explicitly says it awaits approval, then add `Approval:` during the next
 substantive update.
 
-## Next-Step Ownership
+## Actionable Handoff
 
 When opening a quest, reporting progress, completing substantive work, or
-encountering a blocker, state one concrete recommended next step from the first
-genuinely unresolved action. Recommend a default when alternatives exist and
-explain another option only when its tradeoff matters. Continue authorized,
-non-blocked routine follow-through; ask only for the smallest genuinely needed
-decision. Keep `Current State` aligned with the recommendation.
+encountering a blocker, preserve one concrete recommended next action for each
+active task, or the next overall action if work remains. If the agreed work is
+complete or intentionally paused, record that without inventing a next task.
+Derive next actions from the user's direction, the active capability, or an
+explicitly selected workflow,
+not from the order of README sections. If no next action is established,
+recommend the smallest useful action supported by the current goal and evidence;
+do not infer a lifecycle or expand authorization. Keep `Current State` aligned
+with the recommendation and make unresolved decisions and blockers explicit.
 
 ## Optional Capabilities
 
@@ -173,6 +179,10 @@ stages and may be used in any order or more than once:
 
 Specialized skills may be used instead of or alongside these capabilities. Do
 not duplicate a specialist workflow inside the quest record.
+
+`quest-orchestrator` is an opt-in guide for a default discovery-to-delivery
+workflow. Do not load it merely because a quest is opened or updated; using
+quest memory or an individual capability does not opt into orchestration.
 
 ## Commands
 
