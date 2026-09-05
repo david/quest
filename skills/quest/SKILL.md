@@ -161,8 +161,9 @@ decision. Keep `Current State` aligned with the recommendation.
 Load only the capability needed for the current request. These are not required
 stages and may be used in any order or more than once:
 
+- `quest-goal` for clarifying desired outcomes, motivation, priorities, and scope;
 - `quest-research` for evidence, investigation, and open questions;
-- `quest-planning` for deciding what should be done and why;
+- `quest-planning` for choosing an approach to achieve the goals and why it fits;
 - `quest-partitioning` for turning a stable plan into executable tasks;
 - `quest-acceptance-planning` for creating a durable acceptance contract;
 - `quest-coding` for implementing coding tasks with proportionate repository,
