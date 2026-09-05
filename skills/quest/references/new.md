@@ -10,10 +10,14 @@ For an issue-backed quest, preserve the leading issue number and keep the remain
 
 When project instructions configure a quest template, follow their source and
 destination rules. Use [Template rendering](render-template.md) for
-`mise.local.toml` after the intended application workspace exists and an explicit
+`mise.local.toml` after its destination directory exists and an explicit
 app port has been selected. Keep the directory slug hyphenated; the renderer
 normalizes only substituted values. Record workspace paths, selected ports, and
-setup results in the README without copying secrets. Do not assume the template
-belongs at the quest root, overwrite existing configuration, or infer permission
+setup results in the README without copying secrets. The default destination is
+the individual quest directory alongside its README, not the shared quest root
+or an application worktree. Application worktrees, when authorized, use
+`<quest-root>/<slug>/work/<n>/`; rendering the quest config does not require a
+worktree to exist. Preserve explicit project alternatives. Do not overwrite
+existing configuration or infer permission
 to provision resources from the presence of a template. If required workspace
 setup is blocked, preserve the quest record and the exact next setup action.

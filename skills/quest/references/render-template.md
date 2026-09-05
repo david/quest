@@ -7,10 +7,15 @@ not the project directory; do not copy the renderer into each project.
 ```sh
 python3 <quest-skill-directory>/scripts/render-template.py \
   --template <project-directory>/quest-template/mise.local.toml \
-  --destination <active-workspace>/mise.local.toml \
+  --destination <quest-root>/123-add-login/mise.local.toml \
   --slug 123-add-login \
   --app-port 5101
 ```
+
+The default destination is the quest directory alongside its README, not an
+application worktree. Application worktrees live beneath it at `work/<n>/` and
+inherit the configuration through mise's ancestor discovery. Follow an existing
+project's explicitly configured alternative destination instead of migrating it.
 
 Quote actual paths as needed. The destination parent must already exist. The
 renderer handles only this explicitly selected TOML file, not recursive copying
