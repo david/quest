@@ -17,6 +17,13 @@ linear sequence. This skill is the durable memory layer: it does not select or
 enforce a workflow. Users, individual capabilities, or an explicitly selected
 orchestrator may direct the work independently.
 
+Quest memory supports future decisions and continuation; it is not an activity
+log. Preserve information when losing it could cause a later agent to make a
+materially worse decision, repeat costly investigation, overlook an unresolved
+obligation, or resume incorrectly. Routine activity alone does not require a
+durable record. Explicit deliverable, provenance, and audit requirements still
+apply.
+
 ## Resolve The Quest
 
 Resolve the quest root and any current quest context once per operation from
@@ -58,9 +65,10 @@ A slug must match `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Reject paths and non-slug names.
 
 ## Quest Record
 
-Every quest is a free-form workspace. Its only required file is `README.md`.
-Do not impose metadata, statuses, naming schemes, or an internal directory
-structure beyond the stable README sections below.
+Every quest is a workspace whose only required file is `README.md`. Use the
+phase-aligned ownership conventions below for supporting files; do not create
+empty directories, per-session reports, or workflow metadata merely for
+consistency.
 
 Always read `README.md` first. Follow only the links needed for the current
 request, active work, and exact next action. Before changing shared quest
@@ -111,37 +119,92 @@ evidence. Add missing stable headings during the next substantive quest update,
 not merely because a quest was opened or listed. Do not invent content to
 populate an empty section.
 
+## File Ownership And Stability
+
+Organize retained material by purpose, using the phases and capabilities below
+as navigation, not a mandatory sequence:
+
+| Owner | Supporting files, when needed |
+| --- | --- |
+| Goal discovery (`quest-goal`) | `goals/` for substantial goal context; concise outcomes stay in README `Goals` |
+| Research (`quest-research`) | `research/` for findings, evidence, and consequential unknowns |
+| Accepted choices (across capabilities) | `decisions/` for decisions and rationale |
+| Planning and acceptance planning | `plan/` for strategy and acceptance contracts |
+| Partitioning and implementation | `implementation/` for task specifications and implementation outcomes |
+| Review and QA | `review/` for assessments; use a specialist's artifact convention when applicable |
+| Delivery (`quest-master` or the selected delivery workflow) | `delivery/` for delivery-specific evidence that needs local retention |
+
+Index files in the corresponding README section. Add a `Delivery` section before
+`Backlog` when delivery material needs an index. Respect user-requested locations,
+specialist conventions, and coherent existing layouts; do not relocate material
+solely to enforce these defaults.
+
+Within a phase, separate distinct aspects that are independently useful or
+likely to change independently. Prefer updating the file that already owns an
+aspect over creating a file for each activity, worker, session, or status
+change. A phase does not require a file merely because work occurred in it.
+
+Keep volatile coordination state in README `Current State`. Supporting files
+should be self-contained for their purpose through concise context and
+references, not repeated goals, workspace details, live blockers, or next
+actions. Keep a fact in one owning location; indexes and other files should
+link rather than copy it. A required follow-up intrinsic to a finding belongs
+with that finding, while the choice of what to do next belongs in Current State.
+
+Create a supporting file when useful detail would obscure the README or when
+the file is itself a requested deliverable. Prefer a reference to an existing
+authoritative source over copying it. Retain local rationale, evidence, or
+uncertainty when that source does not capture it or may not remain available.
+Identify a version or observation time when needed to interpret evidence;
+refresh live external state before relying on it for action.
+
+Preserve stable context for selective loading and cache reuse. A routine
+progress update should touch only records whose meaning changed. Do not embed
+volatile status in otherwise stable knowledge or rewrite unrelated material
+to make every file reflect the latest activity.
+
 ## Shared Update Contract
 
-When work changes or attempts to change a quest's goals, findings, decisions,
-plans, implementation, review evidence, backlog, or linked artifacts, reconcile
-the affected section, checklist item, links, and `Current State` before
-finishing.
+Before writing, identify what changed in the durable context needed to continue.
+If nothing material changed, no quest update is necessary. Otherwise update its
+owning record and only those indexes, tasks, links, or current instructions that
+would become misleading. Update Current State when the active work, checkpoint,
+next action, or blocker changes; do not repeat the outcome across artifacts to
+demonstrate reconciliation.
 
 Before substantive work, confirm the active task's intended outcome, boundaries,
 authorization, dependencies, and expected evidence. Follow applicable project,
 environment, safety, and domain instructions; preserve unrelated work; and use
 the simplest approach that satisfies the current contract. Validate the result
-proportionately. A failed or incomplete attempt is still a result: preserve
-useful observations, state what remains, and do not present attempted work as
-complete.
+proportionately. A failed or incomplete attempt may contain important evidence:
+preserve observations needed to resume or avoid repeating the mistake, not an
+exhaustive execution trace. Do not present attempted work as complete.
 
-After every quest-material update, the README and focused artifacts it links
-must let an agent with no session history recover:
+The record as a whole, including referenced authoritative sources, must let an
+agent with no session history recover the context needed to continue:
 
 - the current goal and active tasks;
-- the latest completed or attempted work;
+- the meaningful checkpoint, not a history of every action;
 - exact recommended next actions;
 - blockers and required approvals;
 - relevant files or workspaces; and
-- the validation or evidence state.
+- the validation or evidence state and where to verify it.
+
+Each individual artifact or update need not repeat this context. Retain commands,
+identifiers, and operational details when needed for reproduction, interpretation,
+or recovery, not as proof that routine work occurred. Reference standing policy
+rather than repeatedly copying it; preserve quest-specific decisions or exceptions
+when they materially constrain continuation.
 
 Treat chat history, transient output, live processes, and session-local IDs as
-non-durable. Correct false or obsolete guidance, label useful historical or
-superseded material clearly, preserve evidence that may prevent repeated work,
-and remove resolved or irrelevant open questions. Never leave current and
-superseded guidance contradictory or unlabeled. Prefer targeted edits; rewrite
-a document only when targeted changes would leave it incoherent.
+non-durable. Replace obsolete checkpoints and next actions rather than stacking
+new status snapshots above them. Correct false or misleading guidance and remove
+resolved open questions. Preserve superseded material only when its rationale,
+provenance, or evidence remains useful, and label it clearly. A valid finding or
+review scoped to an earlier version does not become false merely because work
+advanced; leave it stable and link subsequent evidence where relevant. Prefer
+targeted edits; rewrite a document only when targeted changes would leave it
+incoherent. Do not use routine updates as a reason for unrelated reorganization.
 
 Prefix a checklist item with `Approval:` only when an explicit user decision is
 actually required by the user, applicable policy, or a consequential reserved
