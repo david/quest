@@ -1,13 +1,13 @@
 ---
 name: quest
 description: >
-  Open, create, list, and maintain durable quest records for work that spans
+  Open, create, list, archive, and maintain durable quest records for work that spans
   sessions or needs a recoverable handoff. Use for quest workspace discovery,
   current-state reconciliation, project installation, lifecycle commands, and routing work to an
   optional quest capability skill.
 ---
 
-<!-- argument-hint: <install|open|new|list> [path|slug] -->
+<!-- argument-hint: <install|open|new|list|archive> [path|slug] -->
 
 # Quest
 
@@ -47,8 +47,8 @@ Use its dedicated reference to select the installation target instead.
    directory containing the declaring instruction file. The most specific
    applicable declaration wins. Use it only when it resolves to an existing
    directory named `quests`.
-3. If no applicable declaration exists and `./quests` is an existing directory,
-   use it.
+3. If no applicable declaration exists and the current directory itself is named
+   `quests`, use it. Otherwise, if `./quests` is an existing directory, use it.
 4. If no candidate succeeds, stop and report the current-quest, declared-root,
    and `./quests` candidates checked. Do not create a `quests` directory merely
    to make root detection succeed, infer one from repository depth, or fall
@@ -59,11 +59,19 @@ quest read, write, and search in that operation.
 
 ```text
 <quest-root>/
-└── <quest-slug>/
-    └── README.md
+├── <quest-slug>/
+│   └── README.md
+└── .archived/
+    └── <archived-quest-slug>/
+        └── README.md
 ```
 
 A slug must match `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Reject paths and non-slug names.
+
+`.archived` is reserved storage, not an active quest. Archiving is explicit and
+does not imply that every goal, provider validation, or release gate is complete.
+Use the archive reference for its safety gates and cleanup; do not simply move a
+directory containing registered worktrees.
 
 ## Quest Record
 
@@ -280,6 +288,7 @@ Before running a command, read only its dedicated reference:
 - `open`, `open current`, or `open current quest`: [Open](references/open.md)
 - `new`: [New](references/new.md)
 - `list`: [List](references/list.md)
+- `archive`, `archive current`, or `archive <slug>`: [Archive](references/archive.md)
 - `install`: [Install](references/install.md)
 
 When creating a quest, never replace an existing quest directory or file. Edit
