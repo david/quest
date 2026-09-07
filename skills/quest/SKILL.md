@@ -89,6 +89,8 @@ Use these stable sections in order:
 ```markdown
 # Quest Title
 
+## Brief
+
 ## Goals
 
 - [ ] A desired outcome.
@@ -113,7 +115,10 @@ Use these stable sections in order:
 ## Backlog
 ```
 
-- `Goals` is a checklist of desired outcomes and concise scope boundaries.
+- `Brief` captures the initial request, relevant background, source links, stated
+  constraints, and suggested approaches as provisional input to discovery, not an
+  agreed specification. Keep it concise and link substantial existing material.
+- `Goals` is a checklist of established desired outcomes and concise scope boundaries.
 - `Current State` is the single durable handoff. Link to detail instead of
   duplicating it.
 - `Research` and `Decisions` index evidence and accepted choices.
@@ -128,6 +133,20 @@ task remains pending. Check it only after recording its outcome and appropriate
 evidence. Add missing stable headings during the next substantive quest update,
 not merely because a quest was opened or listed. Do not invent content to
 populate an empty section.
+
+At creation, capture supplied context in `Brief` and leave substantive sections
+empty; the example goal above illustrates a later established outcome, not a
+placeholder to insert. Follow the new reference for initial `Current State`.
+Suggestions in the brief are not accepted decisions or an approved task list.
+Explicit user constraints and authorization boundaries still apply. Use discovery
+and subsequent activities to establish content in its owning section, without
+requiring the user to repeat clear answers already supplied in the brief.
+Established goals and decisions govern ongoing work; the brief must not revive
+rejected approaches or override later user direction. Apply the shared retention
+test to it, removing misleading duplication or linking to the owning section as
+understanding develops rather than maintaining an immutable request transcript.
+Do not move established content in existing quests back into the brief merely to
+adopt this structure.
 
 ## File Ownership And Stability
 

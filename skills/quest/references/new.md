@@ -2,7 +2,27 @@
 
 ## `new <slug>`
 
-Refuse an invalid slug or a slug that already exists in the quest root. Create `<quest-root>/<slug>/README.md` with the quest title and the stable `Goals`, `Current State`, `Research`, `Decisions`, `Plan`, `Implementation`, `Review`, and `Backlog` headings in that order. Populate the sections only from context supplied by the user; leave a section empty rather than inventing content. Add supplied goals and initial tasks as unchecked items. Point `Current State` at the initial active work when the user supplied any; otherwise record that no task has started and name choosing the next task as the next action.
+Refuse an invalid slug or a slug that already exists in the quest root. Create
+`<quest-root>/<slug>/README.md` with the quest title and the stable `Brief`,
+`Goals`, `Current State`, `Research`, `Decisions`, `Plan`, `Implementation`,
+`Review`, and `Backlog` headings in that order.
+
+Capture supplied context only in `Brief`: the initial request, relevant background,
+source links, stated constraints, and suggested goals, approaches, or tasks. Treat
+this as input to discovery, not established goals, findings, accepted decisions,
+or an approved plan. Preserve explicit user constraints without inventing content.
+Leave `Brief` empty if no useful context was supplied, and leave all substantive
+sections empty. If further work was explicitly requested alongside creation,
+perform it separately after creating the record; its results may then populate
+their owning sections.
+
+Initialize `Current State` with no substantive task started, a checkpoint that the
+quest was created and whether a brief was captured, and any setup blockers. When
+the user has opted into `quest-master`, name goal discovery from the brief as the
+next action. Otherwise recommend clarifying the desired outcomes, unless the user
+has explicitly selected a different next activity; creation alone does not invoke
+or opt into orchestration. Keep workspace setup results and recovery actions here,
+not in substantive sections as invented tasks or findings.
 
 Keep quest creation administrative and bounded. Create the record and perform any required workspace setup, parent linkage, and indexing from supplied or already-known context. Link authoritative existing artifacts instead of rereading or restating them. A request to include the information needed for later work does not by itself authorize codebase inventory, external research, implementation planning, architecture or decision changes, contract reconciliation, testing, or implementation. Perform those activities only when the user explicitly requests them separately.
 
