@@ -75,68 +75,51 @@ directory containing registered worktrees.
 
 ## Quest Record
 
-Every quest is a workspace whose only required file is `README.md`. Use the
-phase-aligned ownership conventions below for supporting files; do not create
-empty directories, per-session reports, or workflow metadata merely for
-consistency.
+Every quest is a workspace whose only required file is `README.md`, with `Brief`
+and `Current State` as its only required sections. Do not create empty directories,
+per-session reports, or workflow metadata merely for consistency.
 
 Always read `README.md` first. Follow only the links needed for the current
 request, active work, and exact next action. Before changing shared quest
 material, reread the affected content and preserve unrelated updates.
 
-Use these stable sections in order:
+Create new records with this minimal structure:
 
 ```markdown
 # Quest Title
 
 ## Brief
 
-## Goals
-
-- [ ] A desired outcome.
-
 ## Current State
 
-- Active work: One or more tasks from the sections below, or none.
+- Active work: One or more active tasks or activities, or none.
 - Checkpoint: The latest durable progress or result.
 - Next actions: The exact recommended resumption step for each active task, or the recommended next overall step.
 - Blockers: None, or the unresolved blockers and approvals.
-
-## Research
-
-## Decisions
-
-## Plan
-
-## Implementation
-
-## Review
-
-## Backlog
 ```
 
 - `Brief` captures the initial request, relevant background, source links, stated
   constraints, and suggested approaches as provisional input to discovery, not an
   agreed specification. Keep it concise and link substantial existing material.
-- `Goals` is a checklist of established desired outcomes and concise scope boundaries.
 - `Current State` is the single durable handoff. Link to detail instead of
   duplicating it.
-- `Research` and `Decisions` index evidence and accepted choices.
-- `Plan` indexes the intended strategy, boundaries, risks, and plan artifacts.
-- `Implementation` holds executable task checklists and their outcomes.
-- `Review` indexes assessment tasks, evidence, findings, and resolutions.
-- `Backlog` holds deferred or not-yet-classified work and stays last.
+
+Additional sections and their ordering belong to the selected workflow or
+capability, not this memory layer. A standalone capability may add the sections
+it needs when recording its results without invoking `quest-master` or creating
+the rest of its layout. When explicitly selected, `quest-master` supplies the
+default workflow layout. Respect user-defined and coherent existing structures.
 
 Keep sections concise. Put each checklist item in the section that currently
 owns it; do not duplicate tasks or add `Tasks` subsections. An unchecked normal
 task remains pending. Check it only after recording its outcome and appropriate
-evidence. Add missing stable headings during the next substantive quest update,
-not merely because a quest was opened or listed. Do not invent content to
-populate an empty section.
+evidence. Add missing required headings during the next substantive quest update,
+not merely because a quest was opened or listed. Do not invent content to populate
+an empty section or remove or rearrange existing sections merely because they are
+not required by this skill.
 
-At creation, capture supplied context in `Brief` and leave substantive sections
-empty; the example goal above illustrates a later established outcome, not a
-placeholder to insert. Follow the new reference for initial `Current State`.
+At creation, capture supplied context in `Brief` and initialize `Current State`
+according to the new reference; do not add workflow sections during creation alone.
 Suggestions in the brief are not accepted decisions or an approved task list.
 Explicit user constraints and authorization boundaries still apply. Use discovery
 and subsequent activities to establish content in its owning section, without
@@ -150,28 +133,15 @@ adopt this structure.
 
 ## File Ownership And Stability
 
-Organize retained material by purpose, using the phases and capabilities below
-as navigation, not a mandatory sequence:
+Organize retained material by purpose, following the selected capability's or
+workflow's conventions. Index supporting files in their owning README section.
+Respect user-requested locations, specialist conventions, and coherent existing
+layouts; do not relocate material solely to enforce a default.
 
-| Owner | Supporting files, when needed |
-| --- | --- |
-| Goal discovery (`quest-goal`) | `goals/` for substantial goal context; concise outcomes stay in README `Goals` |
-| Research (`quest-research`) | `research/` for findings, evidence, and consequential unknowns |
-| Accepted choices (across capabilities) | `decisions/` for decisions and rationale |
-| Planning and acceptance planning | `plan/` for strategy and acceptance contracts |
-| Partitioning and implementation | `implementation/` for task specifications and implementation outcomes |
-| Review and QA | `review/` for assessments; use a specialist's artifact convention when applicable |
-| Delivery (`quest-master` or the selected delivery workflow) | `delivery/` for delivery-specific evidence that needs local retention |
-
-Index files in the corresponding README section. Add a `Delivery` section before
-`Backlog` when delivery material needs an index. Respect user-requested locations,
-specialist conventions, and coherent existing layouts; do not relocate material
-solely to enforce these defaults.
-
-Within a phase, separate distinct aspects that are independently useful or
-likely to change independently. Prefer updating the file that already owns an
+Separate distinct aspects that are independently useful or likely to change
+independently. Prefer updating the file that already owns an
 aspect over creating a file for each activity, worker, session, or status
-change. A phase does not require a file merely because work occurred in it.
+change. An activity does not require a file merely because work occurred in it.
 
 Keep volatile coordination state in README `Current State`. Supporting files
 should be self-contained for their purpose through concise context and

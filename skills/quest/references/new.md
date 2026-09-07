@@ -3,18 +3,18 @@
 ## `new <slug>`
 
 Refuse an invalid slug or a slug that already exists in the quest root. Create
-`<quest-root>/<slug>/README.md` with the quest title and the stable `Brief`,
-`Goals`, `Current State`, `Research`, `Decisions`, `Plan`, `Implementation`,
-`Review`, and `Backlog` headings in that order.
+`<quest-root>/<slug>/README.md` with the quest title, then only `Brief` and
+`Current State`. Workflow sections belong to the selected orchestrator or
+capabilities and are not part of administrative creation.
 
 Capture supplied context only in `Brief`: the initial request, relevant background,
 source links, stated constraints, and suggested goals, approaches, or tasks. Treat
 this as input to discovery, not established goals, findings, accepted decisions,
 or an approved plan. Preserve explicit user constraints without inventing content.
-Leave `Brief` empty if no useful context was supplied, and leave all substantive
-sections empty. If further work was explicitly requested alongside creation,
-perform it separately after creating the record; its results may then populate
-their owning sections.
+Leave `Brief` empty if no useful context was supplied. If further work was
+explicitly requested alongside creation, perform it separately after creating
+the record; its results may then populate their owning sections, adding them as
+needed.
 
 Initialize `Current State` with no substantive task started, a checkpoint that the
 quest was created and whether a brief was captured, and any setup blockers. When
