@@ -17,8 +17,10 @@ linear sequence. This skill is the durable memory layer: it does not select or
 enforce a workflow. Users, individual capabilities, or an explicitly selected
 orchestrator may direct the work independently.
 
-Quest memory supports future decisions and continuation; it is not an activity
-log. Preserve information when losing it could cause a later agent to make a
+Quest memory is a maintained representation of current understanding, not an
+activity log or an archive of how that understanding evolved. Goals, research,
+decisions, and plans must reflect the current contract. Preserve information
+when losing it could cause a later agent to make a
 materially worse decision, repeat costly investigation, overlook an unresolved
 obligation, or resume incorrectly. Routine activity alone does not require a
 durable record. Explicit deliverable, provenance, and audit requirements still
@@ -199,12 +201,33 @@ when they materially constrain continuation.
 Treat chat history, transient output, live processes, and session-local IDs as
 non-durable. Replace obsolete checkpoints and next actions rather than stacking
 new status snapshots above them. Correct false or misleading guidance and remove
-resolved open questions. Preserve superseded material only when its rationale,
-provenance, or evidence remains useful, and label it clearly. A valid finding or
-review scoped to an earlier version does not become false merely because work
-advanced; leave it stable and link subsequent evidence where relevant. Prefer
-targeted edits; rewrite a document only when targeted changes would leave it
-incoherent. Do not use routine updates as a reason for unrelated reorganization.
+resolved open questions.
+
+When understanding changes, replace obsolete goals, choices, and plans, and
+remove invalidated or irrelevant research. Reconcile affected supporting files,
+tasks, and indexes as well as the README; a current summary does not compensate
+for stale guidance in linked material. Remove obsolete content and files that
+no longer have a retention purpose, repairing affected links. Do not retain a
+document merely by labeling it superseded or moving it to an archive.
+
+Keep the useful conclusion of a discarded approach, not its investigation and
+planning trail. When it still prevents costly rediscovery or constrains current
+choices, record a concise rejection and reason, for example: "Rejected A because
+X; B because Y." Retain supporting detail only when it meets the shared retention
+test or an explicit deliverable, provenance, or audit requirement.
+
+Earlier-version evidence may remain valid without describing the current state.
+Keep it only when it supports current decisions, validation, recovery, or an
+explicit retention requirement; identify its scope and separate it from current
+guidance. Do not rewrite old evidence to imply validation of a newer contract.
+
+If a change invalidates a plan or decision but selecting its replacement is
+unresolved or outside the authorized scope, remove the obsolete guidance and
+state the gap and required next action explicitly. Do not invent a replacement
+or leave stale instructions pending reconciliation. Preserve unrelated work;
+if ownership or retention requirements are unclear, ask before deleting it.
+Prefer targeted edits; rewrite a document only when targeted changes would leave
+it incoherent. Do not use routine updates as a reason for unrelated reorganization.
 
 Prefix a checklist item with `Approval:` only when an explicit user decision is
 actually required by the user, applicable policy, or a consequential reserved
