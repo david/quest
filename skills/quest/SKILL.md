@@ -179,6 +179,15 @@ proportionately. A failed or incomplete attempt may contain important evidence:
 preserve observations needed to resume or avoid repeating the mistake, not an
 exhaustive execution trace. Do not present attempted work as complete.
 
+Keep the user oriented in the conversation as the work develops. At the outset
+of substantive work, briefly state your current understanding, the next useful
+step and why, and any consequential uncertainty. As evidence emerges, explain
+material changes in understanding or direction and how they affect the work.
+Scale updates to their significance and build on what the user already knows.
+Make clear how you will check the result, refining that approach as needed.
+Durable quest updates do not substitute for user-facing communication. These
+updates do not introduce approval gates.
+
 The record as a whole, including referenced authoritative sources, must let an
 agent with no session history recover the context needed to continue:
 
