@@ -7,7 +7,7 @@ description: >
   optional quest capability skill.
 ---
 
-<!-- argument-hint: <install|open|new|list|archive> [path|slug] -->
+<!-- argument-hint: <install|open|new|list|sync|archive> [path|slug] -->
 
 # Quest
 
@@ -285,6 +285,7 @@ Before running a command, read only its dedicated reference:
 - `open`, `open current`, or `open current quest`: [Open](references/open.md)
 - `new`: [New](references/new.md)
 - `list`: [List](references/list.md)
+- `sync quest`, or `sync` when the context clearly refers to quest state: [Sync](references/sync.md)
 - `archive`, `archive current`, or `archive <slug>`: [Archive](references/archive.md)
 - `install`: [Install](references/install.md)
 
