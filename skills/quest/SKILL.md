@@ -264,7 +264,6 @@ stages and may be used in any order or more than once:
 
 - `quest-goal` for clarifying desired outcomes, motivation, priorities, and scope;
 - `quest-planning` for choosing an approach to achieve the goals and why it fits;
-- `quest-partitioning` for turning a stable plan into executable tasks;
 - `quest-acceptance-planning` for creating a durable acceptance contract;
 - `quest-coding` for implementing coding tasks with proportionate repository,
   validation, commit, and worktree discipline;
