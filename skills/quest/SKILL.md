@@ -3,8 +3,8 @@ name: quest
 description: >
   Open, create, list, archive, and maintain durable quest records for work that spans
   sessions or needs a recoverable handoff. Use for quest workspace discovery,
-  current-state reconciliation, project installation, lifecycle commands, and routing work to an
-  optional quest capability skill.
+  current-state reconciliation, project installation, lifecycle commands, task
+  breakdown, and routing work to an optional quest capability skill.
 ---
 
 <!-- argument-hint: <install|open|new|list|sync|archive> [path|slug] -->
@@ -274,6 +274,10 @@ stages and may be used in any order or more than once:
 
 Specialized skills may be used instead of or alongside these capabilities. Do
 not duplicate a specialist workflow inside the quest record.
+
+For a request to turn an established plan into executable tasks, use
+[Task Breakdown](references/partition.md). It is available independently of
+orchestration; a breakdown request alone does not authorize task execution.
 
 `quest-master` is an opt-in guide for a default discovery-to-delivery
 workflow. Do not load it merely because a quest is opened or updated; using

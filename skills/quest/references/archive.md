@@ -48,10 +48,14 @@ Before Git preflight and cleanup, check the quest's consolidation result for
 outstanding documentation or learning updates and findings since its recorded
 coverage. Use `quest-consolidate` when gaps remain or no relevant consolidation
 has occurred, including for quests without PRs. An existing result that covers
-the final state needs only confirmation. Surface unresolved updates and obtain
-an explicit deferral decision with a durable follow-up before archival; do not
-mark them complete. Verify incorporated knowledge is in maintained locations
-that survive cleanup, not solely in a checkout scheduled for removal.
+the final state needs only confirmation. Apply its distinction between required
+documentation gaps and useful follow-up knowledge transfer. Required gaps need
+resolution or an explicit permitted deferral with a durable follow-up before
+archival. Record useful follow-ups within existing authorization without blocking
+archival or requiring a deferral approval; do not mark outstanding work complete.
+Verify incorporated knowledge is in maintained locations that survive cleanup,
+not solely in a checkout scheduled for removal. Git preservation and cleanup
+decisions below still apply to all local changes, including useful follow-up edits.
 
 The archive request authorizes scoped documentation consolidation in the quest's
 project, but does not expand the commit, integration, or publication permissions
