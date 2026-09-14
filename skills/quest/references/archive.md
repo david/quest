@@ -42,6 +42,23 @@ preservation or discard as described below.
    directory inside a deleted checkout. Follow project environment wrappers and
    explicit `git -C <worktree>` rules for every Git command.
 
+### Check knowledge transfer
+
+Before Git preflight and cleanup, check the quest's consolidation result for
+outstanding documentation or learning updates and findings since its recorded
+coverage. Use `quest-consolidate` when gaps remain or no relevant consolidation
+has occurred, including for quests without PRs. An existing result that covers
+the final state needs only confirmation. Surface unresolved updates and obtain
+an explicit deferral decision with a durable follow-up before archival; do not
+mark them complete. Verify incorporated knowledge is in maintained locations
+that survive cleanup, not solely in a checkout scheduled for removal.
+
+The archive request authorizes scoped documentation consolidation in the quest's
+project, but does not expand the commit, integration, or publication permissions
+above. Inspect affected repository state before editing and preserve unrelated
+work. Run the full read-only Git preflight after any consolidation edits so new
+dirty or unmerged work receives the same handling as other local work.
+
 ### Mandatory read-only preflight
 
 Complete this inspection for **every** target before moving records, preserving
