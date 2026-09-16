@@ -3,8 +3,9 @@
 ## `archive`, `archive current`, or `archive <slug>`
 
 Archive a quest only on explicit request. With no unresolved findings, this
-command authorizes removing clean worktrees and merged local topic branches,
-then moving retained records to `<quest-root>/.archived/<slug>`. Dirty worktrees,
+command authorizes removing clean linked worktrees, clean quest-owned standalone
+clones under the clone procedure below, and merged local topic branches, then
+moving retained records to `<quest-root>/.archived/<slug>`. Dirty worktrees,
 unmerged branches, and unmerged commits are **user decision points, not automatic
 refusals**. Always ask how to handle each before proceeding. The initial archive
 request alone does not authorize discarding work, merging, rebasing, committing,
@@ -23,17 +24,32 @@ preservation or discard as described below.
    moving anything. If source and destination both exist, stop. Reject symlink
    sources or archive destinations and paths escaping the resolved root. Do not
    overwrite or merge directories.
-3. Inventory **all** quest worktrees, not only `work/1`, including registrations
+3. Inventory **all** quest checkouts, not only `work/1`, including registrations
    and any known external worktrees owned by this quest. Resolve each worktree's
    own Git common directory and enumerate its registration; different quest
    worktrees may belong to different repositories. Do not assume one repository
    can remove another's worktree. If ownership, missing registrations, or broken
    Git pointers prevent a complete inventory, stop before deletion.
-4. Record each worktree's path, branch, HEAD, repository, intended integration
-   target, and a surviving worktree from which to perform Git cleanup. Also
+4. Classify each checkout using its Git directory, common directory, and
+   `git worktree list --porcelain`:
+   - A **linked worktree** shares its repository with a primary checkout. Remove
+     it through that repository's Git commands.
+   - A **standalone clone** owns an ordinary `.git` directory and its repository
+     metadata. Its primary checkout cannot be removed by `git worktree remove`.
+     A CoW/reflink clone is standalone when its metadata is independent; its copy
+     source is not a surviving worktree of the same repository.
+   - A quest-owned clone may itself own linked worktrees. Inventory every one
+     and remove approved linked worktrees before removing the primary clone.
+   Record each checkout's path, kind, branch, HEAD, repository, and intended
+   integration target. For linked-worktree cleanup, identify a surviving worktree
+   of the same repository. A standalone clone needs no surviving worktree or
+   extra approval solely because it is the primary checkout. Also
    inventory explicitly quest-owned local topic branches without checkouts.
    Do not infer ownership just from a similar branch name. Preserve default,
-   integration, backup/recovery, and shared branches unless separately requested.
+    integration, backup/recovery, and shared branches unless separately requested.
+   In a removable standalone clone, preserve these refs in its verified recovery
+   bundle; leave their source repositories and remote refs untouched. Inherited
+   remote-tracking refs are not evidence of quest-owned unmerged work.
    Detached worktrees require merge verification too; include unmerged detached
    commits in the user's preservation/discard decision.
 5. Check for active workers, servers, or sessions using these paths. Stop for
@@ -101,7 +117,16 @@ batch before starting destructive work.
   normally under `<quest>/local-data/<worktree-label>/`. If ownership or safe
   treatment is unclear, stop and ask. Never print secret contents. Do not move
   whole directories containing tracked fixtures without separating those tracked
-  files first.
+   files first.
+- **Standalone clone storage:** inspect all refs and unreferenced commits as well
+  as checkout state. Check for external Git/object storage, alternates, shallow
+  or partial-clone dependencies, submodules, and Git LFS objects. Do not delete
+  storage used by another checkout. The simple clone procedure below applies
+  only to self-contained repositories; otherwise obtain an explicit preservation
+  plan. Bundle refs do not preserve config, hooks, reflogs, working files, or LFS
+  payloads. Identify any such non-reproducible material for separate private
+  preservation. Treat unmatched quest-owned commits as unmerged even when they
+  are reachable only through reflogs or have no ref.
 
 No-worktree quests can be archived without Git checks only when inventory also
 finds no quest-owned branches requiring verification. An inability to inspect
@@ -155,17 +180,18 @@ permit deletion of unrelated work.
    worktree's HEAD/status and branch tips before deletion; stop on concurrent
    changes and ask the user. Do not treat changes caused by your preservation
    step as permission to force removal.
-3. From a surviving worktree of the **same repository**, use
+3. For **linked worktrees**, from a surviving worktree of the **same repository**, use
    `git worktree remove <exact-target-path>` without force by default. A scoped
    `--force` is allowed only for dirty work whose preservation/removal the user
    approved and whose backup was verified, or whose loss the user explicitly
    approved. Unapproved changes still require asking, not escalation to force.
    Remove worktrees
    **before moving the quest**, avoiding broken absolute or relative `.git`
-   pointers. Do not run broad `worktree repair`, `prune`, recursive deletes, or
-   unrelated cleanup. If no permitted surviving worktree exists, stop and obtain
-   an agreed cleanup location rather than guessing.
-4. Delete only inventoried local topic branches that are **verified-merged** or
+   pointers. Do not run broad `worktree repair`, `prune`, or unrelated cleanup.
+   If linked-worktree cleanup has no permitted surviving worktree, stop and obtain
+   an agreed cleanup location. Do not apply this requirement to standalone clones.
+4. In repositories that will survive cleanup, delete only inventoried local
+   topic branches that are **verified-merged** or
    explicitly selected for discard, after their worktrees are removed. Keep every
    branch/ref the user chose to preserve, regardless of what `branch -d` would
    allow relative to its upstream. Prefer `git branch -d <branch>`. If it refuses because the surviving
@@ -176,14 +202,58 @@ permit deletion of unrelated work.
    that exact unchanged tip. Otherwise ask before proceeding.
    Never remove a branch still used by another worktree. Do not delete remote
    branches or recreate missing remotes.
-5. Recheck that `.archived/<slug>` is absent; create `.archived` if needed, and
+5. For **standalone clones**, use the clone procedure below after their linked
+   worktrees are removed. Do not create a temporary worktree just to delete the
+   primary checkout, and do not use another clone's Git commands to remove it.
+6. Recheck that `.archived/<slug>` is absent; create `.archived` if needed, and
    move the quest directory there without replacement. Only remove leftover
    `work/` directories if empty. If a step fails, report what completed and what
    remains; do not continue blindly or describe a partial archive as complete.
 
+### Standalone clone preservation and removal
+
+For a clean, self-contained quest clone whose quest-owned work is verified
+merged, the archive request authorizes this procedure without another cleanup
+approval. Dirty/unmerged work still requires the decisions above. If the user
+instead chooses to retain the clone, keep it as an explicitly inactive recovery
+checkout and verify that moving it leaves no broken Git registrations.
+
+1. Choose a non-existing bundle path under
+   `<quest>/local-data/<clone-label>/repository.bundle`. Restrict the directory
+   to its owner. Record the ref inventory, HEAD, origin, and restore instructions.
+   Preserve required non-Git local material separately without printing secrets.
+2. From the clone, create a self-contained `git bundle create <path> --all`.
+   Establish approved recovery refs for detached/unreferenced work first when
+   needed; never assume `--all` includes reflog-only or dangling commits. Do not
+   overwrite an existing bundle. Preserve all inherited refs in the bundle too,
+   rather than deleting unrelated branch history from the only retained copy.
+3. Verify the bundle with `git bundle verify`, compare its advertised refs with
+   the recorded inventory, and restore it into a fresh temporary bare repository.
+   Check restored object connectivity and expected commit/tree identities before
+   deleting the source. A verification that depends on source objects is not a
+   sufficient recovery test. Keep the verified bundle; remove only the temporary
+   verification repository created by this operation.
+4. Record a restoration recipe, for example `git clone --branch <topic>
+   <absolute-bundle-path> <new-checkout>` followed by setting `origin` back to the
+   recorded remote. For exact recovery of every ref, fetch `+refs/*:refs/*` into
+   an empty bare repository. Note which local data must be restored separately.
+5. Stop only quest-owned processes that use the clone, and move the executing
+   session outside it. Recheck HEAD, refs, status, ignored-file classification,
+   locks, and registrations against the inventory. Any unexpected change stops
+   removal. Confirm all promised preservation is present and verified.
+   Check removal permissions before starting, especially container-owned generated
+   dependencies. Resolve ownership only within the approved cleanup target; do
+   not broaden permissions or deletion scope to overcome a failed removal.
+6. Remove only the exact inventoried clone directory, including its own `.git`
+   and classified generated files. Scoped directory removal is appropriate here;
+   `git worktree remove` is not. Never recursively delete a parent workspace,
+   another clone, shared object storage, or external worktrees. Individual branch
+   deletion inside this soon-to-be-removed clone is unnecessary: the bundle
+   retains its refs. Record the removed checkout and preserved refs explicitly.
+
 ### Reconcile and verify
 
-- Update the archived README's Current State: archived, no active worktree,
+- Update the archived README's Current State: archived, no active checkout,
   preserved branch/merge evidence, and any unresolved obligations. No next task
   is required while intentionally archived; explain how to resume if needed.
 - Correct local instructions that still select a removed worktree. Repair
@@ -193,9 +263,10 @@ permit deletion of unrelated work.
   unrelated selections. Update registered navigation/session paths when the
   project uses them, without changing unrelated entries.
 - Verify source absence, destination README and retained artifacts, removal of
-   targeted Git registrations/approved branches, existence of every promised
-   recovery ref and backup, and repaired links. Keep all unrelated
+  targeted Git registrations/approved branches, existence of every promised
+  recovery ref and backup (including verified clone bundles), and repaired links.
+  Keep all unrelated
   quests, worktrees, branches, and remote state untouched.
-- Report the archive path, removed worktrees/branches, retained local material,
+- Report the archive path, removed clones/worktrees/branches, retained local material,
   and any incomplete steps. Do not claim provider, staging, or production
   validation merely because the quest was archived.
