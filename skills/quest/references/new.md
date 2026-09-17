@@ -3,29 +3,26 @@
 ## `new <slug>`
 
 Refuse an invalid slug or a slug that already exists in the quest root. Create
-`<quest-root>/<slug>/README.md` with the quest title, then only `Brief` and
-`Current State`. Workflow sections belong to the selected orchestrator or
-capabilities and are not part of administrative creation.
+`<quest-root>/<slug>/README.md` with the quest title and `Current State`.
+Add Backlog or References only when supplied context needs them.
 
-Capture supplied context only in `Brief`: the initial request, relevant background,
-source links, stated constraints, and suggested goals, approaches, or tasks. Treat
-this as input to discovery, not established goals, findings, accepted decisions,
-or an approved plan. Preserve explicit user constraints without inventing content.
-Leave `Brief` empty if no useful context was supplied. If further work was
-explicitly requested alongside creation, perform it separately after creating
-the record; its results may then populate their owning sections, adding them as
-needed.
+Capture the supplied objective, relevant background, and explicit constraints in
+Current State, linking substantial existing material. Distinguish confirmed intent
+from suggested goals, approaches, or tasks; creation does not establish findings,
+accept decisions, or approve a plan. If no objective was supplied, state that it
+is unresolved rather than inventing one. If further work was explicitly requested
+alongside creation, perform it separately after creating the record and retain its
+results where useful under the shared update contract.
 
-Initialize `Current State` with no substantive task started, a checkpoint that the
-quest was created and whether a brief was captured, and any setup blockers. When
-the user has opted into `quest-master`, name goal discovery from the brief as the
+Initialize Current State with no substantive task started, a checkpoint that the
+quest was created, and any setup blockers. When
+the user has opted into `quest-master`, name goal discovery from supplied context as the
 next action. Otherwise use the user's selected next activity, or recommend the
 smallest useful next action supported by the supplied context. Clarify intent only
 when a material question remains unresolved; do not ask the user to repeat clear
 outcomes. Creation alone does not invoke or opt into orchestration. If no further
 work is requested, record creation as complete without inventing a task. Keep
-workspace setup results and recovery actions here,
-not in substantive sections as invented tasks or findings.
+workspace setup results and recovery actions here.
 
 Keep quest creation administrative and bounded. Create the record and perform any required workspace setup, parent linkage, and indexing from supplied or already-known context. Link authoritative existing artifacts instead of rereading or restating them. A request to include the information needed for later work does not by itself authorize codebase inventory, external research, implementation planning, architecture or decision changes, contract reconciliation, testing, or implementation. Perform those activities only when the user explicitly requests them separately.
 

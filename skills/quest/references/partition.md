@@ -9,14 +9,16 @@ Read the README first, then the relevant plan, accepted decisions, constraints,
 and expected evidence. Skip a separate breakdown when the work is already one
 clear executable task.
 
-Create the task checklist under `Implementation`. Each task should identify its
+Keep a small task checklist in Current State, or use a linked task record when
+detail warrants it. Keep deferred work in Backlog or link its owning task record
+there without duplicating the checklist. Each task should identify its
 outcome, scope, relevant inputs, prerequisites, and completion evidence. Make
 blockers and outputs needed by other tasks explicit.
 
 Make ordering and safe concurrency explicit. Prefer sequential execution when
 tasks overlap substantially or depend on an evolving shared contract. Do not
 subdivide work merely to create more assignments or parallelism. Keep substantial
-specifications in `implementation/`, with one owning specification per task or
+specifications in subject-focused records, with one owning specification per task or
 shared interface, and link the plan rather than duplicating it. Update task
 specifications when scope or dependencies change, not for routine status updates.
 For parallel coding work, identify ownership and isolation constraints; let

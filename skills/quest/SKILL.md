@@ -75,8 +75,8 @@ directory containing registered worktrees.
 
 ## Quest Record
 
-Every quest is a workspace whose only required file is `README.md`, with `Brief`
-and `Current State` as its only required sections. Do not create empty directories,
+Every quest is a workspace whose only required file is `README.md`, with
+`Current State` as its only required section. Do not create empty directories,
 per-session reports, or workflow metadata merely for consistency.
 
 Always read `README.md` first. Follow only the links needed for the current
@@ -88,60 +88,59 @@ Create new records with this minimal structure:
 ```markdown
 # Quest Title
 
-## Brief
-
 ## Current State
 
+- Objective: The current desired outcome and what would count as success.
+- Constraints: Material scope and authorization boundaries, or links to them.
 - Active work: One or more active tasks or activities, or none.
 - Checkpoint: The latest durable progress or result.
 - Next actions: The exact recommended resumption step for each active task, or the recommended next overall step.
 - Blockers: None, or the unresolved blockers and approvals.
 ```
 
-- `Brief` captures the initial request, relevant background, source links, stated
-  constraints, and suggested approaches as provisional input to discovery.
-  Keep it concise and link substantial existing material.
-- `Current State` is the single durable handoff. Link to detail instead of
-  duplicating it.
+The README is a resumption interface, not a workflow outline:
 
-Additional sections and their ordering belong to the selected workflow or
-capability, not this memory layer. A standalone capability may add the sections
-it needs when recording its results without invoking `quest-master` or creating
-the rest of its layout. When explicitly selected, `quest-master` supplies the
-default workflow layout. Respect user-defined and coherent existing structures.
+- `Current State` is the single durable handoff. Include the current objective,
+  material constraints, and context needed to act correctly, not just recent
+  progress. Link to detail instead of duplicating it. The fields above are a
+  starting point; use concise prose or bullets suited to the work.
+- Add `Backlog` when useful for pending or deferred work outside the immediate
+  next actions. Preserve enough context to pick it up; link an existing task
+  record rather than maintaining a second checklist.
+- Add `References` when useful as an annotated index of supporting material and
+  authoritative sources, including designs, decisions, research, acceptance
+  contracts, evidence, and deliverables. State why each link matters.
 
-Keep sections concise. Put each checklist item in the section that currently
-owns it; do not duplicate tasks or add `Tasks` subsections. An unchecked normal
-task remains pending. Check it only after recording its outcome and appropriate
-evidence. Add missing required headings during the next substantive quest update,
-not merely because a quest was opened or listed. Do not invent content to populate
-an empty section or remove or rearrange existing sections merely because they are
-not required by this skill.
+Capabilities prescribe information to preserve, not README headings or directory
+names. Organize detail around the subject matter. A small quest may fit entirely
+in Current State; larger work may use linked records. Respect user-defined and
+coherent existing structures; do not rearrange them merely to adopt this layout.
 
-At creation, capture supplied context in `Brief` and initialize `Current State`
-according to [New](references/new.md); do not add workflow sections during
-creation alone.
-Suggestions in the brief are not accepted decisions or an approved task list.
-Explicit user constraints and authorization boundaries still apply. Use discovery
-and subsequent activities to establish content in its owning section, without
-requiring the user to repeat clear answers already supplied in the brief.
-Established goals and decisions govern ongoing work; the brief must not revive
-rejected approaches or override later user direction. Apply the shared retention
-test to it, removing misleading duplication or linking to the owning section as
-understanding develops rather than maintaining an immutable request transcript.
-Do not move established content in existing quests back into the brief merely to
-adopt this structure.
+Keep each task in one owning location. An unchecked normal task remains pending.
+Check it only after recording its outcome and appropriate evidence. Add a missing
+Current State during the next substantive update, not merely because a quest was
+opened or listed. Do not create empty headings for completeness.
+
+At creation, capture supplied context and initialize Current State according to
+[New](references/new.md). Distinguish clear user intent and explicit constraints
+from proposed goals, approaches, or tasks. Suggestions are not accepted decisions
+or an approved task list. Build on supplied answers without requiring repetition.
+As understanding develops, replace provisional or obsolete context with current
+goals and decisions rather than maintaining an immutable request transcript.
 
 ## File Ownership And Stability
 
-Organize retained material by purpose, following the selected capability's or
-workflow's conventions. Index supporting files in their owning README section.
+Organize retained material by subject and purpose. Make supporting material
+discoverable from the README, using References for an index when useful and
+direct links from Current State for the active work.
 Respect user-requested locations, specialist conventions, and coherent existing
 layouts; do not relocate material solely to enforce a default.
 
-Separate distinct aspects that are independently useful or likely to change
-independently. Prefer updating the file that already owns an
-aspect over creating a file for each activity, worker, session, or status change.
+Keep related context together: a design may include its problem, research,
+alternatives, accepted choices, and rationale. Separate aspects when they are
+independently useful or likely to change independently, not merely because they
+arose during different workflow activities. Prefer updating the file that already
+owns an aspect over creating a file for each activity, worker, session, or status change.
 
 Keep volatile coordination state in README `Current State`. Supporting files
 should be self-contained for their purpose through concise context and
