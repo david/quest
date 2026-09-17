@@ -28,8 +28,10 @@ rendered TOML before creating anything. It refuses existing destinations,
 including symlinks, and creates configuration with owner-only permissions.
 It never selects ports, creates databases, trusts mise files, or starts services.
 
-Choose the port separately using project conventions and record it alongside the
-active workspace in the quest README. A hash of the slug does not guarantee a
+The renderer requires `--app-port` even when a project template omits `<app-port>`;
+in that case, supply a valid sample value without allocating a service port.
+When the template uses it, choose the port separately using project conventions
+and record it alongside the active workspace in the quest README. A hash of the slug does not guarantee a
 unique port, and a free-port check does not reserve it. If the destination already
 exists, inspect and reconcile it with the user rather than deleting it to rerun
 the renderer. Record failed setup and its exact recovery action in `Current State`.

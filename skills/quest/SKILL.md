@@ -99,8 +99,8 @@ Create new records with this minimal structure:
 ```
 
 - `Brief` captures the initial request, relevant background, source links, stated
-  constraints, and suggested approaches as provisional input to discovery, not an
-  agreed specification. Keep it concise and link substantial existing material.
+  constraints, and suggested approaches as provisional input to discovery.
+  Keep it concise and link substantial existing material.
 - `Current State` is the single durable handoff. Link to detail instead of
   duplicating it.
 
@@ -119,7 +119,8 @@ an empty section or remove or rearrange existing sections merely because they ar
 not required by this skill.
 
 At creation, capture supplied context in `Brief` and initialize `Current State`
-according to the new reference; do not add workflow sections during creation alone.
+according to [New](references/new.md); do not add workflow sections during
+creation alone.
 Suggestions in the brief are not accepted decisions or an approved task list.
 Explicit user constraints and authorization boundaries still apply. Use discovery
 and subsequent activities to establish content in its owning section, without
@@ -140,8 +141,7 @@ layouts; do not relocate material solely to enforce a default.
 
 Separate distinct aspects that are independently useful or likely to change
 independently. Prefer updating the file that already owns an
-aspect over creating a file for each activity, worker, session, or status
-change. An activity does not require a file merely because work occurred in it.
+aspect over creating a file for each activity, worker, session, or status change.
 
 Keep volatile coordination state in README `Current State`. Supporting files
 should be self-contained for their purpose through concise context and
@@ -157,11 +157,6 @@ uncertainty when that source does not capture it or may not remain available.
 Identify a version or observation time when needed to interpret evidence;
 refresh live external state before relying on it for action.
 
-Preserve stable context for selective loading and cache reuse. A routine
-progress update should touch only records whose meaning changed. Do not embed
-volatile status in otherwise stable knowledge or rewrite unrelated material
-to make every file reflect the latest activity.
-
 ## Shared Update Contract
 
 Before writing, identify what changed in the durable context needed to continue.
@@ -169,7 +164,8 @@ If nothing material changed, no quest update is necessary. Otherwise update its
 owning record and only those indexes, tasks, links, or current instructions that
 would become misleading. Update Current State when the active work, checkpoint,
 next action, or blocker changes; do not repeat the outcome across artifacts to
-demonstrate reconciliation.
+demonstrate reconciliation. This preserves stable context for selective loading
+and cache reuse.
 
 Before substantive work, confirm the active task's intended outcome, boundaries,
 authorization, dependencies, and expected evidence. Follow applicable project,
@@ -188,39 +184,25 @@ Make clear how you will check the result, refining that approach as needed.
 Durable quest updates do not substitute for user-facing communication. These
 updates do not introduce approval gates.
 
-The record as a whole, including referenced authoritative sources, must let an
-agent with no session history recover the context needed to continue:
-
-- the current goal and active tasks;
-- the meaningful checkpoint, not a history of every action;
-- exact recommended next actions;
-- blockers and required approvals;
-- relevant files or workspaces; and
-- the validation or evidence state and where to verify it.
-
-Each individual artifact or update need not repeat this context. Retain commands,
-identifiers, and operational details when needed for reproduction, interpretation,
+Retain commands, identifiers, and operational details when needed for reproduction, interpretation,
 or recovery, not as proof that routine work occurred. Reference standing policy
 rather than repeatedly copying it; preserve quest-specific decisions or exceptions
 when they materially constrain continuation.
 
 Treat chat history, transient output, live processes, and session-local IDs as
 non-durable. Replace obsolete checkpoints and next actions rather than stacking
-new status snapshots above them. Correct false or misleading guidance and remove
-resolved open questions.
-
-When understanding changes, replace obsolete goals, choices, and plans, and
-remove invalidated or irrelevant research. Reconcile affected supporting files,
+new status snapshots above them. When understanding changes, replace obsolete
+goals, choices, and plans, correct misleading guidance, and remove resolved
+questions or invalidated research. Apply this to affected supporting files,
 tasks, and indexes as well as the README; a current summary does not compensate
-for stale guidance in linked material. Remove obsolete content and files that
-no longer have a retention purpose, repairing affected links. Do not retain a
-document merely by labeling it superseded or moving it to an archive.
+for stale linked guidance. Remove content and files that fail the shared retention
+test, repairing affected links; labeling them superseded or archiving them is not
+a retention purpose.
 
 Keep the useful conclusion of a discarded approach, not its investigation and
 planning trail. When it still prevents costly rediscovery or constrains current
 choices, record a concise rejection and reason, for example: "Rejected A because
-X; B because Y." Retain supporting detail only when it meets the shared retention
-test or an explicit deliverable, provenance, or audit requirement.
+X; B because Y." Apply the shared retention test to supporting detail.
 
 Earlier-version evidence may remain valid without describing the current state.
 Keep it only when it supports current decisions, validation, recovery, or an
@@ -246,13 +228,19 @@ substantive update.
 
 ## Actionable Handoff
 
+`Current State` and its linked records or authoritative sources must let an agent
+without session history recover the current goal and active tasks, meaningful
+checkpoint, next actions, blockers and approvals, relevant files or workspaces,
+and the validation or evidence state and where to verify it. Individual artifacts
+need not repeat this context.
+
 When opening a quest, reporting progress, completing substantive work, or
 encountering a blocker, preserve one concrete recommended next action for each
 active task, or the next overall action if work remains. If the agreed work is
 complete or intentionally paused, record that without inventing a next task.
 Derive next actions from the user's direction, the active capability, or an
-explicitly selected workflow,
-not from the order of README sections. If no next action is established,
+explicitly selected workflow, not from the order of README sections.
+If work remains but no next action is established,
 recommend the smallest useful action supported by the current goal and evidence;
 do not infer a lifecycle or expand authorization. Keep `Current State` aligned
 with the recommendation and make unresolved decisions and blockers explicit.

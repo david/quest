@@ -253,9 +253,11 @@ checkout and verify that moving it leaves no broken Git registrations.
 
 ### Reconcile and verify
 
-- Update the archived README's Current State: archived, no active checkout,
-  preserved branch/merge evidence, and any unresolved obligations. No next task
-  is required while intentionally archived; explain how to resume if needed.
+- Update the archived README's Current State: archived, actual checkout disposition,
+  preserved branch/merge evidence, and any unresolved obligations. Identify any
+  retained checkout as inactive and record its final path and recovery purpose;
+  state when all checkouts were removed. No next task is required while
+  intentionally archived; explain how to resume if needed.
 - Correct local instructions that still select a removed worktree. Repair
   affected relative links within the archive and known inbound links. Mark old
   absolute worktree paths as historical instead of rewriting validation history.
