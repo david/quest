@@ -1,8 +1,7 @@
 # Task Breakdown
 
 Turn an established plan into the smallest coherent set of executable,
-verifiable tasks. Use this reference for standalone breakdown requests or from
-`quest-master`; it does not opt the user into orchestration or authorize execution.
+verifiable tasks. A breakdown request does not authorize execution.
 
 Use `quest` to resolve the workspace and establish its shared update contract.
 Read the README first, then the relevant plan, accepted decisions, constraints,

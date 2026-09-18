@@ -22,8 +22,7 @@ For a fresh installation, the baseline is:
    reused root, relative to this instruction file).
 3. Explain that new quests read their README first, record active workspace paths
    there when applicable, and follow repository instructions in that workspace
-   before repository work. Do not create per-quest `AGENTS.md` files by default
-   or opt into `quest-master`.
+   before repository work. Do not create per-quest `AGENTS.md` files by default.
 
 Add only the workspace conventions applicable to the project:
 

@@ -15,9 +15,8 @@ alongside creation, perform it separately after creating the record and retain i
 results where useful under the shared update contract.
 
 Initialize Current State with no substantive task started, a checkpoint that the
-quest was created, and any setup blockers. When
-the user has opted into `quest-master`, name goal discovery from supplied context as the
-next action. Otherwise use the user's selected next activity, or recommend the
+quest was created, and any setup blockers. Use the user's selected next activity,
+or recommend the
 smallest useful next action supported by the supplied context. Clarify intent only
 when a material question remains unresolved; do not ask the user to repeat clear
 outcomes. Creation alone does not invoke or opt into orchestration. If no further

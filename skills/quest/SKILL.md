@@ -266,10 +266,6 @@ For a request to turn an established plan into executable tasks, use
 [Task Breakdown](references/partition.md). It is available independently of
 orchestration; a breakdown request alone does not authorize task execution.
 
-`quest-master` is an opt-in guide for a default discovery-to-delivery
-workflow. Do not load it merely because a quest is opened or updated; using
-quest memory or an individual capability does not opt into orchestration.
-
 ## Commands
 
 Before running a command, read only its dedicated reference:
