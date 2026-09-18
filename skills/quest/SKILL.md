@@ -252,6 +252,15 @@ substantive update.
 
 ## Actionable Handoff
 
+At a handoff, blocker, or material change in direction, make the next useful action
+explicit to the user when work remains, including during capability-specific
+conversations. Briefly explain why it follows from the current state; do not leave
+the recommendation only in the quest record. During ongoing work, a focused
+question or announced action is sufficient; avoid repeating an already-clear next
+step. Continue authorized work rather than stopping at a recommendation; request
+a decision only when one is needed. When the agreed work is complete or
+intentionally paused, say so without inventing a follow-up.
+
 `Current State` and its linked records or authoritative sources must let an agent
 without session history recover the current goal and active tasks, meaningful
 checkpoint, next actions, blockers and approvals, relevant files or workspaces,
