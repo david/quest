@@ -263,7 +263,7 @@ stages and may be used in any order or more than once:
 - `quest-coding` for implementing coding tasks with proportionate repository,
   validation, commit, and worktree discipline;
 - `quest-review` for risk-based independent assessment;
-- `quest-consolidate` for incorporating durable outcomes into maintained project
+- `quest-distill` for incorporating durable outcomes into maintained project
   documentation and guidance before PR creation, merge, or archival as needed; and
 - `quest-handoff` for reconciliation before reset, compaction, or transfer.
 

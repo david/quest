@@ -62,7 +62,7 @@ preservation or discard as described below.
 
 Before Git preflight and cleanup, check the quest's consolidation result for
 outstanding documentation or learning updates and findings since its recorded
-coverage. Use `quest-consolidate` when gaps remain or no relevant consolidation
+coverage. Use `quest-distill` when gaps remain or no relevant consolidation
 has occurred, including for quests without PRs. An existing result that covers
 the final state needs only confirmation. Apply its distinction between required
 documentation gaps and useful follow-up knowledge transfer. Required gaps need
