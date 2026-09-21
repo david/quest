@@ -19,9 +19,8 @@ quest was created, and any setup blockers. Use the user's selected next activity
 or recommend the
 smallest useful next action supported by the supplied context. Clarify intent only
 when a material question remains unresolved; do not ask the user to repeat clear
-outcomes. Creation alone does not invoke or opt into orchestration. If no further
-work is requested, record creation as complete without inventing a task. Keep
-workspace setup results and recovery actions here.
+outcomes. If no further work is requested, record creation as complete without
+inventing a task. Keep workspace setup results and recovery actions here.
 
 Keep quest creation administrative and bounded. Create the record and perform any required workspace setup, parent linkage, and indexing from supplied or already-known context. Link authoritative existing artifacts instead of rereading or restating them. A request to include the information needed for later work does not by itself authorize codebase inventory, external research, implementation planning, architecture or decision changes, contract reconciliation, testing, or implementation. Perform those activities only when the user explicitly requests them separately.
 

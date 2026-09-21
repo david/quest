@@ -14,14 +14,13 @@ there without duplicating the checklist. Each task should identify its
 outcome, scope, relevant inputs, prerequisites, and completion evidence. Make
 blockers and outputs needed by other tasks explicit.
 
-Make ordering and safe concurrency explicit. Prefer sequential execution when
-tasks overlap substantially or depend on an evolving shared contract. Do not
-subdivide work merely to create more assignments or parallelism. Keep substantial
-specifications in subject-focused records, with one owning specification per task or
+Make prerequisites, dependencies, and overlap constraints explicit, including
+shared files, resources, and evolving contracts that couple tasks. Keep tasks
+coherent and independently verifiable rather than subdividing them merely to
+increase the task count. Keep substantial specifications in subject-focused
+records, with one owning specification per task or
 shared interface, and link the plan rather than duplicating it. Update task
 specifications when scope or dependencies change, not for routine status updates.
-For parallel coding work, identify ownership and isolation constraints; let
-`quest-coding` choose concrete branches and worktrees.
 
 Partitioning preserves the established approach. Return material unresolved
 decisions to planning and mark dependent tasks as blocked. Keep `Current State`

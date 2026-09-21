@@ -14,8 +14,7 @@ description: >
 Use quests as lightweight shared context, not as a mandatory project process.
 A quest may involve any kind of work, and its activities need not follow a
 linear sequence. This skill is the durable memory layer: it does not select or
-enforce a workflow. Users, individual capabilities, or an explicitly selected
-orchestrator may direct the work independently.
+enforce a workflow.
 
 Quest memory is a maintained representation of current understanding, not an
 activity log or an archive of how that understanding evolved. Goals, research,
@@ -156,31 +155,6 @@ uncertainty when that source does not capture it or may not remain available.
 Identify a version or observation time when needed to interpret evidence;
 refresh live external state before relying on it for action.
 
-## Investigation Delegation
-
-This rule applies to quest work and all quest capabilities. When the work needs
-code exploration, repository scouting, or web research, dispatch a subagent for
-that investigation to preserve the main agent's context. Examples include tracing
-behavior and dependencies, locating relevant tests or documentation owners,
-investigating failures or conflicting claims, and checking external capabilities
-or version-specific contracts. Routine bounded reads of known files, quest
-records, and existing evidence stay with the main agent.
-
-Give each investigator the factual question, necessary context, authorized scope,
-and a stopping condition. Keep investigation read-only and request concise
-findings with file/line references or authoritative URLs, relevant versions or
-observation times, and unresolved uncertainty rather than raw search output.
-Parallelize independent questions when useful; avoid duplicating the worker's
-investigation in the main context. Inspect targeted source evidence when needed
-to resolve uncertainty or support a consequential decision.
-
-The main agent owns user discussion, synthesis, decisions, and durable quest
-updates. Delegation does not expand the task's authorization or satisfy an
-independent-review requirement by itself. Retain useful findings under the shared
-update contract; do not create a record merely because a worker ran. If subagents
-are unavailable, state that limitation and keep direct investigation narrowly
-scoped.
-
 ## Shared Update Contract
 
 Before writing, identify what changed in the durable context needed to continue.
@@ -297,8 +271,8 @@ Specialized skills may be used instead of or alongside these capabilities. Do
 not duplicate a specialist workflow inside the quest record.
 
 For a request to turn an established plan into executable tasks, use
-[Task Breakdown](references/partition.md). It is available independently of
-orchestration; a breakdown request alone does not authorize task execution.
+[Task Breakdown](references/partition.md). A breakdown request alone does not
+authorize task execution.
 
 ## Commands
 
