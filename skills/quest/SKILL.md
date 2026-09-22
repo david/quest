@@ -74,7 +74,7 @@ directory containing registered worktrees.
 
 ## Quest Record
 
-Every quest is a workspace whose only required file is `README.md`, with
+Every quest is a workspace whose only required record is `README.md`, with
 `Current State` as its only required section. Do not create empty directories,
 per-session reports, or workflow metadata merely for consistency.
 
@@ -154,6 +154,53 @@ authoritative source over copying it. Retain local rationale, evidence, or
 uncertainty when that source does not capture it or may not remain available.
 Identify a version or observation time when needed to interpret evidence;
 refresh live external state before relying on it for action.
+
+## Versioned Checkpoints
+
+Each quest owns a Git repository rooted at its quest directory. Current files
+describe the understanding an agent should act on; Git history preserves earlier
+states for recovery and comparison. Normal resumption must not require reading
+history. Keep rationale that still matters in the current records under the
+shared retention test.
+
+Quest storage must be outside existing Git repositories, including project
+checkouts and worktrees; ignoring the storage in an enclosing repository does
+not satisfy this requirement. Before creating a quest or initializing an existing
+one, verify that its canonical parent location is outside any Git repository.
+If it is inside one, report the conflict and request an external quest root;
+do not create the quest or silently relocate existing records. Implementation
+checkouts may live inside a quest under the configured workspace layout.
+
+On creation, initialize the repository and commit the initial quest records after
+setup. For an existing quest without its own repository, initialize and commit a
+baseline of its existing records before the first substantive update. Opening or
+listing a quest alone does not require initialization. Check the actual repository
+root; Git discovering an ancestor repository does not establish quest ownership.
+
+Maintain a quest-local `.gitignore` excluding `/work/`, `/local-data/`, other
+implementation checkouts, caches, temporary output, and private configuration.
+Track maintained quest records and suitable durable evidence. Inspect existing
+files before the baseline; preserve them in place while excluding material that
+does not belong in quest history. Do not add nested repositories as gitlinks.
+
+After each coherent durable update, commit its affected records, including
+additions and deletions. Reconcile supporting documents and Current State before
+committing so one checkpoint captures a consistent result, rather than committing
+each file write. Use a concise message describing the durable change; do not
+create empty commits. These local quest-record commits are part of maintaining
+the quest and do not authorize implementation commits or remote publication.
+
+Inspect status and the staged diff, stage explicit paths, and preserve unrelated
+or unfinished edits. With concurrent agents, the coordinating agent owns commits;
+workers report their changes for a coherent checkpoint. Do not include another
+writer's unfinished work. If a commit is blocked, preserve the files and report
+the missing checkpoint and required recovery action; do not claim it succeeded.
+Use existing Git identity and signing settings rather than inventing or changing
+them to bypass a failure.
+
+Archive the quest with its `.git` directory intact. The quest-record repository
+is retained memory, not an implementation checkout subject to removal or merge
+verification.
 
 ## Shared Update Contract
 

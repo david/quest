@@ -16,10 +16,15 @@ preserve existing files and avoid duplicate instruction blocks.
 
 For a fresh installation, the baseline is:
 
-1. Create `quests/` under the project directory.
+1. Select a quest root outside existing Git repositories, including project
+   checkouts and worktrees. Reuse an existing declaration only when it meets this
+   requirement. For a project directory outside Git, `./quests` is the default;
+   otherwise use an explicitly supplied external location or ask for one. Verify
+   the canonical location is outside Git before creating the directory named
+   `quests`. Report conflicting existing storage without migrating it.
 2. Add or narrowly update a quest setup section in the project's `AGENTS.md`.
-   Preserve all unrelated instructions. Declare `Quest root: ./quests` (or the
-   reused root, relative to this instruction file).
+   Preserve all unrelated instructions. Declare `Quest root: <path>` using the
+   selected root's absolute path or a path relative to this instruction file.
 3. Explain that new quests read their README first, record active workspace paths
    there when applicable, and follow repository instructions in that workspace
    before repository work. Do not create per-quest `AGENTS.md` files by default.
@@ -92,8 +97,9 @@ project-specific.
 Do not overwrite an existing template. Compare it with the intended setup and
 propose only needed changes. Never copy local secrets into a template. Flag any
 needed ignore rules for generated local configuration under the project's policy.
-Do not add an application-repository ignore rule for a quest-level file outside
-that repository; assess whether the quest storage itself is version-controlled.
+Keep quest-level private configuration excluded in the quest's own repository
+under the skill's Versioned Checkpoints rules. Application-repository ignore
+rules do not apply to files outside that repository.
 
 Validate the quest-root declaration and resulting instructions. When a template
 is configured, validate it with the instructions: render the template

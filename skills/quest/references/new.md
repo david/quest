@@ -2,9 +2,15 @@
 
 ## `new <slug>`
 
-Refuse an invalid slug or a slug that already exists in the quest root. Create
+Refuse an invalid slug or a slug that already exists in the quest root. Verify
+that the quest root is outside existing Git repositories according to the
+skill's Versioned Checkpoints rules before creating anything. Create
 `<quest-root>/<slug>/README.md` with the quest title and `Current State`.
 Add Backlog or References only when supplied context needs them.
+
+Initialize a Git repository at the quest directory and apply the skill's
+Versioned Checkpoints rules. Commit the initial records and `.gitignore` after
+the bounded creation/setup work, before any separately requested substantive work.
 
 Capture the supplied objective, relevant background, and explicit constraints in
 Current State, linking substantial existing material. Distinguish confirmed intent
