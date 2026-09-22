@@ -163,13 +163,16 @@ states for recovery and comparison. Normal resumption must not require reading
 history. Keep rationale that still matters in the current records under the
 shared retention test.
 
-Quest storage must be outside existing Git repositories, including project
-checkouts and worktrees; ignoring the storage in an enclosing repository does
-not satisfy this requirement. Before creating a quest or initializing an existing
-one, verify that its canonical parent location is outside any Git repository.
-If it is inside one, report the conflict and request an external quest root;
-do not create the quest or silently relocate existing records. Implementation
-checkouts may live inside a quest under the configured workspace layout.
+Quest storage may be outside Git or inside an enclosing repository, such as a
+project-support wrapper that tracks shared instructions and templates. An
+enclosing repository must ignore the entire quest root and track none of its
+contents, including archived quests or gitlinks. Before creating a quest or
+initializing an existing one, verify this boundary from the enclosing repository
+using the canonical storage location; check both ignore rules and tracked paths.
+If the boundary is missing, report the required setup correction before
+proceeding. Do not automatically untrack or relocate existing records.
+Implementation checkouts may live inside a quest under the configured workspace
+layout.
 
 On creation, initialize the repository and commit the initial quest records after
 setup. For an existing quest without its own repository, initialize and commit a

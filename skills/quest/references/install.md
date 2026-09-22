@@ -14,14 +14,17 @@ do not create parallel roots or migrate existing quests. Ask before changing a
 conflicting declaration, file layout, or setup rule. Rerunning installation must
 preserve existing files and avoid duplicate instruction blocks.
 
-For a fresh installation, the baseline is:
+For installation or reconciliation of an existing setup, the baseline is:
 
-1. Select a quest root outside existing Git repositories, including project
-   checkouts and worktrees. Reuse an existing declaration only when it meets this
-   requirement. For a project directory outside Git, `./quests` is the default;
-   otherwise use an explicitly supplied external location or ask for one. Verify
-   the canonical location is outside Git before creating the directory named
-   `quests`. Report conflicting existing storage without migrating it.
+1. Reuse the configured quest root or default to `./quests` under the project
+   directory. The root must be named `quests`. When its canonical location is
+   inside a Git repository, check that the enclosing repository tracks none of
+   the quest storage, including gitlinks. Report existing tracking as a conflict
+   rather than automatically untracking or migrating records. Establish a scoped
+   ignore rule under the enclosing repository's established ignore policy (for
+   example, `/quests/` in a wrapper root's `.gitignore`) and verify that it covers
+   the entire quest root, including `.archived`. Create the directory once this
+   boundary satisfies the skill's Versioned Checkpoints rules.
 2. Add or narrowly update a quest setup section in the project's `AGENTS.md`.
    Preserve all unrelated instructions. Declare `Quest root: <path>` using the
    selected root's absolute path or a path relative to this instruction file.
