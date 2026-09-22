@@ -25,8 +25,10 @@ inventing a task. Keep workspace setup results and recovery actions here.
 Keep quest creation administrative and bounded. Create the record and perform any required workspace setup, parent linkage, and indexing from supplied or already-known context. Link authoritative existing artifacts instead of rereading or restating them. A request to include the information needed for later work does not by itself authorize codebase inventory, external research, implementation planning, architecture or decision changes, contract reconciliation, testing, or implementation. Perform those activities only when the user explicitly requests them separately.
 
 When generating an issue-backed quest slug, preserve the leading issue number
-and use a concise, recognizable summary of the title. Concision is a default,
-not a word-count limit; preserve an explicitly supplied valid user slug.
+and use a concise, recognizable summary of the title. For PR-based quests, use
+`pr-<number>-<description>`, for example `pr-3708-calendar-subscription-prototype`.
+Concision is a default, not a word-count limit; preserve an explicitly supplied
+valid user slug.
 
 When project instructions configure a quest template, follow their source and
 destination rules. Use [Template rendering](render-template.md) for
