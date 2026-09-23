@@ -163,43 +163,27 @@ states for recovery and comparison. Normal resumption must not require reading
 history. Keep rationale that still matters in the current records under the
 shared retention test.
 
-Quest storage may be outside Git or inside an enclosing repository, such as a
-project-support wrapper that tracks shared instructions and templates. An
-enclosing repository must ignore the entire quest root and track none of its
-contents, including archived quests or gitlinks. Before creating a quest or
-initializing an existing one, verify this boundary from the enclosing repository
-using the canonical storage location; check both ignore rules and tracked paths.
-If the boundary is missing, report the required setup correction before
-proceeding. Do not automatically untrack or relocate existing records.
-Implementation checkouts may live inside a quest under the configured workspace
-layout.
+The global OpenCode `quest-snapshots` plugin owns quest repository initialization
+and local snapshots. It discovers existing quests on load and before prompts to
+preserve a baseline, then discovers and snapshots eligible record changes at turn
+completion, including newly created quests. Agents maintain useful current records.
 
-On creation, initialize the repository and commit the initial quest records after
-setup. For an existing quest without its own repository, initialize and commit a
-baseline of its existing records before the first substantive update. Opening or
-listing a quest alone does not require initialization. Check the actual repository
-root; Git discovering an ancestor repository does not establish quest ownership.
+Snapshots include eligible additions, modifications, and deletions, including
+partial state and concurrent writers' changes. They are recovery points, not
+coherent-unit approvals or agent-attributed commits. Continue reconciling supporting
+records and Current State for useful resumption.
 
-Maintain a quest-local `.gitignore` excluding `/work/`, `/local-data/`, other
-implementation checkouts, caches, temporary output, and private configuration.
-Track maintained quest records and suitable durable evidence. Inspect existing
-files before the baseline; preserve them in place while excluding material that
-does not belong in quest history. Do not add nested repositories as gitlinks.
+Quest storage may be outside Git or inside an enclosing repository. The plugin
+excludes the entire storage root, including archived quests, from enclosing
+repositories using local Git excludes. It refuses automatic untracking of existing
+tracked content or gitlinks. It preserves existing ignore rules and excludes
+`/work/`, `/local-data/`, `/mise.local.toml`, common generated/private data, and
+nested repositories from snapshots. Keep other private or generated material in
+excluded locations or add appropriate quest-local ignore rules before creating it.
+Implementation checkouts may live under the configured quest workspace layout.
 
-After each coherent durable update, commit its affected records, including
-additions and deletions. Reconcile supporting documents and Current State before
-committing so one checkpoint captures a consistent result, rather than committing
-each file write. Use a concise message describing the durable change; do not
-create empty commits. These local quest-record commits are part of maintaining
-the quest and do not authorize implementation commits or remote publication.
-
-Inspect status and the staged diff, stage explicit paths, and preserve unrelated
-or unfinished edits. With concurrent agents, the coordinating agent owns commits;
-workers report their changes for a coherent checkpoint. Do not include another
-writer's unfinished work. If a commit is blocked, preserve the files and report
-the missing checkpoint and required recovery action; do not claim it succeeded.
-Use existing Git identity and signing settings rather than inventing or changing
-them to bypass a failure.
+Snapshot failures preserve records and produce diagnostics; the plugin retries on
+the next trigger without prompting an agent.
 
 Archive the quest with its `.git` directory intact. The quest-record repository
 is retained memory, not an implementation checkout subject to removal or merge

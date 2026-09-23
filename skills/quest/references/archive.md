@@ -13,12 +13,11 @@ stashing, remote branch deletion, deployments, credential changes, or stopping
 unrelated processes. Additional explicit instructions can authorize scoped local
 preservation or discard as described below.
 
-Local quest-record checkpoints follow the skill's Versioned Checkpoints rules
-and are authorized as part of archival. Preserve the quest's own repository,
+Automatic quest-record snapshots follow the skill's Versioned Checkpoints rules.
+Preserve the quest's own repository,
 including `.git`, when moving it. The checkout inventory, merge checks, and
 removal procedures below concern implementation repositories, not this retained
-quest-record repository. For an unversioned quest, commit its baseline before
-changing its records.
+quest-record repository. The plugin also discovers retained archived records.
 
 ### Resolve and inventory
 
@@ -276,8 +275,8 @@ checkout and verify that moving it leaves no broken Git registrations.
   recovery ref and backup (including verified clone bundles), and repaired links.
   Keep all unrelated
    quests, worktrees, branches, and remote state untouched.
-- Commit the reconciled archive records in the retained quest repository and
-  verify its repository root and history at the archived path.
+- Verify that the quest's existing `.git` directory was retained at the archived
+  path. The plugin snapshots the reconciled archive records automatically.
 - Report the archive path, removed clones/worktrees/branches, retained local material,
   and any incomplete steps. Do not claim provider, staging, or production
   validation merely because the quest was archived.

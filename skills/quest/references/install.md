@@ -17,14 +17,11 @@ preserve existing files and avoid duplicate instruction blocks.
 For installation or reconciliation of an existing setup, the baseline is:
 
 1. Reuse the configured quest root or default to `./quests` under the project
-   directory. The root must be named `quests`. When its canonical location is
-   inside a Git repository, check that the enclosing repository tracks none of
-   the quest storage, including gitlinks. Report existing tracking as a conflict
-   rather than automatically untracking or migrating records. Establish a scoped
-   ignore rule under the enclosing repository's established ignore policy (for
-   example, `/quests/` in a wrapper root's `.gitignore`) and verify that it covers
-   the entire quest root, including `.archived`. Create the directory once this
-   boundary satisfies the skill's Versioned Checkpoints rules.
+   directory. The root must be named `quests`. Create the storage directory.
+   The snapshot plugin establishes the enclosing-repository exclusion and refuses
+   already tracked quest contents under the skill's Versioned Checkpoints rules.
+   Preserve records if it reports a boundary conflict; do not untrack or migrate
+   them automatically.
 2. Add or narrowly update a quest setup section in the project's `AGENTS.md`.
    Preserve all unrelated instructions. Declare `Quest root: <path>` using the
    selected root's absolute path or a path relative to this instruction file.

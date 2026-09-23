@@ -10,7 +10,6 @@ context. Ask which quest to use only when the target is not clear. Read its
 including affected supporting records and `Current State`. If nothing material
 changed, no edit is needed.
 
-Apply the skill's Versioned Checkpoints rules to any durable update, including a
-baseline before editing an existing unversioned quest. This operation commits
-updated quest records locally; it does not imply fetching, pulling, pushing, or
-continuing the quest's next task.
+The snapshot plugin preserves eligible changes under the skill's Versioned
+Checkpoints rules. Sync maintains records; it does not imply remote synchronization
+or continuing the quest's next task.
