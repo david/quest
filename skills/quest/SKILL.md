@@ -142,6 +142,26 @@ independently useful or likely to change independently, not merely because they
 arose during different workflow activities. Prefer updating the file that already
 owns an aspect over creating a file for each activity, worker, session, or status change.
 
+Use `research/` to keep code exploration and research available without loading
+it into context by default. Store synthesized findings, comparisons, and supporting
+evidence there, with concise annotated links from the README or relevant plan.
+Keep only conclusions needed for current action in those entry points; read the
+linked research selectively when the task needs its detail. Do not load the whole
+directory when opening or resuming a quest.
+
+Keep related findings in subject-focused files and
+refresh those files when relevant code, sources, or assumptions change before
+relying on them. Identify the sources and their version or observation time when
+needed to assess freshness. Research is versioned quest knowledge; plans and
+decisions should reference it rather than duplicate its findings.
+
+Keep the layout shallow. Create `research/` only when a separate research file is
+useful; brief conclusions needed for current action may stay in the README or an
+existing subject-focused record. Prefer files directly in `research/` over subdirectories, and avoid
+separate directories for each activity, artifact type, or temporary-versus-durable
+classification. Add directories only when the volume or subject structure makes
+navigation materially easier.
+
 Keep volatile coordination state in README `Current State`. Supporting files
 should be self-contained for their purpose through concise context and
 references, not repeated goals, workspace details, live blockers, or next
