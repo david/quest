@@ -13,19 +13,35 @@ Capture the supplied objective, relevant background, and explicit constraints in
 Current State, linking substantial existing material. Distinguish confirmed intent
 from suggested goals, approaches, or tasks; creation does not establish findings,
 accept decisions, or approve a plan. If no objective was supplied, state that it
-is unresolved rather than inventing one. If further work was explicitly requested
-alongside creation, perform it separately after creating the record and retain its
-results where useful under the shared update contract.
+is unresolved rather than inventing one.
 
 Initialize Current State with no substantive task started, a checkpoint that the
-quest was created, and any setup blockers. Use the user's selected next activity,
-or recommend the
-smallest useful next action supported by the supplied context. Clarify intent only
-when a material question remains unresolved; do not ask the user to repeat clear
-outcomes. If no further work is requested, record creation as complete without
-inventing a task. Keep workspace setup results and recovery actions here.
+quest was created, and any setup blockers. After required setup, read
+[Goals](goals.md) and enter goal alignment in the same turn. Recap the understood
+outcomes, scope, and success expectations; develop material gaps and tradeoffs
+with the user, then seek confirmation of the resulting goal contract. Build on
+supplied answers without requiring repetition. Do not stop at a creation notice
+or merely recommend goal clarification for later.
 
-Keep quest creation administrative and bounded. Create the record and perform any required workspace setup, parent linkage, and indexing from supplied or already-known context. Link authoritative existing artifacts instead of rereading or restating them. A request to include the information needed for later work does not by itself authorize codebase inventory, external research, implementation planning, architecture or decision changes, contract reconciliation, testing, or implementation. Perform those activities only when the user explicitly requests them separately.
+While alignment is ongoing, keep confirmed intent, provisional interpretations,
+and the next question recoverable from Current State. Record creation as complete
+without implying that goal alignment is complete. Respect an explicit request to
+create the record and pause. Keep workspace setup results and recovery actions
+here.
+
+Once goals are confirmed, continue any further work explicitly requested alongside
+creation and retain useful results under the shared update contract. Otherwise,
+summarize the agreed goals and recommend the next useful action without treating
+alignment as authorization for planning or implementation.
+
+Quest creation includes bounded workspace setup and conversational goal development.
+Create the record and perform any required workspace setup, parent linkage, and
+indexing from supplied or already-known context. Link authoritative existing
+artifacts, reading only what goal alignment needs. Creation does not by itself
+authorize codebase inventory, external research, implementation planning,
+architecture or delivery decision changes, reconciliation of downstream contracts,
+testing, or implementation. Perform those activities only when the user explicitly
+requests them separately.
 
 When generating an issue-backed quest slug, preserve the leading issue number
 and use a concise, recognizable summary of the title. For PR-based quests, use

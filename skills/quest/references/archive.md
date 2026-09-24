@@ -68,7 +68,7 @@ quest-record repository. The plugin also discovers retained archived records.
 
 Before Git preflight and cleanup, check the quest's consolidation result for
 outstanding documentation or learning updates and findings since its recorded
-coverage. Use `quest-distill` when gaps remain or no relevant consolidation
+coverage. Read [Distill](distill.md) when gaps remain or no relevant consolidation
 has occurred, including for quests without PRs. An existing result that covers
 the final state needs only confirmation. Apply its distinction between required
 documentation gaps and useful follow-up knowledge transfer. Required gaps need

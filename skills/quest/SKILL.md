@@ -1,20 +1,20 @@
 ---
 name: quest
 description: >
-  Open, create, list, archive, and maintain durable quest records for work that spans
-  sessions or needs a recoverable handoff. Use for quest workspace discovery,
-  current-state reconciliation, project installation, lifecycle commands, task
-  breakdown, and routing work to an optional quest capability skill.
+  Create, open, and maintain quests for work that spans sessions or needs a
+  recoverable handoff. Use for quest lifecycle and state management, goal alignment,
+  planning, acceptance scenarios, task breakdown, implementation, review, knowledge
+  transfer, handoff, and explicitly requested subagent coordination within a quest.
 ---
 
-<!-- argument-hint: <install|open|new|list|sync|archive> [path|slug] -->
+<!-- argument-hint: <install|open|new|goals|planning|acceptance|partition|coding|review|distill|handoff|master|list|sync|archive> [path|slug] -->
 
 # Quest
 
 Use quests as lightweight shared context, not as a mandatory project process.
 A quest may involve any kind of work, and its activities need not follow a
-linear sequence. This skill is the durable memory layer: it does not select or
-enforce a workflow.
+linear sequence. This skill maintains durable memory and establishes shared goals
+at creation; it does not prescribe a delivery workflow.
 
 Quest memory is a maintained representation of current understanding, not an
 activity log or an archive of how that understanding evolved. Goals, research,
@@ -120,8 +120,9 @@ Check it only after recording its outcome and appropriate evidence. Add a missin
 Current State during the next substantive update, not merely because a quest was
 opened or listed. Do not create empty headings for completeness.
 
-At creation, capture supplied context and initialize Current State according to
-[New](references/new.md). Distinguish clear user intent and explicit constraints
+At creation, capture supplied context, initialize Current State, and develop and
+confirm the goals with the user according to [New](references/new.md) and
+[Goals](references/goals.md). Distinguish clear user intent and explicit constraints
 from proposed goals, approaches, or tasks. Suggestions are not accepted decisions
 or an approved task list. Build on supplied answers without requiring repetition.
 As understanding develops, replace provisional or obsolete context with current
@@ -286,38 +287,45 @@ recommend the smallest useful action supported by the current goal and evidence;
 do not infer a lifecycle or expand authorization. Keep `Current State` aligned
 with the recommendation and make unresolved decisions and blockers explicit.
 
-## Optional Capabilities
+## Commands And Conditional References
 
-Load only the capability needed for the current request. These are not required
-stages and may be used in any order or more than once:
+Route by the user's intent, whether expressed as a command or natural language.
+Read the matching reference before performing that activity. Read additional
+references only when their conditions apply, including dependencies required by
+the active reference. For combined requests, load each reference as its activity
+becomes relevant rather than loading the whole collection.
 
-- `quest-goal` for clarifying desired outcomes, motivation, priorities, and scope;
-- `quest-planning` for choosing an approach to achieve the goals and why it fits;
-- `quest-acceptance-planning` for creating a durable acceptance contract;
-- `quest-coding` for implementing coding tasks with proportionate repository,
-  validation, commit, and worktree discipline;
-- `quest-review` for risk-based independent assessment;
-- `quest-distill` for incorporating durable outcomes into maintained project
-  documentation and guidance before PR creation, merge, or archival as needed; and
-- `quest-handoff` for reconciliation before reset, compaction, or transfer.
+These activities may be used in any order or more than once; they are not a
+mandatory sequence. New quest creation includes goal development and confirmation.
+Loading a reference does not expand authorization or reserve ordinary decisions
+for approval. Preserve the reference's specific scope and decision boundaries.
 
-Specialized skills may be used instead of or alongside these capabilities. Do
-not duplicate a specialist workflow inside the quest record.
+| Command | Read this reference when… | Reference |
+| --- | --- | --- |
+| `install` | Installing quest support in a project. | [Install](references/install.md) |
+| `open` | Opening an existing quest, including `open current` or `open current quest`. | [Open](references/open.md) |
+| `new` | Creating a quest; New then requires Goals. | [New](references/new.md) |
+| `goals` | Developing or revisiting outcomes, motivation, priorities, scope, or success expectations. | [Goals](references/goals.md) |
+| `planning` | Choosing or revising an approach to achieve the goals and explaining why it fits. | [Planning](references/planning.md) |
+| `acceptance` | Creating, revising, or prioritizing acceptance scenarios, evidence, or manual-versus-automated responsibilities. | [Acceptance Planning](references/acceptance.md) |
+| `partition` | Turning an established plan into executable tasks; this does not authorize execution. | [Task Breakdown](references/partition.md) |
+| `coding` | Implementing an authorized source-code or configuration change within a quest. | [Coding](references/coding.md) |
+| `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | [Review](references/review.md) |
+| `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | [Distill](references/distill.md) |
+| `handoff` | Reconciling quest state for reset, compaction, transfer, pause, or another session, or auditing recoverability. | [Handoff](references/handoff.md) |
+| `master` | The user explicitly selects `quest master` or requests delegated investigation or subagent coordination within a quest. | [Master](references/master.md) |
+| `list` | Listing quests. | [List](references/list.md) |
+| `sync` | Reconciling current quest state, including `sync quest` or an unambiguous quest-state sync request. | [Sync](references/sync.md) |
+| `archive` | Archiving a quest, including `archive current` or `archive <slug>`. | [Archive](references/archive.md) |
 
-For a request to turn an established plan into executable tasks, use
-[Task Breakdown](references/partition.md). A breakdown request alone does not
-authorize task execution.
+Activity commands use the current quest or an explicit valid slug in the resolved
+quest root. Ask which quest to use when neither is available; do not create a
+quest implicitly. Follow lifecycle references for their command-specific arguments.
+Keep Master inactive unless its explicit selection or delegation condition applies;
+loading quest alone does not select delegated coordination.
 
-## Commands
-
-Before running a command, read only its dedicated reference:
-
-- `open`, `open current`, or `open current quest`: [Open](references/open.md)
-- `new`: [New](references/new.md)
-- `list`: [List](references/list.md)
-- `sync quest`, or `sync` when the context clearly refers to quest state: [Sync](references/sync.md)
-- `archive`, `archive current`, or `archive <slug>`: [Archive](references/archive.md)
-- `install`: [Install](references/install.md)
+Specialized domain skills may be used alongside these references when relevant.
+Do not duplicate a specialist workflow inside the quest record.
 
 When creating a quest, never replace an existing quest directory or file. Edit
 existing quest material narrowly under the shared update contract.
