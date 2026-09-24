@@ -17,7 +17,8 @@ Automatic quest-record snapshots follow the skill's Versioned Checkpoints rules.
 Preserve the quest's own repository,
 including `.git`, when moving it. The checkout inventory, merge checks, and
 removal procedures below concern implementation repositories, not this retained
-quest-record repository. The plugin also discovers retained archived records.
+quest-record repository. Automatic scans exclude archived quests; their current
+files and existing Git history are retained without further automatic snapshots.
 
 ### Resolve and inventory
 
@@ -276,7 +277,7 @@ checkout and verify that moving it leaves no broken Git registrations.
   Keep all unrelated
    quests, worktrees, branches, and remote state untouched.
 - Verify that the quest's existing `.git` directory was retained at the archived
-  path. The plugin snapshots the reconciled archive records automatically.
+  path alongside the reconciled records.
 - Report the archive path, removed clones/worktrees/branches, retained local material,
   and any incomplete steps. Do not claim provider, staging, or production
   validation merely because the quest was archived.

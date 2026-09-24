@@ -4,7 +4,19 @@
 
 When the session is inside a canonically detected quest workspace, open the current quest. If the session is not inside a quest, ask for a slug.
 
-After opening a quest, summarize its goals and `Current State`, then follow only the links needed to understand the active tasks and their exact next actions. Apply the quest actionable handoff guidance: recommend a concrete next step when work remains, or state that the work is complete or intentionally paused. If `Current State` is absent, incomplete, or stale, report the handoff gap and base the recommendation on recorded goals, dependencies, and evidence, not section order. Ask for direction only when the record cannot support a useful recommendation. An unchecked normal task remains pending. An unchecked `Approval:` item with a result or outcome link awaits user approval and must not cause the underlying work to be repeated; `Current State` must identify that approval explicitly. For quest material predating the `Approval:` convention, also preserve that behavior when `Current State` explicitly says the item awaits approval. Do not inspect a project worktree or modify the README merely because the quest was opened.
+Read only the quest README and summarize its goals and `Current State`, including
+recorded next actions, blockers, and approvals. If the README shows that the work
+is complete or intentionally paused, say so. Report gaps apparent in the README
+without following links or investigating them. Wait for the user's direction;
+when the opening prompt also includes a question or request for work, load the
+context needed for that request and proceed in the same turn.
+
+An unchecked normal task remains pending. An unchecked `Approval:` item with a
+result or outcome link awaits user approval and must not cause the underlying
+work to be repeated; `Current State` must identify that approval explicitly. For
+quest material predating the `Approval:` convention, also preserve that behavior
+when `Current State` explicitly says the item awaits approval. Do not inspect a
+project worktree or modify the README merely because the quest was opened.
 
 ## `open <slug>`
 

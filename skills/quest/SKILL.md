@@ -78,8 +78,20 @@ Every quest is a workspace whose only required record is `README.md`, with
 `Current State` as its only required section. Do not create empty directories,
 per-session reports, or workflow metadata merely for consistency.
 
-Always read `README.md` first. Follow only the links needed for the current
-request, active work, and exact next action. Before changing shared quest
+Always read `README.md` first. When the prompt only loads or opens an existing
+quest or selects Master, read only the quest README, summarize its current state,
+and wait for user direction. Include recorded next actions and any gaps apparent
+in the README; do not follow links, inspect project files, delegate, or update
+records merely to orient. Recorded next actions are context, not a request to
+execute them.
+
+The user's subsequent direction determines what additional context to load. If
+the same prompt includes a question or request for work, load what that request
+needs and proceed in the same turn. Select context according to the decision or
+action at hand, starting with the records governing the active task. Consult
+relevant research when developing or revisiting an approach, checking its
+assumptions, or resolving a gap; carrying out an established approach does not by
+itself require loading its supporting research. Before changing shared quest
 material, reread the affected content and preserve unrelated updates.
 
 Create new records with this minimal structure:
@@ -152,8 +164,10 @@ directory when opening or resuming a quest.
 Keep related findings in subject-focused files and
 refresh those files when relevant code, sources, or assumptions change before
 relying on them. Identify the sources and their version or observation time when
-needed to assess freshness. Research is versioned quest knowledge; plans and
-decisions should reference it rather than duplicate its findings.
+needed to assess freshness. Research is versioned quest knowledge. Plans and task
+specifications must state or explicitly link the requirements needed to act
+correctly, so essential constraints are not discoverable only by reading
+background research. Reference supporting investigation rather than duplicate it.
 
 Keep the layout shallow. Create `research/` only when a separate research file is
 useful; brief conclusions needed for current action may stay in the README or an
@@ -185,7 +199,7 @@ history. Keep rationale that still matters in the current records under the
 shared retention test.
 
 The global OpenCode `quest-snapshots` plugin owns quest repository initialization
-and local snapshots. It discovers existing quests on load and before prompts to
+and local snapshots. It discovers active quests on load and before prompts to
 preserve a baseline, then discovers and snapshots eligible record changes at turn
 completion, including newly created quests. Agents maintain useful current records.
 
@@ -208,7 +222,8 @@ the next trigger without prompting an agent.
 
 Archive the quest with its `.git` directory intact. The quest-record repository
 is retained memory, not an implementation checkout subject to removal or merge
-verification.
+verification. Automatic scans exclude `.archived`; archiving preserves current
+files and existing history but ends automatic snapshots for that quest.
 
 ## Shared Update Contract
 
@@ -296,9 +311,9 @@ checkpoint, next actions, blockers and approvals, relevant files or workspaces,
 and the validation or evidence state and where to verify it. Individual artifacts
 need not repeat this context.
 
-When opening a quest, reporting progress, completing substantive work, or
-encountering a blocker, preserve one concrete recommended next action for each
-active task, or the next overall action if work remains. If the agreed work is
+When reporting progress, completing substantive work, or encountering a blocker,
+preserve one concrete recommended next action for each active task, or the next
+overall action if work remains. If the agreed work is
 complete or intentionally paused, record that without inventing a next task.
 Derive next actions from the user's direction, the active capability, or an
 explicitly selected workflow, not from the order of README sections.
@@ -314,6 +329,8 @@ Read the matching reference before performing that activity. Read additional
 references only when their conditions apply, including dependencies required by
 the active reference. For combined requests, load each reference as its activity
 becomes relevant rather than loading the whole collection.
+For orientation-only invocations, apply the README-only rule above and defer
+references for substantive work until the user directs that work.
 
 These activities may be used in any order or more than once; they are not a
 mandatory sequence. New quest creation includes goal development and confirmation.
@@ -333,7 +350,7 @@ for approval. Preserve the reference's specific scope and decision boundaries.
 | `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | [Review](references/review.md) |
 | `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | [Distill](references/distill.md) |
 | `handoff` | Reconciling quest state for reset, compaction, transfer, pause, or another session, or auditing recoverability. | [Handoff](references/handoff.md) |
-| `master` | The user explicitly selects `quest master` or requests delegated investigation or subagent coordination within a quest. | [Master](references/master.md) |
+| `master` | Coordinating requested work while Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | [Master](references/master.md) |
 | `list` | Listing quests. | [List](references/list.md) |
 | `sync` | Reconciling current quest state, including `sync quest` or an unambiguous quest-state sync request. | [Sync](references/sync.md) |
 | `archive` | Archiving a quest, including `archive current` or `archive <slug>`. | [Archive](references/archive.md) |

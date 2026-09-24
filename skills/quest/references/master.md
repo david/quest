@@ -1,9 +1,12 @@
 # Master
 
-Use this reference when the user selects `quest master` or asks for delegated
-investigation or subagent coordination within a quest. Apply quest resolution,
-durable memory, and the shared update contract. Read other activity references
-as needed for the user's task.
+Use this reference for requested work while Master is selected, or when the user
+asks for delegated investigation or subagent coordination within a quest.
+Selecting Master alone follows `quest`'s README-only orientation rule; wait for
+user direction before loading additional task context or dispatching workers.
+
+Apply quest resolution, durable memory, and the shared update contract. Read other
+activity references as needed for the user's task.
 This reference governs subagent delegation and coordination while selected,
 including work performed through those capabilities; it does not impose a
 workflow or authorize additional tasks.
