@@ -332,19 +332,19 @@ with the recommendation and make unresolved decisions and blockers explicit.
 ## Commands And Conditional References
 
 Route by the user's intent, whether expressed as a command or natural language.
-Read the matching reference before performing that activity. Read additional
+Load the matching reference or skill before performing that activity. Read additional
 references only when their conditions apply, including dependencies required by
-the active reference. For combined requests, load each reference as its activity
+the active guidance. For combined requests, load each reference or skill as its activity
 becomes relevant rather than loading the whole collection.
 For orientation-only invocations, apply the README-only rule above and defer
 references for substantive work until the user directs that work.
 
 These activities may be used in any order or more than once; they are not a
 mandatory sequence. New quest creation includes goal development and confirmation.
-Loading a reference does not expand authorization or reserve ordinary decisions
-for approval. Preserve the reference's specific scope and decision boundaries.
+Loading guidance does not expand authorization or reserve ordinary decisions
+for approval. Preserve its specific scope and decision boundaries.
 
-| Command | Read this reference when… | Reference |
+| Command | Load this guidance when… | Guidance |
 | --- | --- | --- |
 | `install` | Installing quest support in a project. | [Install](references/install.md) |
 | `open` | Opening an existing quest, including `open current` or `open current quest`. | [Open](references/open.md) |
@@ -357,7 +357,7 @@ for approval. Preserve the reference's specific scope and decision boundaries.
 | `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | [Review](references/review.md) |
 | `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | [Distill](references/distill.md) |
 | `handoff` | Reconciling quest state for reset, compaction, transfer, pause, or another session, or auditing recoverability. | [Handoff](references/handoff.md) |
-| `master` | Coordinating requested work while Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | [Master](references/master.md) |
+| `master` | Coordinating requested work while Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | `master` skill |
 | `list` | Listing quests. | [List](references/list.md) |
 | `sync` | Reconciling current quest state, including `sync quest` or an unambiguous quest-state sync request. | [Sync](references/sync.md) |
 | `archive` | Archiving a quest, including `archive current` or `archive <slug>`. | [Archive](references/archive.md) |
@@ -365,7 +365,7 @@ for approval. Preserve the reference's specific scope and decision boundaries.
 Activity commands use the current quest or an explicit valid slug in the resolved
 quest root. Ask which quest to use when neither is available; do not create a
 quest implicitly. Follow lifecycle references for their command-specific arguments.
-Keep Master inactive unless its explicit selection or delegation condition applies;
+Load the `master` skill when its explicit selection or delegation condition applies;
 loading quest alone does not select delegated coordination.
 
 Specialized domain skills may be used alongside these references when relevant.

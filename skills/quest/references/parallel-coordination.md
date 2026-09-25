@@ -1,8 +1,8 @@
 # Parallel Coordination
 
 Use this reference when coordinating parallel implementation workers within the
-authorized task scope. When delegated coordination is selected, read-only
-investigation follows [Master](master.md)'s Investigation Delegation rule.
+authorized task scope. When delegated coordination is selected, load the `master`
+skill and follow its Investigation Delegation rule for read-only investigation.
 Worktree isolation does not expand task authorization or bypass the clean
 execution-worktree preflight in [Coding](coding.md).
 
