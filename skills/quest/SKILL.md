@@ -79,9 +79,9 @@ Every quest is a workspace whose only required record is `README.md`, with
 per-session reports, or workflow metadata merely for consistency.
 
 Always read `README.md` first. When the prompt only loads or opens an existing
-quest or selects Master, read only the quest README, summarize its current state,
-and wait for user direction. Include recorded next actions and any gaps apparent
-in the README; do not follow links, inspect project files, delegate, or update
+quest or selects Quest Master, read only the quest README, summarize its current
+state, and wait for user direction. Include recorded next actions and any gaps
+apparent in the README; do not follow links, inspect project files, delegate, or update
 records merely to orient. Recorded next actions are context, not a request to
 execute them.
 
@@ -357,7 +357,7 @@ for approval. Preserve its specific scope and decision boundaries.
 | `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | [Review](references/review.md) |
 | `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | [Distill](references/distill.md) |
 | `handoff` | Reconciling quest state for reset, compaction, transfer, pause, or another session, or auditing recoverability. | [Handoff](references/handoff.md) |
-| `master` | Coordinating requested work while Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | `master` skill |
+| `master` | Coordinating requested work while Quest Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | `quest-master` skill |
 | `list` | Listing quests. | [List](references/list.md) |
 | `sync` | Reconciling current quest state, including `sync quest` or an unambiguous quest-state sync request. | [Sync](references/sync.md) |
 | `archive` | Archiving a quest, including `archive current` or `archive <slug>`. | [Archive](references/archive.md) |
@@ -365,8 +365,8 @@ for approval. Preserve its specific scope and decision boundaries.
 Activity commands use the current quest or an explicit valid slug in the resolved
 quest root. Ask which quest to use when neither is available; do not create a
 quest implicitly. Follow lifecycle references for their command-specific arguments.
-Load the `master` skill when its explicit selection or delegation condition applies;
-loading quest alone does not select delegated coordination.
+Load the `quest-master` skill when its explicit selection or delegation condition
+applies; loading quest alone does not select delegated coordination.
 
 Specialized domain skills may be used alongside these references when relevant.
 Do not duplicate a specialist workflow inside the quest record.
