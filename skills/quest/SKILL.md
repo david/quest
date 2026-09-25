@@ -296,6 +296,13 @@ substantive update.
 
 ## Actionable Handoff
 
+Continue work within the active request until it is complete or genuinely blocked.
+Treat user agreement as resolving the point under discussion, then proceed with
+remaining in-scope work. Independently investigate gaps that available evidence
+can resolve; ask the user when progress requires their decision or unavailable
+information. Recording progress or completing a workflow stage is not itself a
+stopping condition. Respect explicit pauses, scope limits, and approval boundaries.
+
 At a handoff, blocker, or material change in direction, make the next useful action
 explicit to the user when work remains, including during capability-specific
 conversations. Briefly explain why it follows from the current state; do not leave

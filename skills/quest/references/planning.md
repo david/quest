@@ -15,8 +15,10 @@ unclear or disputed, read [Goals](goals.md) to establish shared understanding ra
 than hiding those choices in a plan. Goal discovery is not a prerequisite when
 the existing goals are already clear enough to plan against.
 
-Do not conduct unrelated research, execute the plan, or approve decisions on the
-user's behalf. Use a specialist planning skill when the domain calls for one;
+For a planning-only request, stay within planning. When planning supports a broader
+execution request, continue into the next in-scope activity as readiness allows.
+Do not conduct unrelated research or approve decisions on the user's behalf.
+Use a specialist planning skill when the domain calls for one;
 index its result in the quest instead of duplicating it.
 
 Choose the specialist by the design question:
@@ -46,8 +48,9 @@ the following where material to the plan, omitting empty categories:
 Do not partition the plan into execution tasks, assign ownership, or prescribe
 a detailed task schedule. Include strategic sequencing constraints when they
 shape the approach, such as migrating readers before removing an interface.
-Recommend task breakdown after the outcome and approach are sufficiently stable
-when the work needs more than one executable task. A small plan that is already
+When the outcome and approach are sufficiently stable and the work needs more
+than one executable task, proceed with task breakdown if covered by the active
+request; otherwise recommend it. A small plan that is already
 one clear task may proceed without partitioning.
 
 Before recommending partitioning or implementation, distinguish resolved
@@ -99,11 +102,15 @@ of delaying them; do not invent a replacement decision.
 Request formal review only when the user, applicable policy, or material risk
 warrants it. Request user approval only when the user or applicable policy
 reserves the decision. A reviewed plan is not approved on the user's behalf.
-Use the quest `Approval:` convention for a real approval gate. When further work
-is appropriate, recommend the remaining decision, partitioning, or executable
-work according to readiness. If the planning request is complete, report that
-without inventing follow-up work. Completing or reviewing a plan does not itself
-authorize execution.
+Use the quest `Approval:` convention for a real approval gate. Follow quest's
+continuation rules: resolve readiness gaps through relevant exploration, research,
+and design work within the active request. Retain consequential accepted choices
+under the shared update contract.
+
+Continue into partitioning or implementation when the existing request covers it
+and the work is ready. If a planning-only request is complete, report the result
+and any recommended next action without inventing follow-up work. Completing or
+reviewing a plan does not itself expand authorization to execution.
 
 ## Record The Result
 
@@ -114,7 +121,8 @@ success criteria with the plan; reference existing accepted decisions instead of
 duplicating them. Create files for independently useful aspects, not each session.
 
 Keep readiness blockers and the selected next action in Current State. When work
-breakdown is needed, recommend partitioning. Keep execution tracking and formal
+breakdown is needed, proceed with partitioning if covered by the active request;
+otherwise recommend it. Keep execution tracking and formal
 assessment evidence distinguishable from the intended approach, linking their
 owning records when separate. Update a plan when its approach or assumptions
 change, not merely because implementation progresses.
