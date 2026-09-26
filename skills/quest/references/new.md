@@ -16,8 +16,8 @@ accept decisions, or approve a plan. If no objective was supplied, state that it
 is unresolved rather than inventing one.
 
 Initialize Current State with no substantive task started, a checkpoint that the
-quest was created, and any setup blockers. After required setup, read
-[Goals](goals.md) and enter goal alignment in the same turn. Recap the understood
+quest was created, and any setup blockers. After required setup, load
+`quest-goal` and enter goal alignment in the same turn. Recap the understood
 outcomes, scope, and success expectations; develop material gaps and tradeoffs
 with the user, then seek confirmation of the resulting goal contract. Build on
 supplied answers without requiring repetition. Do not stop at a creation notice

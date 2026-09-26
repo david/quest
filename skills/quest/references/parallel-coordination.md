@@ -5,7 +5,7 @@ authorized task scope. When delegated coordination is selected, load the
 `quest-master` skill and follow its Investigation Delegation rule for read-only
 investigation.
 Worktree isolation does not expand task authorization or bypass the clean
-execution-worktree preflight in [Coding](coding.md).
+execution-worktree preflight in `quest-coding`.
 
 When workers share one worktree, require non-overlapping file ownership and
 non-interfering commands. Serialize operations on the Git index, commits,

@@ -1,10 +1,10 @@
 ---
 name: quest
 description: >
-  Create, open, and maintain quests for work that spans sessions or needs a
-  recoverable handoff. Use for quest lifecycle and state management, goal alignment,
-  planning, acceptance scenarios, task breakdown, implementation, review, knowledge
-  transfer, handoff, and explicitly requested subagent coordination within a quest.
+  Create, open, and maintain durable quest records for work that spans sessions or
+  needs a recoverable handoff. Use for quest workspace discovery, lifecycle and
+  state management, task breakdown, handoff, and routing work to specialized quest
+  skills.
 ---
 
 <!-- argument-hint: <install|open|new|goals|planning|acceptance|partition|coding|review|distill|handoff|master|list|sync|archive> [path|slug] -->
@@ -133,8 +133,8 @@ Current State during the next substantive update, not merely because a quest was
 opened or listed. Do not create empty headings for completeness.
 
 At creation, capture supplied context, initialize Current State, and develop and
-confirm the goals with the user according to [New](references/new.md) and
-[Goals](references/goals.md). Distinguish clear user intent and explicit constraints
+confirm the goals with the user according to [New](references/new.md) and the
+`quest-goal` skill. Distinguish clear user intent and explicit constraints
 from proposed goals, approaches, or tasks. Suggestions are not accepted decisions
 or an approved task list. Build on supplied answers without requiring repetition.
 As understanding develops, replace provisional or obsolete context with current
@@ -329,7 +329,7 @@ recommend the smallest useful action supported by the current goal and evidence;
 do not infer a lifecycle or expand authorization. Keep `Current State` aligned
 with the recommendation and make unresolved decisions and blockers explicit.
 
-## Commands And Conditional References
+## Commands And Conditional Guidance
 
 Route by the user's intent, whether expressed as a command or natural language.
 Load the matching reference or skill before performing that activity. Read additional
@@ -349,13 +349,13 @@ for approval. Preserve its specific scope and decision boundaries.
 | `install` | Installing quest support in a project. | [Install](references/install.md) |
 | `open` | Opening an existing quest, including `open current` or `open current quest`. | [Open](references/open.md) |
 | `new` | Creating a quest; New then requires Goals. | [New](references/new.md) |
-| `goals` | Developing or revisiting outcomes, motivation, priorities, scope, or success expectations. | [Goals](references/goals.md) |
-| `planning` | Choosing or revising an approach to achieve the goals and explaining why it fits. | [Planning](references/planning.md) |
-| `acceptance` | Creating, revising, or prioritizing acceptance scenarios, evidence, or manual-versus-automated responsibilities. | [Acceptance Planning](references/acceptance.md) |
+| `goals` | Developing or revisiting outcomes, motivation, priorities, scope, or success expectations. | `quest-goal` skill |
+| `planning` | Choosing or revising an approach to achieve the goals and explaining why it fits. | `quest-planning` skill |
+| `acceptance` | Creating, revising, or prioritizing acceptance scenarios, evidence, or manual-versus-automated responsibilities. | `quest-acceptance-planning` skill |
 | `partition` | Turning an established plan into executable tasks; this does not authorize execution. | [Task Breakdown](references/partition.md) |
-| `coding` | Implementing an authorized source-code or configuration change within a quest. | [Coding](references/coding.md) |
-| `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | [Review](references/review.md) |
-| `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | [Distill](references/distill.md) |
+| `coding` | Implementing an authorized source-code or configuration change within a quest. | `quest-coding` skill |
+| `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | `quest-review` skill |
+| `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | `quest-distill` skill |
 | `handoff` | Reconciling quest state for reset, compaction, transfer, pause, or another session, or auditing recoverability. | [Handoff](references/handoff.md) |
 | `master` | Coordinating requested work while Quest Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | `quest-master` skill |
 | `list` | Listing quests. | [List](references/list.md) |
@@ -368,7 +368,7 @@ quest implicitly. Follow lifecycle references for their command-specific argumen
 Load the `quest-master` skill when its explicit selection or delegation condition
 applies; loading quest alone does not select delegated coordination.
 
-Specialized domain skills may be used alongside these references when relevant.
+Specialized domain skills may be used alongside quest guidance when relevant.
 Do not duplicate a specialist workflow inside the quest record.
 
 When creating a quest, never replace an existing quest directory or file. Edit
