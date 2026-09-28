@@ -351,7 +351,7 @@ for approval. Preserve its specific scope and decision boundaries.
 | `new` | Creating a quest; New then requires the `quest-goals` skill. | [New](references/new.md) |
 | `goals` | Developing or revisiting outcomes, motivation, priorities, scope, or success expectations. | `quest-goals` skill |
 | `planning` | Choosing or revising an approach to achieve the goals and explaining why it fits. | `quest-planning` skill |
-| `acceptance` | Creating, revising, or prioritizing acceptance scenarios, evidence, or manual-versus-automated responsibilities. | [Acceptance Planning](references/acceptance.md) |
+| `acceptance` | Designing or revising acceptance scenarios and evidence, or preparing user-executed acceptance tests within a quest; routes to the `acceptance-testing` skill. | [Acceptance integration](references/acceptance.md) |
 | `partition` | Turning an established plan into executable tasks; this does not authorize execution. | `quest-partition` skill |
 | `coding` | Implementing an authorized source-code or configuration change within a quest. | `quest-coding` skill |
 | `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | `quest-review` skill |
