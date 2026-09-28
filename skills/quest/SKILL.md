@@ -1,10 +1,9 @@
 ---
 name: quest
 description: >
-  Create, open, and maintain quests for work that spans sessions or needs a
-  recoverable handoff. Use for quest lifecycle and state management, goal alignment,
-  planning, acceptance scenarios, task breakdown, implementation, review, knowledge
-  transfer, handoff, and explicitly requested subagent coordination within a quest.
+  Create, open, and maintain durable quest records for work that spans sessions or
+  needs a recoverable handoff. Use for quest workspace discovery, lifecycle and
+  state management, and routing work to specialized quest skills.
 ---
 
 <!-- argument-hint: <install|open|new|goals|planning|acceptance|partition|coding|review|distill|handoff|master|list|sync|archive> [path|slug] -->
@@ -329,7 +328,7 @@ recommend the smallest useful action supported by the current goal and evidence;
 do not infer a lifecycle or expand authorization. Keep `Current State` aligned
 with the recommendation and make unresolved decisions and blockers explicit.
 
-## Commands And Conditional References
+## Commands And Conditional Guidance
 
 Route by the user's intent, whether expressed as a command or natural language.
 Load the matching reference or skill before performing that activity. Read additional
@@ -368,7 +367,7 @@ quest implicitly. Follow lifecycle references for their command-specific argumen
 Load the `quest-master` skill when its explicit selection or delegation condition
 applies; loading quest alone does not select delegated coordination.
 
-Specialized domain skills may be used alongside these references when relevant.
+Specialized domain skills may be used alongside quest guidance when relevant.
 Do not duplicate a specialist workflow inside the quest record.
 
 When creating a quest, never replace an existing quest directory or file. Edit
