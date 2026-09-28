@@ -11,9 +11,9 @@ first and follow only links needed to understand
 the goal, current evidence, accepted decisions, and active constraints.
 
 When the desired outcomes, beneficiaries, motivation, or scope are materially
-unclear or disputed, read [Goals](goals.md) to establish shared understanding rather
-than hiding those choices in a plan. Goal discovery is not a prerequisite when
-the existing goals are already clear enough to plan against.
+unclear or disputed, load the `quest-goals` skill to establish shared understanding
+rather than hiding those choices in a plan. Goal discovery is not a prerequisite
+when the existing goals are already clear enough to plan against.
 
 For a planning-only request, stay within planning. When planning supports a broader
 execution request, continue into the next in-scope activity as readiness allows.

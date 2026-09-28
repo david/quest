@@ -134,7 +134,7 @@ opened or listed. Do not create empty headings for completeness.
 
 At creation, capture supplied context, initialize Current State, and develop and
 confirm the goals with the user according to [New](references/new.md) and
-[Goals](references/goals.md). Distinguish clear user intent and explicit constraints
+the `quest-goals` skill. Distinguish clear user intent and explicit constraints
 from proposed goals, approaches, or tasks. Suggestions are not accepted decisions
 or an approved task list. Build on supplied answers without requiring repetition.
 As understanding develops, replace provisional or obsolete context with current
@@ -348,8 +348,8 @@ for approval. Preserve its specific scope and decision boundaries.
 | --- | --- | --- |
 | `install` | Installing quest support in a project. | [Install](references/install.md) |
 | `open` | Opening an existing quest, including `open current` or `open current quest`. | [Open](references/open.md) |
-| `new` | Creating a quest; New then requires Goals. | [New](references/new.md) |
-| `goals` | Developing or revisiting outcomes, motivation, priorities, scope, or success expectations. | [Goals](references/goals.md) |
+| `new` | Creating a quest; New then requires the `quest-goals` skill. | [New](references/new.md) |
+| `goals` | Developing or revisiting outcomes, motivation, priorities, scope, or success expectations. | `quest-goals` skill |
 | `planning` | Choosing or revising an approach to achieve the goals and explaining why it fits. | [Planning](references/planning.md) |
 | `acceptance` | Creating, revising, or prioritizing acceptance scenarios, evidence, or manual-versus-automated responsibilities. | [Acceptance Planning](references/acceptance.md) |
 | `partition` | Turning an established plan into executable tasks; this does not authorize execution. | [Task Breakdown](references/partition.md) |
