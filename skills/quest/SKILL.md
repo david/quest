@@ -350,13 +350,13 @@ for approval. Preserve its specific scope and decision boundaries.
 | `open` | Opening an existing quest, including `open current` or `open current quest`. | [Open](references/open.md) |
 | `new` | Creating a quest; New then requires the `quest-goals` skill. | [New](references/new.md) |
 | `goals` | Developing or revisiting outcomes, motivation, priorities, scope, or success expectations. | `quest-goals` skill |
-| `planning` | Choosing or revising an approach to achieve the goals and explaining why it fits. | [Planning](references/planning.md) |
+| `planning` | Choosing or revising an approach to achieve the goals and explaining why it fits. | `quest-planning` skill |
 | `acceptance` | Creating, revising, or prioritizing acceptance scenarios, evidence, or manual-versus-automated responsibilities. | [Acceptance Planning](references/acceptance.md) |
-| `partition` | Turning an established plan into executable tasks; this does not authorize execution. | [Task Breakdown](references/partition.md) |
-| `coding` | Implementing an authorized source-code or configuration change within a quest. | [Coding](references/coding.md) |
-| `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | [Review](references/review.md) |
-| `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | [Distill](references/distill.md) |
-| `handoff` | Reconciling quest state for reset, compaction, transfer, pause, or another session, or auditing recoverability. | [Handoff](references/handoff.md) |
+| `partition` | Turning an established plan into executable tasks; this does not authorize execution. | `quest-partition` skill |
+| `coding` | Implementing an authorized source-code or configuration change within a quest. | `quest-coding` skill |
+| `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | `quest-review` skill |
+| `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | `quest-distill` skill |
+| `handoff` | Reconciling quest state for reset, compaction, transfer, pause, or another session, or auditing recoverability. | `quest-handoff` skill |
 | `master` | Coordinating requested work while Quest Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | `quest-master` skill |
 | `list` | Listing quests. | [List](references/list.md) |
 | `sync` | Reconciling current quest state, including `sync quest` or an unambiguous quest-state sync request. | [Sync](references/sync.md) |

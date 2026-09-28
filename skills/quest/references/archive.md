@@ -69,7 +69,7 @@ files and existing Git history are retained without further automatic snapshots.
 
 Before Git preflight and cleanup, check the quest's consolidation result for
 outstanding documentation or learning updates and findings since its recorded
-coverage. Read [Distill](distill.md) when gaps remain or no relevant consolidation
+coverage. Load the `quest-distill` skill when gaps remain or no relevant consolidation
 has occurred, including for quests without PRs. An existing result that covers
 the final state needs only confirmation. Apply its distinction between required
 documentation gaps and useful follow-up knowledge transfer. Required gaps need
