@@ -16,8 +16,21 @@ accept decisions, or approve a plan. If no objective was supplied, state that it
 is unresolved rather than inventing one.
 
 Initialize Current State with no substantive task started, a checkpoint that the
-quest was created, and any setup blockers. After required setup, load the
-`quest-goals` skill and enter goal alignment in the same turn. Recap the understood
+quest was created, and any setup blockers.
+
+After writing the initial README, always move the current session to the absolute
+`<quest-root>/<slug>` directory using OpenCode's `opencode.session_move` tool,
+omitting `sessionID`. When tools are exposed through Code Mode, discover the tool
+if necessary and invoke it through `execute`. Verify that the returned directory
+matches the new quest and use its working-directory context and applicable
+instructions for subsequent work. A shell `cd` does not move the session. Perform
+this switch before further quest work or pausing, including when the user asks
+only to create the record and pause. If switching is unavailable or fails,
+preserve the created record, record the switching blocker and recovery action in
+Current State, and report that creation succeeded but session switching did not.
+
+After session switching and required setup, load
+`quest-goals` and enter goal alignment in the same turn. Recap the understood
 outcomes, scope, and success expectations; develop material gaps and tradeoffs
 with the user, then seek confirmation of the resulting goal contract. Build on
 supplied answers without requiring repetition. Do not stop at a creation notice

@@ -131,9 +131,10 @@ Check it only after recording its outcome and appropriate evidence. Add a missin
 Current State during the next substantive update, not merely because a quest was
 opened or listed. Do not create empty headings for completeness.
 
-At creation, capture supplied context, initialize Current State, and develop and
-confirm the goals with the user according to [New](references/new.md) and
-the `quest-goals` skill. Distinguish clear user intent and explicit constraints
+At creation, capture supplied context, initialize Current State, switch the
+current session into the new quest directory, and develop and confirm the goals
+with the user according to [New](references/new.md) and the `quest-goals` skill.
+Distinguish clear user intent and explicit constraints
 from proposed goals, approaches, or tasks. Suggestions are not accepted decisions
 or an approved task list. Build on supplied answers without requiring repetition.
 As understanding develops, replace provisional or obsolete context with current
