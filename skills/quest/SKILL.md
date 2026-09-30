@@ -6,7 +6,7 @@ description: >
   state management, and routing work to specialized quest skills.
 ---
 
-<!-- argument-hint: <install|open|new|goals|planning|acceptance|partition|coding|review|distill|handoff|master|list|sync|archive> [path|slug] -->
+<!-- argument-hint: <install|open|new|goals|planning|acceptance|partition|coding|distill|handoff|master|list|sync|archive> [path|slug] -->
 
 # Quest
 
@@ -353,7 +353,6 @@ for approval. Preserve its specific scope and decision boundaries.
 | `acceptance` | Designing or revising acceptance scenarios and evidence, or preparing user-executed acceptance tests within a quest; routes to the `acceptance-testing` skill. | [Acceptance integration](references/acceptance.md) |
 | `partition` | Turning an established plan into executable tasks; this does not authorize execution. | `quest-partition` skill |
 | `coding` | Implementing an authorized source-code or configuration change within a quest. | `quest-coding` skill |
-| `review` | Assessing a plan, output, or outcome when requested or warranted by policy or risk. | `quest-review` skill |
 | `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | `quest-distill` skill |
 | `handoff` | Reconciling quest state for reset, compaction, transfer, pause, or another session, or auditing recoverability. | `quest-handoff` skill |
 | `master` | Coordinating requested work while Quest Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | `quest-master` skill |

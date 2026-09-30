@@ -14,8 +14,8 @@ first, then load the records relevant to the requested acceptance work.
 - Keep readiness, blockers, approvals, and the next action in README
   `Current State`. Link to the contract and execution evidence rather than
   duplicating them.
-- Record execution and assessment evidence in the appropriate implementation or
-  review record, referencing scenario IDs and the contract version.
+- Record execution evidence in the appropriate implementation or acceptance
+  record, referencing scenario IDs, the contract version, and the tested implementation.
 - At completion or handoff, reconcile the quest task, `Current State`, and
   affected links under the shared update contract. Record completion or an
   intentional pause without inventing a follow-up task.
