@@ -34,7 +34,7 @@ Use its dedicated reference to select the installation target instead.
 
 1. First inspect the current working directory and its ancestors for a
    canonical quest directory. A candidate must have a slug basename, contain
-   `README.md`, and have a parent named `quests`. When a match exists, it is the
+   `QUEST.md`, and have a parent named `quests`. When a match exists, it is the
    current quest and its parent is the quest root. Run this check before
    considering any configured root so a quest opened directly remains
    self-identifying.
@@ -58,10 +58,10 @@ quest read, write, and search in that operation.
 ```text
 <quest-root>/
 ├── <quest-slug>/
-│   └── README.md
+│   └── QUEST.md
 └── .archived/
     └── <archived-quest-slug>/
-        └── README.md
+        └── QUEST.md
 ```
 
 A slug must match `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Reject paths and non-slug names.
@@ -73,14 +73,19 @@ directory containing registered worktrees.
 
 ## Quest Record
 
-Every quest is a workspace whose only required record is `README.md`, with
+Every quest is a workspace whose only required record is `QUEST.md`, with
 `Current State` as its only required section. Do not create empty directories,
 per-session reports, or workflow metadata merely for consistency.
 
-Always read `README.md` first. When the prompt only loads or opens an existing
-quest or selects Quest Master, read only the quest README, summarize its current
+For an existing quest that uses `README.md` as its state record, migration means
+renaming that record to `QUEST.md` and updating links to it. Preserve its contents
+and Git history. Do not overwrite an existing `QUEST.md` or rename a project
+README. A README-only directory is not recognized as a canonical quest.
+
+Always read `QUEST.md` first. When the prompt only loads or opens an existing
+quest or selects Quest Master, read only the quest's `QUEST.md`, summarize its current
 state, and wait for user direction. Include recorded next actions and any gaps
-apparent in the README; do not follow links, inspect project files, delegate, or update
+apparent in `QUEST.md`; do not follow links, inspect project files, delegate, or update
 records merely to orient. Recorded next actions are context, not a request to
 execute them.
 
@@ -108,7 +113,7 @@ Create new records with this minimal structure:
 - Blockers: None, or the unresolved blockers and approvals.
 ```
 
-The README is a resumption interface, not a workflow outline:
+`QUEST.md` is a resumption interface, not a workflow outline:
 
 - `Current State` is the single durable handoff. Include the current objective,
   material constraints, and context needed to act correctly, not just recent
@@ -121,7 +126,7 @@ The README is a resumption interface, not a workflow outline:
   authoritative sources, including designs, decisions, research, acceptance
   contracts, evidence, and deliverables. State why each link matters.
 
-Capabilities prescribe information to preserve, not README headings or directory
+Capabilities prescribe information to preserve, not `QUEST.md` headings or directory
 names. Organize detail around the subject matter. A small quest may fit entirely
 in Current State; larger work may use linked records. Respect user-defined and
 coherent existing structures; do not rearrange them merely to adopt this layout.
@@ -143,7 +148,7 @@ goals and decisions rather than maintaining an immutable request transcript.
 ## File Ownership And Stability
 
 Organize retained material by subject and purpose. Make supporting material
-discoverable from the README, using References for an index when useful and
+discoverable from `QUEST.md`, using References for an index when useful and
 direct links from Current State for the active work.
 Respect user-requested locations, specialist conventions, and coherent existing
 layouts; do not relocate material solely to enforce a default.
@@ -156,7 +161,7 @@ owns an aspect over creating a file for each activity, worker, session, or statu
 
 Use `research/` to keep code exploration and research available without loading
 it into context by default. Store synthesized findings, comparisons, and supporting
-evidence there, with concise annotated links from the README or relevant plan.
+evidence there, with concise annotated links from `QUEST.md` or relevant plan.
 Keep only conclusions needed for current action in those entry points; read the
 linked research selectively when the task needs its detail. Do not load the whole
 directory when opening or resuming a quest.
@@ -170,20 +175,20 @@ correctly, so essential constraints are not discoverable only by reading
 background research. Reference supporting investigation rather than duplicate it.
 
 Keep the layout shallow. Create `research/` only when a separate research file is
-useful; brief conclusions needed for current action may stay in the README or an
+useful; brief conclusions needed for current action may stay in `QUEST.md` or an
 existing subject-focused record. Prefer files directly in `research/` over subdirectories, and avoid
 separate directories for each activity, artifact type, or temporary-versus-durable
 classification. Add directories only when the volume or subject structure makes
 navigation materially easier.
 
-Keep volatile coordination state in README `Current State`. Supporting files
+Keep volatile coordination state in `QUEST.md`'s `Current State`. Supporting files
 should be self-contained for their purpose through concise context and
 references, not repeated goals, workspace details, live blockers, or next
 actions. Keep a fact in one owning location; indexes and other files should
 link rather than copy it. A required follow-up intrinsic to a finding belongs
 with that finding, while the choice of what to do next belongs in Current State.
 
-Create a supporting file when useful detail would obscure the README or when
+Create a supporting file when useful detail would obscure `QUEST.md` or when
 the file is itself a requested deliverable. Prefer a reference to an existing
 authoritative source over copying it. Retain local rationale, evidence, or
 uncertainty when that source does not capture it or may not remain available.
@@ -262,7 +267,7 @@ non-durable. Replace obsolete checkpoints and next actions rather than stacking
 new status snapshots above them. When understanding changes, replace obsolete
 goals, choices, and plans, correct misleading guidance, and remove resolved
 questions or invalidated research. Apply this to affected supporting files,
-tasks, and indexes as well as the README; a current summary does not compensate
+tasks, and indexes as well as `QUEST.md`; a current summary does not compensate
 for stale linked guidance. Remove content and files that fail the shared retention
 test, repairing affected links; labeling them superseded or archiving them is not
 a retention purpose.
@@ -323,7 +328,7 @@ preserve one concrete recommended next action for each active task, or the next
 overall action if work remains. If the agreed work is
 complete or intentionally paused, record that without inventing a next task.
 Derive next actions from the user's direction, the active capability, or an
-explicitly selected workflow, not from the order of README sections.
+explicitly selected workflow, not from the order of `QUEST.md` sections.
 If work remains but no next action is established,
 recommend the smallest useful action supported by the current goal and evidence;
 do not infer a lifecycle or expand authorization. Keep `Current State` aligned
@@ -336,7 +341,7 @@ Load the matching reference or skill before performing that activity. Read addit
 references only when their conditions apply, including dependencies required by
 the active guidance. For combined requests, load each reference or skill as its activity
 becomes relevant rather than loading the whole collection.
-For orientation-only invocations, apply the README-only rule above and defer
+For orientation-only invocations, apply the `QUEST.md`-only rule above and defer
 references for substantive work until the user directs that work.
 
 These activities may be used in any order or more than once; they are not a

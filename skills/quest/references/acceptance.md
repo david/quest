@@ -5,13 +5,13 @@ evidence planning, responsibilities, and preparation of user-executed tests.
 Load it before substantive acceptance work. Its guidance applies independently
 of quests; this reference owns only quest integration.
 
-Apply quest resolution and the shared update contract. Read the quest README
+Apply quest resolution and the shared update contract. Read `QUEST.md`
 first, then load the records relevant to the requested acceptance work.
 
 - Save the acceptance contract at the requested quest-relative location or the
-  existing subject-focused location. Link it from the README; do not create a
+  existing subject-focused location. Link it from `QUEST.md`; do not create a
   duplicate planning report.
-- Keep readiness, blockers, approvals, and the next action in README
+- Keep readiness, blockers, approvals, and the next action in `QUEST.md`'s
   `Current State`. Link to the contract and execution evidence rather than
   duplicating them.
 - Record execution evidence in the appropriate implementation or acceptance

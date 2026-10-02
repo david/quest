@@ -12,7 +12,7 @@ python3 <quest-skill-directory>/scripts/render-template.py \
   --app-port 5101
 ```
 
-The default destination is the quest directory alongside its README, not an
+The default destination is the quest directory alongside its `QUEST.md`, not an
 application worktree. Application worktrees live beneath it at `work/<n>/` and
 inherit the configuration through mise's ancestor discovery. Follow an existing
 project's explicitly configured alternative destination instead of migrating it.
@@ -31,7 +31,7 @@ It never selects ports, creates databases, trusts mise files, or starts services
 The renderer requires `--app-port` even when a project template omits `<app-port>`;
 in that case, supply a valid sample value without allocating a service port.
 When the template uses it, choose the port separately using project conventions
-and record it alongside the active workspace in the quest README. A hash of the slug does not guarantee a
+and record it alongside the active workspace in `QUEST.md`. A hash of the slug does not guarantee a
 unique port, and a free-port check does not reserve it. If the destination already
 exists, inspect and reconcile it with the user rather than deleting it to rerun
 the renderer. Record failed setup and its exact recovery action in `Current State`.

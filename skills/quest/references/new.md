@@ -3,7 +3,7 @@
 ## `new <slug>`
 
 Refuse an invalid slug or a slug that already exists in the quest root. Create
-`<quest-root>/<slug>/README.md` with the quest title and `Current State`.
+`<quest-root>/<slug>/QUEST.md` with the quest title and `Current State`.
 Add Backlog or References only when supplied context needs them.
 
 The snapshot plugin discovers the new quest at turn completion and preserves its
@@ -18,7 +18,7 @@ is unresolved rather than inventing one.
 Initialize Current State with no substantive task started, a checkpoint that the
 quest was created, and any setup blockers.
 
-After writing the initial README, always move the current session to the absolute
+After writing the initial `QUEST.md`, always move the current session to the absolute
 `<quest-root>/<slug>` directory using OpenCode's `opencode.session_move` tool,
 omitting `sessionID`. When tools are exposed through Code Mode, discover the tool
 if necessary and invoke it through `execute`. Verify that the returned directory
@@ -67,8 +67,8 @@ destination rules. Use [Template rendering](render-template.md) for
 `mise.local.toml` after its destination directory exists, selecting an app port
 only when the template uses one. Keep the directory slug hyphenated; the renderer
 normalizes only substituted values. Record workspace paths, selected ports, and
-setup results in the README without copying secrets. The default destination is
-the individual quest directory alongside its README, not the shared quest root
+setup results in `QUEST.md` without copying secrets. The default destination is
+the individual quest directory alongside its `QUEST.md`, not the shared quest root
 or an application worktree. Application worktrees, when authorized, use
 `<quest-root>/<slug>/work/<n>/`; rendering the quest config does not require a
 worktree to exist. Preserve explicit project alternatives. Do not overwrite

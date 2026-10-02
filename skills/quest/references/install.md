@@ -25,7 +25,7 @@ For installation or reconciliation of an existing setup, the baseline is:
 2. Add or narrowly update a quest setup section in the project's `AGENTS.md`.
    Preserve all unrelated instructions. Declare `Quest root: <path>` using the
    selected root's absolute path or a path relative to this instruction file.
-3. Explain that new quests read their README first, record active workspace paths
+3. Explain that new quests read their `QUEST.md` first, record active workspace paths
    there when applicable, and follow repository instructions in that workspace
    before repository work. Do not create per-quest `AGENTS.md` files by default.
 
@@ -43,11 +43,11 @@ Add only the workspace conventions applicable to the project:
    credentials; preserve the project's established secret-loading mechanism.
 2. In the setup instructions, describe any configured template source,
    its destination at `<quest-root>/<slug>/mise.local.toml` alongside the quest
-   README, and the renderer invocation from
+   `QUEST.md`, and the renderer invocation from
    [Template rendering](render-template.md). For projects using Git worktrees,
    establish `<quest-root>/<slug>/work/<n>/` as the application worktree location,
    where `<n>` is a positive integer. Allow multiple worktrees per quest; choose
-   unused numbers and record each path, branch, and purpose in the README.
+   unused numbers and record each path, branch, and purpose in `QUEST.md`.
    Do not create worktrees during installation. Do not default to sibling
    worktrees outside the quest or put generated config inside an application
    checkout. Preserve an established alternative layout; ask before changing it.
@@ -58,7 +58,7 @@ Add only the workspace conventions applicable to the project:
    additional project-specific template values. Prefer the project's existing
    allocator or registry. Otherwise
    select an explicit available port, compare with recorded active quests, and
-   record it in the quest README. An availability check is not a port reservation.
+   record it in `QUEST.md`. An availability check is not a port reservation.
    Multiple worktrees in one quest inherit the same settings by default, not
    separate runtime allocations. Document one running instance per quest with
    those defaults, or establish explicit per-instance overrides for concurrent
@@ -72,7 +72,7 @@ quest and worktree creation is:
 
 ```text
 <quest-root>/<slug>/
-├── README.md
+├── QUEST.md
 ├── mise.local.toml
 └── work/
     ├── 1/                 # Application Git worktree

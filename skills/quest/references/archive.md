@@ -25,8 +25,8 @@ files and existing Git history are retained without further automatic snapshots.
 1. Resolve the quest root using the skill's normal rules. For an omitted slug or
    `current`, require a detected current quest; otherwise ask for a slug. An
    explicit slug must be valid and identify an immediate child of the root with
-   a `README.md`. Do not fuzzy-match a destructive command.
-2. Read the README first and applicable project/worktree instructions. If only
+   a `QUEST.md`. Do not fuzzy-match a destructive command.
+2. Read `QUEST.md` first and applicable project/worktree instructions. If only
    the archived destination exists, report already archived without deleting or
    moving anything. If source and destination both exist, stop. Reject symlink
    sources or archive destinations and paths escaping the resolved root. Do not
@@ -248,7 +248,7 @@ checkout and verify that moving it leaves no broken Git registrations.
 
 ### Reconcile and verify
 
-- Update the archived README's Current State: archived, actual checkout disposition,
+- Update the archived `QUEST.md`'s Current State: archived, actual checkout disposition,
   preserved branch/merge evidence, and any unresolved obligations. Identify any
   retained checkout as inactive and record its final path and recovery purpose;
   state when all checkouts were removed. No next task is required while
@@ -259,7 +259,7 @@ checkout and verify that moving it leaves no broken Git registrations.
 - Clear a project current-quest pointer only if it selects this quest; preserve
   unrelated selections. Update registered navigation/session paths when the
   project uses them, without changing unrelated entries.
-- Verify source absence, destination README and retained artifacts, removal of
+- Verify source absence, destination `QUEST.md` and retained artifacts, removal of
   targeted Git registrations/approved branches, existence of every promised
    recovery ref and backup when preservation was agreed, and repaired links.
   Keep all unrelated

@@ -6,7 +6,7 @@ refers to quest state.
 
 Resolve the quest using the skill's root-resolution rules and the active quest
 context. Ask which quest to use only when the target is not clear. Read its
-`README.md` first, then apply the shared update contract to material changes,
+`QUEST.md` first, then apply the shared update contract to material changes,
 including affected supporting records and `Current State`. If nothing material
 changed, no edit is needed.
 
