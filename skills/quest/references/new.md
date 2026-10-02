@@ -29,29 +29,23 @@ only to create the record and pause. If switching is unavailable or fails,
 preserve the created record, record the switching blocker and recovery action in
 Current State, and report that creation succeeded but session switching did not.
 
-After session switching and required setup, load
-`quest-goals` and enter goal alignment in the same turn. Recap the understood
-outcomes, scope, and success expectations; develop material gaps and tradeoffs
-with the user, then seek confirmation of the resulting goal contract. Build on
-supplied answers without requiring repetition. Do not stop at a creation notice
-or merely recommend goal clarification for later.
+After session switching and required setup, summarize the captured objective and
+material constraints. If goal gaps could change the work, use
+[goal clarification](goals.md) and ask the smallest useful question. Clear supplied
+intent does not require another confirmation round. Keep unresolved questions and
+provisional interpretations recoverable without inventing an alignment blocker.
 
-While alignment is ongoing, keep confirmed intent, provisional interpretations,
-and the next question recoverable from Current State. Record creation as complete
-without implying that goal alignment is complete. Respect an explicit request to
-create the record and pause. Keep workspace setup results and recovery actions
-here.
+Continue further work explicitly requested alongside creation when the goal is
+clear enough. Otherwise report creation and any unresolved goal or setup gap;
+recommend a next action only when useful. Respect an explicit request to create
+the record and pause. Keep workspace setup results and recovery actions in
+Current State. Creation alone does not authorize planning or implementation.
 
-Once goals are confirmed, continue any further work explicitly requested alongside
-creation and retain useful results under the shared update contract. Otherwise,
-summarize the agreed goals and recommend the next useful action without treating
-alignment as authorization for planning or implementation.
-
-Quest creation includes bounded workspace setup and conversational goal development.
+Quest creation includes bounded workspace setup and necessary goal clarification.
 Create the record and perform any required workspace setup, parent linkage, and
 indexing from supplied or already-known context. Link authoritative existing
-artifacts, reading only what goal alignment needs. Creation does not by itself
-authorize codebase inventory, external research, implementation planning,
+artifacts, reading only what capturing or clarifying the goal needs. Creation does
+not by itself authorize codebase inventory, external research, implementation planning,
 architecture or delivery decision changes, reconciliation of downstream contracts,
 testing, or implementation. Perform those activities only when the user explicitly
 requests them separately.

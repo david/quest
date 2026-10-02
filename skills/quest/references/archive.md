@@ -68,15 +68,14 @@ files and existing Git history are retained without further automatic snapshots.
 
 ### Check knowledge transfer
 
-Before Git preflight and cleanup, check the quest's consolidation result for
-outstanding documentation or learning updates and findings since its recorded
-coverage. Load the `quest-distill` skill when gaps remain or no relevant consolidation
-has occurred, including for quests without PRs. An existing result that covers
-the final state needs only confirmation. Apply its distinction between required
-documentation gaps and useful follow-up knowledge transfer. Required gaps need
-resolution or an explicit permitted deferral with a durable follow-up before
-archival. Record useful follow-ups within existing authorization without blocking
-archival or requiring a deferral approval; do not mark outstanding work complete.
+Before Git preflight and cleanup, check recorded documentation and knowledge-transfer
+obligations. Use [knowledge transfer](distill.md) when material findings still need
+a maintained home or an explicit obligation needs attention. Archival does not
+require a separate consolidation result, a history scan, or a new approval round.
+Required documentation gaps need resolution or an explicit permitted deferral
+with a durable follow-up before archival. Record useful follow-ups within existing
+authorization without blocking archival or requiring a deferral approval; do not
+mark outstanding work complete. Respect explicit project consolidation checkpoints.
 Verify incorporated knowledge is in maintained locations that survive cleanup,
 not solely in a checkout scheduled for removal. Git preservation and cleanup
 decisions below still apply to all local changes, including useful follow-up edits.

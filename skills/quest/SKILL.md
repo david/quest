@@ -3,17 +3,18 @@ name: quest
 description: >
   Create, open, and maintain durable quest records for work that spans sessions or
   needs a recoverable handoff. Use for quest workspace discovery, lifecycle and
-  state management, and routing work to specialized quest skills.
+  state management, and conditional guidance for quest activities.
 ---
 
-<!-- argument-hint: <install|open|new|goals|planning|acceptance|partition|coding|distill|handoff|master|list|sync|archive> [path|slug] -->
+<!-- argument-hint: <install|open|new|goals|planning|acceptance|partition|coding|review|distill|handoff|master|list|sync|archive> [path|slug] -->
 
 # Quest
 
 Use quests as lightweight shared context, not as a mandatory project process.
 A quest may involve any kind of work, and its activities need not follow a
-linear sequence. This skill maintains durable memory and establishes shared goals
-at creation; it does not prescribe a delivery workflow.
+linear sequence. This skill maintains durable memory and captures supplied goals
+at creation, clarifying material gaps when needed; it does not prescribe a delivery
+workflow.
 
 Quest memory is a maintained representation of current understanding, not an
 activity log or an archive of how that understanding evolved. Goals, research,
@@ -136,9 +137,10 @@ Check it only after recording its outcome and appropriate evidence. Add a missin
 Current State during the next substantive update, not merely because a quest was
 opened or listed. Do not create empty headings for completeness.
 
-At creation, capture supplied context, initialize Current State, switch the
-current session into the new quest directory, and develop and confirm the goals
-with the user according to [New](references/new.md) and the `quest-goals` skill.
+At creation, capture supplied context, initialize Current State, and switch the
+current session into the new quest directory according to [New](references/new.md).
+Clarify material goal gaps when needed; clear supplied intent does not require a
+separate confirmation checkpoint.
 Distinguish clear user intent and explicit constraints
 from proposed goals, approaches, or tasks. Suggestions are not accepted decisions
 or an approved task list. Build on supplied answers without requiring repetition.
@@ -345,7 +347,8 @@ For orientation-only invocations, apply the `QUEST.md`-only rule above and defer
 references for substantive work until the user directs that work.
 
 These activities may be used in any order or more than once; they are not a
-mandatory sequence. New quest creation includes goal development and confirmation.
+mandatory sequence. Creation captures goals without requiring a separate alignment
+exercise. Planning and task breakdown share one guide; handoff is a thorough sync.
 Loading guidance does not expand authorization or reserve ordinary decisions
 for approval. Preserve its specific scope and decision boundaries.
 
@@ -353,14 +356,15 @@ for approval. Preserve its specific scope and decision boundaries.
 | --- | --- | --- |
 | `install` | Installing quest support in a project. | [Install](references/install.md) |
 | `open` | Opening an existing quest, including `open current` or `open current quest`. | [Open](references/open.md) |
-| `new` | Creating a quest; New then requires the `quest-goals` skill. | [New](references/new.md) |
-| `goals` | Developing or revisiting outcomes, motivation, priorities, scope, or success expectations. | `quest-goals` skill |
-| `planning` | Choosing or revising an approach to achieve the goals and explaining why it fits. | `quest-planning` skill |
+| `new` | Creating a quest and capturing supplied goals and constraints. | [New](references/new.md) |
+| `goals` | Clarifying material gaps or revisiting outcomes, priorities, scope, or success expectations. | [Goal clarification](references/goals.md) |
+| `planning` | Choosing or revising an approach and its success evidence. | [Planning and task breakdown](references/planning.md) |
 | `acceptance` | Designing or revising acceptance scenarios and evidence, or preparing user-executed acceptance tests within a quest; routes to the `acceptance-testing` skill. | [Acceptance integration](references/acceptance.md) |
-| `partition` | Turning an established plan into executable tasks; this does not authorize execution. | `quest-partition` skill |
-| `coding` | Implementing an authorized source-code or configuration change within a quest. | `quest-coding` skill |
-| `distill` | Transferring quest knowledge into maintained project material, conducting a retrospective, or satisfying consolidation checkpoints before PR creation, merge, or archival. | `quest-distill` skill |
-| `handoff` | Reconciling quest state for reset, compaction, transfer, pause, or another session, or auditing recoverability. | `quest-handoff` skill |
+| `partition` | Turning an established plan into executable tasks; this does not authorize execution. | [Planning and task breakdown](references/planning.md) |
+| `coding` | Implementing an authorized source-code or configuration change within a quest. | [Implementation](references/coding.md) |
+| `review` | Assessing a quest plan, tasks, output, or functionality on explicit request. | [Review integration](references/review.md) |
+| `distill` | Requested consolidation or retrospectives, or material findings that need a maintained project home. | [Knowledge transfer](references/distill.md) |
+| `handoff` | Preparing for reset, transfer, or pause, or auditing recoverability. | [Sync: recoverability check](references/sync.md#recoverability-check) |
 | `master` | Coordinating requested work while Quest Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | `quest-master` skill |
 | `list` | Listing quests. | [List](references/list.md) |
 | `sync` | Reconciling current quest state, including `sync quest` or an unambiguous quest-state sync request. | [Sync](references/sync.md) |
