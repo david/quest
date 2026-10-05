@@ -18,18 +18,7 @@ is unresolved rather than inventing one.
 Initialize Current State with no substantive task started, a checkpoint that the
 quest was created, and any setup blockers.
 
-After writing the initial `QUEST.md`, always move the current session to the absolute
-`<quest-root>/<slug>` directory using OpenCode's `opencode.session_move` tool,
-omitting `sessionID`. When tools are exposed through Code Mode, discover the tool
-if necessary and invoke it through `execute`. Verify that the returned directory
-matches the new quest and use its working-directory context and applicable
-instructions for subsequent work. A shell `cd` does not move the session. Perform
-this switch before further quest work or pausing, including when the user asks
-only to create the record and pause. If switching is unavailable or fails,
-preserve the created record, record the switching blocker and recovery action in
-Current State, and report that creation succeeded but session switching did not.
-
-After session switching and required setup, summarize the captured objective and
+After required setup, summarize the captured objective and
 material constraints. If goal gaps could change the work, use
 [goal clarification](goals.md) and ask the smallest useful question. Clear supplied
 intent does not require another confirmation round. Keep unresolved questions and

@@ -137,8 +137,8 @@ Check it only after recording its outcome and appropriate evidence. Add a missin
 Current State during the next substantive update, not merely because a quest was
 opened or listed. Do not create empty headings for completeness.
 
-At creation, capture supplied context, initialize Current State, and switch the
-current session into the new quest directory according to [New](references/new.md).
+At creation, capture supplied context and initialize Current State according to
+[New](references/new.md).
 Clarify material goal gaps when needed; clear supplied intent does not require a
 separate confirmation checkpoint.
 Distinguish clear user intent and explicit constraints
