@@ -3,7 +3,8 @@
 ## `new <slug>`
 
 Refuse an invalid slug or a slug that already exists in the quest root. Create
-`<quest-root>/<slug>/QUEST.md` with the quest title and `Current State`.
+`<quest-root>/<slug>/QUEST.md` with `quest_skill_version` YAML frontmatter set
+from this skill's `metadata.version`, followed by the quest title and `Current State`.
 Add Backlog or References only when supplied context needs them.
 
 The snapshot plugin discovers the new quest at turn completion and preserves its

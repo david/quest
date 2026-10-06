@@ -4,6 +4,8 @@ description: >
   Create, open, and maintain durable quest records for work that spans sessions or
   needs a recoverable handoff. Use for quest workspace discovery, lifecycle and
   state management, and conditional guidance for quest activities.
+metadata:
+  version: "1.0.0"
 ---
 
 <!-- argument-hint: <install|open|new|goals|planning|acceptance|partition|coding|review|distill|handoff|master|list|sync|archive> [path|slug] -->
@@ -79,6 +81,14 @@ Every quest is a workspace whose only required record is `QUEST.md`, with
 `Current State` as its only required section. Do not create empty directories,
 per-session reports, or workflow metadata merely for consistency.
 
+New `QUEST.md` files must include YAML frontmatter with `quest_skill_version`
+set to this skill's `metadata.version`. This is the creation version: preserve
+it during updates, migration, and archival. Older records without the field remain
+valid; do not infer their creation version from the currently installed skill.
+The version covers this skill and its references. When changing guidance that
+affects retained quest information, increment `metadata.version` so new records
+can be correlated with that revision through Git history.
+
 For an existing quest that uses `README.md` as its state record, migration means
 renaming that record to `QUEST.md` and updating links to it. Preserve its contents
 and Git history. Do not overwrite an existing `QUEST.md` or rename a project
@@ -103,6 +113,10 @@ material, reread the affected content and preserve unrelated updates.
 Create new records with this minimal structure:
 
 ```markdown
+---
+quest_skill_version: "<metadata.version>"
+---
+
 # Quest Title
 
 ## Current State
@@ -114,6 +128,8 @@ Create new records with this minimal structure:
 - Next actions: The exact recommended resumption step for each active task, or the recommended next overall step.
 - Blockers: None, or the unresolved blockers and approvals.
 ```
+
+Substitute the current skill version for `<metadata.version>` when creating the file.
 
 `QUEST.md` is a resumption interface, not a workflow outline:
 
