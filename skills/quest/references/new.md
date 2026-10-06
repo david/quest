@@ -27,8 +27,9 @@ provisional interpretations recoverable without inventing an alignment blocker.
 Continue further work explicitly requested alongside creation when the goal is
 clear enough. Otherwise report creation and any unresolved goal or setup gap;
 recommend a next action only when useful. Respect an explicit request to create
-the record and pause. Keep workspace setup results and recovery actions in
-Current State. Creation alone does not authorize planning or implementation.
+the record and pause. Keep the usable workspace location, material setup gaps,
+and recovery actions in Current State; successful routine setup needs no activity
+checklist. Creation alone does not authorize planning or implementation.
 
 Quest creation includes bounded workspace setup and necessary goal clarification.
 Create the record and perform any required workspace setup, parent linkage, and
@@ -49,8 +50,9 @@ When project instructions configure a quest template, follow their source and
 destination rules. Use [Template rendering](render-template.md) for
 `mise.local.toml` after its destination directory exists, selecting an app port
 only when the template uses one. Keep the directory slug hyphenated; the renderer
-normalizes only substituted values. Record workspace paths, selected ports, and
-setup results in `QUEST.md` without copying secrets. The default destination is
+normalizes only substituted values. Record workspace paths and selected ports
+needed to use the workspace, plus material setup exceptions, without copying
+secrets or narrating each successful setup command. The default destination is
 the individual quest directory alongside its `QUEST.md`, not the shared quest root
 or an application worktree. Application worktrees, when authorized, use
 `<quest-root>/<slug>/work/<n>/`; rendering the quest config does not require a

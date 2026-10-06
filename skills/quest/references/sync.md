@@ -27,6 +27,12 @@ active scope without performing unrelated work merely to make records look compl
   checkpoint, evidence limits, blockers, and exact resumption action for each active
   task. Record completion or intentional pause and any agreed resume condition
   without inventing another task.
+- Read the reconciled Current State as a fresh agent: can the next action be
+  selected correctly with only the linked detail relevant to it? If this requires
+  reading a chronology or resolving competing instructions, shorten the entry
+  point and reconcile the owning records. Apply the retention test to affected
+  material, including obsolete recommendations, duplicate state, and empty
+  scaffolding. Do not turn this into an unrelated whole-directory cleanup.
 
 Report the durable checkpoint and whether the records are ready for resumption.
 If not, identify the precise gap and first action needed to close it. Do not claim

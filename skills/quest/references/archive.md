@@ -125,6 +125,10 @@ batch before starting destructive work.
   treatment is unclear, stop and ask. Never print secret contents. Do not move
   whole directories containing tracked fixtures without separating those tracked
    files first.
+- **Retained quest artifacts:** apply the shared retention test outside
+  implementation checkouts too. Preserve necessary evidence before removing
+  disposable detail; uncertain usefulness or ownership is not permission to
+  delete. This check does not require rerunning validation or a separate report.
 - **Standalone clone storage:** inspect all refs and unreferenced commits as well
   as checkout state. Check for external Git/object storage, alternates, shallow
   or partial-clone dependencies, submodules, and Git LFS objects. Do not delete
@@ -252,9 +256,18 @@ checkout and verify that moving it leaves no broken Git registrations.
   retained checkout as inactive and record its final path and recovery purpose;
   state when all checkouts were removed. No next task is required while
   intentionally archived; explain how to resume if needed.
+- Keep the final outcome and unresolved obligations in that summary. Reconcile
+  checkpoints and instructions that still present superseded state as current;
+  preserve useful historical evidence with its time, scope, and limits in its
+  existing owning location. Tailor recovery guidance to material actually
+  preserved rather than repeating generic archive boilerplate.
 - Correct local instructions that still select a removed worktree. Repair
   affected relative links within the archive and known inbound links. Mark old
   absolute worktree paths as historical instead of rewriting validation history.
+  For source references needed after checkout removal, use revision-pinned links
+  or precise repository paths with the inspected revision. A historical-path
+  disclaimer alone does not make a broken source link usable. Reconcile competing
+  resumption instructions under the shared update contract.
 - Clear a project current-quest pointer only if it selects this quest; preserve
   unrelated selections. Update registered navigation/session paths when the
   project uses them, without changing unrelated entries.

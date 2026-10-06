@@ -16,14 +16,15 @@ linear sequence. This skill maintains durable memory and captures supplied goals
 at creation, clarifying material gaps when needed; it does not prescribe a delivery
 workflow.
 
-Quest memory is a maintained representation of current understanding, not an
-activity log or an archive of how that understanding evolved. Goals, research,
-decisions, and plans must reflect the current contract. Preserve information
-when losing it could cause a later agent to make a
-materially worse decision, repeat costly investigation, overlook an unresolved
-obligation, or resume incorrectly. Routine activity alone does not require a
-durable record. Explicit deliverable, provenance, and audit requirements still
-apply.
+Optimize quest memory for correct resumption at low reading and maintenance cost:
+preserve the smallest sufficient body of current, useful information. It is a
+maintained representation of understanding, not an activity log. Goals, research,
+decisions, and plans must reflect the current contract. Every retained item should
+help continuation, a current decision, verification, recovery, or an explicit
+deliverable, provenance, or audit requirement. Preserve information when losing
+it could cause a materially worse decision, costly reinvestigation, a forgotten
+obligation, or incorrect resumption. Remove redundant, obsolete, and irrelevant
+material; routine activity and historical interest alone are not retention purposes.
 
 ## Resolve The Quest
 
@@ -119,7 +120,12 @@ Create new records with this minimal structure:
 - `Current State` is the single durable handoff. Include the current objective,
   material constraints, and context needed to act correctly, not just recent
   progress. Link to detail instead of duplicating it. The fields above are a
-  starting point; use concise prose or bullets suited to the work.
+  starting point; use concise prose or bullets suited to the work. Keep this
+  resumption summary easy to find near the beginning of the record. It should
+  explain what is true now and what follows, without requiring a reader to work
+  through investigation chronology, individual validation runs, or setup history.
+  Keep necessary evidence in its existing owning location; link substantial
+  detail when it would obscure the resumption summary.
 - Add `Backlog` when useful for pending or deferred work outside the immediate
   next actions. Preserve enough context to pick it up; link an existing task
   record rather than maintaining a second checklist.
@@ -196,6 +202,14 @@ authoritative source over copying it. Retain local rationale, evidence, or
 uncertainty when that source does not capture it or may not remain available.
 Identify a version or observation time when needed to interpret evidence;
 refresh live external state before relying on it for action.
+
+Apply the same retention test to artifacts as to prose. Prefer concise results
+and the evidence needed to substantiate them over accumulating every run's output.
+Keep distinct failed-run evidence when it explains a current decision or recovery
+need. Generated or reproducible material needs a concrete continuing purpose;
+size alone does not make evidence disposable. Preserve explicitly required
+backups and deliverables. State a non-obvious retention or recovery purpose in
+the owning record, without creating a separate inventory merely for compliance.
 
 ## Versioned Checkpoints
 
