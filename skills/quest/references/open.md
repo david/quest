@@ -16,7 +16,7 @@ result or outcome link awaits user approval and must not cause the underlying
 work to be repeated; `Current State` must identify that approval explicitly. For
 quest material predating the `Approval:` convention, also preserve that behavior
 when `Current State` explicitly says the item awaits approval. Do not inspect a
-project worktree or modify `QUEST.md` merely because the quest was opened.
+checkout or modify `QUEST.md` merely because the quest was opened.
 
 ## `open <slug>`
 

@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -31,7 +31,9 @@ project's own instructions.
 │   ├── research/              # findings and evidence, read on demand
 │   ├── mise.local.toml        # per-quest environment, when the project uses one
 │   ├── local-data/            # private or non-reproducible local files
-│   └── work/<n>/              # code checkouts, numbered from 1
+│   └── work/                  # code checkouts, numbered from 1
+│       ├── 1/                 # by default, a clone of the project repository
+│       └── <n>/               # by default, a worktree of that clone
 └── .archived/<slug>/          # archived quests, not active
 ```
 
@@ -173,9 +175,35 @@ plan or `Current State`, not only in background research.
 Keep the evidence that substantiates a result rather than the output of every
 run.
 
-Code checkouts live under `work/<n>/` unless the project configures another
-location. Record each one in `Current State`. Inside a checkout, that
-repository's own instructions govern the work.
+Code checkouts live under `work/`, numbered from 1. Record each one in
+`Current State`. Inside a checkout, that repository's own instructions govern
+the work.
+
+Unless the project's instructions arrange checkouts another way, `work/1` is a
+copy-on-write clone of the project repository and every further checkout is a
+Git worktree of that clone:
+
+```sh
+cp -a --reflink=always <repository> <quest>/work/1
+git -C <quest>/work/1 worktree add -b <branch> ../<n>
+```
+
+The clone has its own `.git`, so the quest's branches and worktree
+registrations stay inside `work/`, and removing `work/` leaves nothing behind
+in the project repository. Removing it also discards any commit that exists
+only there, which is why archiving checks for unmerged work first.
+
+The copy is of a whole checkout, so:
+
+- Copy from a checkout whose `.git` is a directory, not a linked worktree, and
+  that does not contain the quest root. If the project has none, ask how
+  checkouts should be made.
+- Right after copying, delete the copy's `.git/worktrees/` if it exists. It
+  holds the source's worktree registrations, which point outside the quest.
+- The copy includes the source's uncommitted changes. Discard those that are
+  not the quest's.
+- On a filesystem without reflinks the copy fails and leaves empty directories.
+  Remove them and report the failure instead of making a full copy.
 
 ## Versioned Checkpoints
 

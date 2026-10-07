@@ -6,7 +6,7 @@ Install quest memory, with workspace-template conventions when applicable, not a
 workflow. Use the explicit project directory, or the session's current working directory when
 omitted. Canonicalize the target and confirm it is the intended project when
 ambiguous. Do not require existing quest-root discovery or install into the skill
-directory. Do not create a quest, worktree, database, or running service.
+directory. Do not create a quest, checkout, database, or running service.
 
 Inspect the target's existing `AGENTS.md`, quest setup, and relevant environment
 configuration. Reuse a valid existing quest-root declaration and template setup;
@@ -44,45 +44,47 @@ Add only the workspace conventions applicable to the project:
 2. In the setup instructions, describe any configured template source,
    its destination at `<quest-root>/<slug>/mise.local.toml` alongside the quest
    `QUEST.md`, and the renderer invocation from
-   [Template rendering](render-template.md). For projects using Git worktrees,
-   establish `<quest-root>/<slug>/work/<n>/` as the application worktree location,
-   where `<n>` is a positive integer. Allow multiple worktrees per quest; choose
-   unused numbers and record each path, branch, and purpose in `QUEST.md`.
-   Do not create worktrees during installation. Do not default to sibling
-   worktrees outside the quest or put generated config inside an application
-   checkout. Preserve an established alternative layout; ask before changing it.
-   For application projects without worktrees, establish the per-quest application
-   location and how its commands load any quest configuration without overwriting
-   shared application configuration.
-3. When services need ports, establish the app-port selection convention and any
+   [Template rendering](render-template.md). Do not put generated config
+   inside a checkout.
+3. For projects whose quests work on code, name the repository that a quest's
+   `work/1` is cloned from under the skill's Documents And Code rules, and add
+   only what the project does differently, such as how branches are named. If
+   that repository contains the quest root, the default cannot copy it, so
+   settle the arrangement with the user. Preserve an established alternative,
+   such as worktrees of the project repository or one shared checkout, and ask
+   before changing it; for such a project, record where a quest's code lives
+   and how its commands load quest configuration without overwriting shared
+   configuration.
+   Do not create checkouts during installation.
+4. When services need ports, establish the app-port selection convention and any
    additional project-specific template values. Prefer the project's existing
    allocator or registry. Otherwise
    select an explicit available port, compare with recorded active quests, and
    record it in `QUEST.md`. An availability check is not a port reservation.
-   Multiple worktrees in one quest inherit the same settings by default, not
+   Multiple checkouts in one quest inherit the same settings by default, not
    separate runtime allocations. Document one running instance per quest with
    those defaults, or establish explicit per-instance overrides for concurrent
    services (ports, sockets, logs, and databases when isolation is needed).
-4. Keep provisioning, worktree creation, `mise trust`, dependency installation,
+5. Keep provisioning, checkout creation, `mise trust`, dependency installation,
    and service startup as separate project-specific instructions subject to their
    own authorization.
 
-For projects using mise and Git worktrees, the default layout after authorized
-quest and worktree creation is:
+For projects using mise, the default layout after authorized quest and
+checkout creation is:
 
 ```text
 <quest-root>/<slug>/
 ├── QUEST.md
 ├── mise.local.toml
 └── work/
-    ├── 1/                 # Application Git worktree
-    └── 2/                 # Optional additional worktree
+    ├── 1/                 # The quest's clone of the repository
+    └── 2/                 # Optional worktree of that clone
 ```
 
 When mise is configured, explain that it loads the quest config through ancestor
-discovery when run inside a nested worktree, alongside that worktree's own
+discovery when run inside a nested checkout, alongside that checkout's own
 `mise.toml`. Once the
-configs are trusted as authorized, use `mise run <task>` from the worktree or
+configs are trusted as authorized, use `mise run <task>` from the checkout or
 `mise -C work/1 run <task>` from the quest directory. An outer `mise exec` wrapper
 is not needed for this layout. For a reused alternative layout, document and
 validate explicit config loading if ancestor discovery cannot reach the quest.

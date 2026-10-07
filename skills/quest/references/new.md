@@ -45,9 +45,9 @@ port only when the template uses one. Keep the directory slug hyphenated; the
 renderer normalizes only substituted values.
 
 The default destination is the individual quest directory alongside its
-`QUEST.md`, not the shared quest root or an application worktree. Application
-worktrees, when authorized, use `<quest-root>/<slug>/work/<n>/`; rendering the
-quest config does not require a worktree to exist. Preserve explicit project
+`QUEST.md`, not the shared quest root or a checkout. Checkouts, when
+authorized, are made under the skill's Documents And Code rules; rendering the
+quest config does not require one to exist. Preserve explicit project
 alternatives. Do not overwrite existing configuration, and do not treat the
 presence of a template as permission to provision resources.
 
