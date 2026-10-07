@@ -61,3 +61,15 @@ worktree to exist. Preserve explicit project alternatives. Do not overwrite
 existing configuration or infer permission
 to provision resources from the presence of a template. If required workspace
 setup is blocked, preserve the quest record and the exact next setup action.
+
+## Herdr workspace label
+
+After creating the quest, when the session runs inside a Herdr-managed pane
+(`HERDR_ENV=1`), label the calling pane's workspace with the quest slug:
+
+```sh
+herdr workspace rename "$HERDR_WORKSPACE_ID" <slug>
+```
+
+Skip this silently outside Herdr. A failed rename does not block creating the
+quest; mention it briefly and continue.
