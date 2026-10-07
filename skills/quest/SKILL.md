@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.1.0"
+  version: "2.1.1"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -181,10 +181,9 @@ repository's own instructions govern the work.
 
 `scripts/snapshot.py` makes each active quest directory its own Git repository
 and commits the quest's records there, including partial state and other
-writers' edits. A harness hook should run it whenever a turn ends, so that
-snapshots do not depend on an agent remembering them. `sync`, `handoff`, and
-`archive` run it as well, which covers a session that has no such hook.
-[Snapshots](references/snapshot.md) describes the script and the hook.
+writers' edits. A harness hook runs it around every turn, so snapshots need
+nothing from the agent. [Snapshots](references/snapshot.md) describes the
+script and the hook.
 
 The script owns each quest's `.git`; do not initialize it or commit to it by
 hand. It keeps quest storage out of any enclosing repository, will not untrack
