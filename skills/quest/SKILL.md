@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.3.0"
+  version: "2.3.1"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -203,7 +203,10 @@ The copy is of a whole checkout, so:
 - The copy includes the source's uncommitted changes. Discard those that are
   not the quest's.
 - On a filesystem without reflinks the copy fails and leaves empty directories.
-  Remove them and report the failure instead of making a full copy.
+  Remove them and make `work/1` a worktree of the project repository instead:
+  `git -C <repository> worktree add -b <branch> <quest>/work/1`. The quest's
+  branches and registrations then live in that repository, so say so in
+  `Current State` and remove those checkouts with `git worktree remove`.
 
 ## Versioned Checkpoints
 
