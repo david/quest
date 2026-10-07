@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.4.0"
+  version: "2.4.1"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -182,9 +182,11 @@ the work.
 
 Unless the project's instructions arrange checkouts another way, `work/1` is a
 copy-on-write clone of the project repository and every further checkout is a
-Git worktree of that clone:
+Git worktree of that clone. Always make the clone from the repository's local
+`main`, after bringing `main` up to date with `origin`:
 
 ```sh
+git -C <repository> pull --ff-only origin main
 cp -a --reflink=always <repository> <quest>/work/1
 git -C <quest>/work/1 worktree add -b <branch> ../<n>
 ```
@@ -196,16 +198,19 @@ only there, which is why archiving checks for unmerged work first.
 
 The copy is of a whole checkout, so:
 
-- Copy from a checkout whose `.git` is a directory, not from a linked worktree.
+- The repository must have `main` checked out, in a checkout whose `.git` is a
+  directory, not a linked worktree. If it is on another branch, or `main`
+  cannot fast-forward, stop and say so instead of switching branches or
+  merging.
 - Right after copying, delete the copy's `.git/worktrees/` if it exists. It
   holds the source's worktree registrations, which point outside the quest.
 - The copy includes the source's uncommitted changes. Discard those that are
   not the quest's.
 - On a filesystem without reflinks the copy fails and leaves empty directories.
   Remove them and make `work/1` a worktree of the project repository instead:
-  `git -C <repository> worktree add -b <branch> <quest>/work/1`. The quest's
-  branches and registrations then live in that repository, so say so in
-  `Current State` and remove those checkouts with `git worktree remove`.
+  `git -C <repository> worktree add -b <branch> <quest>/work/1 main`. The
+  quest's branches and registrations then live in that repository, so say so
+  in `Current State` and remove those checkouts with `git worktree remove`.
 
 ## Versioned Checkpoints
 

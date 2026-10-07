@@ -48,7 +48,8 @@ Add only the workspace conventions applicable to the project:
    inside a checkout.
 3. For projects whose quests work on code, name the repository that a quest's
    `work/1` is cloned from under the skill's Documents And Code rules, and add
-   only what the project does differently, such as how branches are named.
+   only what the project does differently, such as a default branch other
+   than `main` or how branches are named.
    Preserve an established alternative, such as worktrees of the project
    repository or one shared checkout, and ask before changing it; for such a
    project, record where a quest's code lives and how its commands load quest
