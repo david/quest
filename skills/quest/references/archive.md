@@ -2,282 +2,178 @@
 
 ## `archive`, `archive current`, or `archive <slug>`
 
-Archive a quest only on explicit request. With no unresolved findings, this
-command authorizes removing clean linked worktrees, clean quest-owned standalone
-clones under the clone procedure below, and merged local topic branches, then
-moving retained records to `<quest-root>/.archived/<slug>`. Dirty worktrees,
-unmerged branches, and unmerged commits are **user decision points, not automatic
-refusals**. Always ask how to handle each before proceeding. The initial archive
-request alone does not authorize discarding work, merging, rebasing, committing,
-stashing, remote branch deletion, deployments, credential changes, or stopping
-unrelated processes. Additional explicit instructions can authorize scoped local
-preservation or discard as described below.
+Archive a quest only on explicit request. When the check below has no findings,
+the request authorizes removing the quest's checkouts, deleting the merged
+local branches they were on in a repository that outlives the quest, and moving
+the records to `<quest-root>/.archived/<slug>`.
 
-Quest-record snapshots follow the skill's Versioned Checkpoints rules. Preserve
-the quest's own repository, including `.git`, when moving it. The checkout
-inventory, merge checks, and removal procedures below concern implementation
-repositories, not this retained quest-record repository. Snapshots skip
-archived quests: their files and existing Git history are kept, and later
-edits are not committed.
+It does not authorize discarding work, merging, rebasing, committing, stashing,
+deleting remote branches, deploying, changing credentials, or stopping
+processes that are not the quest's. Uncommitted and unmerged work is a decision
+for the user, not a reason to refuse and not something to resolve on your own.
 
-### Resolve and inventory
+The quest's own `.git`, which holds its record snapshots, moves with it.
+Snapshots skip archived quests, so later edits there are not committed.
 
-1. Resolve the quest root using the skill's normal rules. For an omitted slug or
-   `current`, require a detected current quest; otherwise ask for a slug. An
-   explicit slug must be valid and identify an immediate child of the root with
-   a `QUEST.md`. Do not fuzzy-match a destructive command.
-2. Read `QUEST.md` first and applicable project/worktree instructions. If only
-   the archived destination exists, report already archived without deleting or
-   moving anything. If source and destination both exist, stop. Reject symlink
-   sources or archive destinations and paths escaping the resolved root. Do not
-   overwrite or merge directories.
-3. Inventory **all** quest checkouts, not only `work/1`, including registrations
-   and any known external worktrees owned by this quest. Resolve each worktree's
-   own Git common directory and enumerate its registration; different quest
-   worktrees may belong to different repositories. Do not assume one repository
-   can remove another's worktree. If ownership, missing registrations, or broken
-   Git pointers prevent a complete inventory, stop before deletion.
-4. Classify each checkout using its Git directory, common directory, and
-   `git worktree list --porcelain`:
-   - A **linked worktree** shares its repository with a primary checkout. Remove
-     it through that repository's Git commands.
-   - A **standalone clone** owns an ordinary `.git` directory and its repository
-     metadata. Its primary checkout cannot be removed by `git worktree remove`.
-     A CoW/reflink clone is standalone when its metadata is independent; its copy
-     source is not a surviving worktree of the same repository.
-   - A quest-owned clone may itself own linked worktrees. Inventory every one
-     and remove approved linked worktrees before removing the primary clone.
-   Record each checkout's path, kind, branch, HEAD, repository, and intended
-   integration target. For linked-worktree cleanup, identify a surviving worktree
-   of the same repository. A standalone clone needs no surviving worktree or
-   extra approval solely because it is the primary checkout. Also
-   inventory explicitly quest-owned local topic branches without checkouts.
-    Do not infer ownership just from a similar branch name. In surviving
-    repositories, preserve default, integration, backup/recovery, and shared
-    branches unless separately requested. A removable standalone clone does not
-    require a backup of inherited refs; leave its source repositories and remote
-    refs untouched. Inherited remote-tracking refs are not evidence of quest-owned
-    unmerged work. Identify any unique local work before removing the clone.
-   Detached worktrees require merge verification too; include unmerged detached
-   commits in the user's preservation/discard decision.
-5. Check for active workers, servers, or sessions using these paths. Stop for
-   coordination if removal could disrupt ongoing work. Before removal, move the
-   executing shell/session outside the target; never strand the current working
-   directory inside a deleted checkout. Follow project environment wrappers and
-   explicit `git -C <worktree>` rules for every Git command.
+### 1. Resolve the quest
 
-### Check knowledge transfer
+Resolve the quest root by the skill's rules. With no slug, or `current`, the
+session must be inside a quest; otherwise ask for a slug. A slug must name a
+quest directory exactly: never guess at a near match for a command that
+deletes. Read `QUEST.md` and the project's instructions. If only
+`.archived/<slug>` exists, report that the quest is already archived and change
+nothing. When several quests are named, finish steps 2 to 4 for all of them
+before removing anything.
 
-Before Git preflight and cleanup, check recorded documentation and knowledge-transfer
-obligations. Use [knowledge transfer](distill.md) when material findings still need
-a maintained home or an explicit obligation needs attention. Archival does not
-require a separate consolidation result, a history scan, or a new approval round.
-Required documentation gaps need resolution or an explicit permitted deferral
-with a durable follow-up before archival. Record useful follow-ups within existing
-authorization without blocking archival or requiring a deferral approval; do not
-mark outstanding work complete. Respect explicit project consolidation checkpoints.
-Verify incorporated knowledge is in maintained locations that survive cleanup,
-not solely in a checkout scheduled for removal. Git preservation and cleanup
-decisions below still apply to all local changes, including useful follow-up edits.
+### 2. Settle knowledge transfer
 
-The archive request authorizes scoped documentation consolidation in the quest's
-project, but does not expand the commit, integration, or publication permissions
-above. Inspect affected repository state before editing and preserve unrelated
-work. Run the full read-only Git preflight after any consolidation edits so new
-dirty or unmerged work receives the same handling as other local work.
+Check the record for documentation the quest still owes. Use
+[knowledge transfer](distill.md) when findings need a maintained home. A
+required gap needs to be closed, or deferred where the project permits, with a
+follow-up recorded somewhere that outlives the quest; other follow-ups can be
+recorded without holding the archive up. Make sure what was transferred lives
+where cleanup will not remove it, not only in a checkout.
 
-### Mandatory read-only preflight
+The archive request covers such documentation edits in the quest's project but
+adds no permission to commit, integrate, or publish them. Make them before the
+check, so that it sees them.
 
-Complete this inspection for **every** target before moving records, preserving
-local files, removing any worktree, or deleting any branch. Fetching the target
-branch is allowed for verification. For an explicit batch, preflight the entire
-batch before starting destructive work.
+### 3. Run the check
 
-- **Dirty worktrees:** inspect `git status --porcelain=v1 --untracked-files=all`,
-  including staged/unstaged changes, untracked files, and dirty submodules.
-  Report affected paths and ask what to preserve or discard. Do not automatically
-  stash, commit, clean, reset, skip files, or force removal. Locks and active
-  merge/rebase/cherry-pick/revert operations also require a coordination decision;
-  never silently unlock or abort them.
-- **Merged branches/HEADs:** determine the intended target from explicit project
-  or PR evidence (often `origin/main`), not the topic branch's own upstream.
-  Fetch that exact target without altering a checkout. If fetching or identifying
-  the target fails, report merge status as unknown and ask how to proceed; never
-  treat unknown as merged. First try
-  `git merge-base --is-ancestor <topic-head> <fetched-target>`.
-- **Rebase/squash histories:** lack of ancestry is not proof of unmerged work,
-  but a PR marked merged alone is not proof that the current local tip is safe
-  to delete. Accept only evidence covering the entire current tip: for example,
-  all unique commits patch-equivalent to the fetched target with no omitted
-  merge-only changes; or exact tree equality with a verified merged result that
-  is reachable from the fetched target. Check merge-only resolutions explicitly
-  when using patch equivalence (`git cherry` alone omits them). Extra local
-  commits, unmatched patches, uncertain squash equivalence, or a closed-but-not-
-  merged PR require the confirmation below. Cover commits not reachable from a
-  named branch as well. Never merge or rewrite history just to make archival pass.
-  An unavailable repository requires asking for access/recovery or another
-  explicit handling plan, not inferring that its contents are disposable.
-- **Ignored files:** inspect ignored paths separately; clean Git status does
-  not mean all remaining files are disposable. Classify generated dependencies,
-  caches, and builds versus local configuration, uploads, logs, or QA evidence.
-  Plan to preserve non-reproducible material privately outside the checkout,
-  normally under `<quest>/local-data/<worktree-label>/`. If ownership or safe
-  treatment is unclear, stop and ask. Never print secret contents. Do not move
-  whole directories containing tracked fixtures without separating those tracked
-   files first.
-- **Retained quest artifacts:** apply the shared retention test outside
-  implementation checkouts too. Preserve necessary evidence before removing
-  disposable detail; uncertain usefulness or ownership is not permission to
-  delete. This check does not require rerunning validation or a separate report.
-- **Standalone clone storage:** inspect all refs and unreferenced commits as well
-  as checkout state. Check for external Git/object storage, alternates, shallow
-  or partial-clone dependencies, submodules, and Git LFS objects. Do not delete
-  storage used by another checkout. The simple clone procedure below applies
-  only to self-contained repositories; otherwise obtain an explicit preservation
-   plan. Inspect config, hooks, reflogs, working files, and LFS payloads for
-   non-reproducible material requiring separate private
-  preservation. Treat unmatched quest-owned commits as unmerged even when they
-  are reachable only through reflogs or have no ref.
+```sh
+python3 <quest-skill-directory>/scripts/archive-check.py <quest-directory> \
+  [--source <repository>] [--target <branch>]
+```
 
-No-worktree quests can be archived without Git checks only when inventory also
-finds no quest-owned branches requiring verification. An inability to inspect
-known Git state is not the same as having no Git work.
+The script needs Python 3.10 or newer and Git 2.38 or newer. It changes nothing
+except to fetch the target branch into each repository. It exits 0 with no
+findings, 1 with findings, and 2 when it could not finish. After a 2, remove
+nothing: fix what it names, or ask the user, and run it again.
 
-### Ask about dirty or unmerged work
+It reports, marking each finding with `!`:
 
-If **any worktree is dirty, any branch is unmerged, or any commit is unmerged**
-(including local-only or detached commits), pause before archival changes and
-ask the user. Also ask when verification is uncertain. Present one consolidated
-inventory with paths, branches/HEADs, target, unmatched commits, PR state if known,
-and uncertainty. A merged PR does not exempt extra local commits from this check.
-Explain that archiving will not merge work or cancel remote automation.
+- Every checkout in the quest's `work/`, and every worktree that a clone there
+  has anywhere else: its uncommitted paths, tracked files that Git was told not
+  to watch for changes, submodules, any merge, rebase, or similar operation in
+  progress, a lock, and its ignored files.
+- For a repository inside the quest, which is removed whole: every local
+  branch and detached HEAD not merged into the target, every stash entry, and
+  commits that only reflogs or tags still hold.
+- For a repository outside the quest: the same merge check for what the quest
+  has checked out, commits that only the reflogs of those worktrees and
+  branches hold, and the command that removes a worktree from it.
+- Processes whose working directory is in a checkout, on systems with `/proc`.
 
-Offer these choices, allowing different treatment for different items:
+It counts work as merged when the fetched target contains its commits, contains
+commits with the same patches, or would not change if the work were merged into
+it. That covers rebased and squashed work. It errs towards reporting: work that
+cancels itself out, such as a commit and its revert, is reported, and so is
+squashed work whose lines the target has since changed again. A merged pull
+request is not evidence by itself: what counts is the check's verdict on the
+tip as it is now.
 
-- **Preserve the work and archive** (recommended): agree on a recoverable local
-  preservation method before removing anything. Retain unmerged branches and
-  create non-overwriting named recovery refs for detached commits. For dirty
-  work, preserve staged and unstaged changes, untracked files, relevant ignored
-  files, and submodule changes outside the checkout. A diff alone is not a full
-  backup. Verify the preservation and record restore instructions before removal.
-  Do not commit or stash unless the user selects that method explicitly.
-- **Discard specified work and archive**: request explicit confirmation naming
-  the dirty paths/worktrees and unmerged branches/commit tips to be discarded.
-  Explain the loss. This scoped authorization may permit forced worktree removal
-  or deletion of an unmerged local branch; it is not permission for broad cleanup
-  or deleting remote branches. Detached commits may become unreachable, which
-  must be included in the confirmation.
-- **Defer or cancel archival**: leave everything unchanged for the user to finish
-  or handle separately.
+Pass `--source` when `work/1` is a copy of the project repository. A copy
+starts with that repository's branches, stashes, and reflogs, and the script
+leaves out whatever that repository still keeps. What it has dropped since is
+reported, and is the user's to dismiss. Pass `--target <remote>/<branch>` when
+the work was integrated somewhere other than `origin/main`. Take the target
+from the project's instructions or the pull request, not from a branch's
+upstream. It has to be a branch on a remote, because anything local goes with
+the checkout.
 
-Wait for an explicit decision; do not convert these findings into a terminal
-refusal or assume that a generic "archive anyway" means discard. If the answer
-does not distinguish preservation from loss, clarify. Record the selected scope.
-Recheck immediately before cleanup and ask again if paths, status, or commit tips
-have changed. A user's decision does not waive higher-priority project rules or
-permit deletion of unrelated work.
+Three things remain yours:
 
-### Cleanup and move
+- **Ignored files.** Decide for each listed path whether it can be regenerated,
+  as dependencies, caches, and builds can, or cannot, as with local
+  configuration, uploads, logs, and QA evidence. Copy what cannot into
+  `<quest>/local-data/<checkout>/` before removal, restrict access to anything
+  sensitive, and never print a secret. Ask when it is unclear.
+- **What the script cannot see.** It looks only at `work/` and at the worktrees
+  of clones there, and not inside a submodule it reports. Inspect by hand any
+  other checkout or branch that `QUEST.md` records as the quest's, servers,
+  containers, and databases that use the quest's ports or paths, and anything
+  the quest added to a clone's `.git`, such as hooks. Git state you cannot
+  inspect is a finding, not an absence of work.
+- **The quest's documents.** Apply the retention test to them too. Doubt about
+  whether something is useful is not permission to delete it.
 
-1. Once preflight is complete and all findings have explicit handling decisions,
-   save a concise record: removed checkout paths, branch names/tips, merge
-   evidence/target, preservation locations/restore instructions, and any explicit
-   discard authorization. Establish and verify promised recovery refs/backups
-   before removing any checkout; never rely on reflogs as the only recovery path.
-   Archival is not acceptance of unchecked goals or release gates. Do not rewrite
-   historical evidence to claim validation that did not occur.
-2. Preserve the identified local files without overwriting any existing archive
-   material. Restrict access to sensitive local-data directories. Recheck every
-   worktree's HEAD/status and branch tips before deletion; stop on concurrent
-   changes and ask the user. Do not treat changes caused by your preservation
-   step as permission to force removal.
-3. For **linked worktrees**, from a surviving worktree of the **same repository**, use
-   `git worktree remove <exact-target-path>` without force by default. A scoped
-   `--force` is allowed only for dirty work whose preservation/removal the user
-   approved and whose backup was verified, or whose loss the user explicitly
-   approved. Unapproved changes still require asking, not escalation to force.
-   Remove worktrees
-   **before moving the quest**, avoiding broken absolute or relative `.git`
-   pointers. Do not run broad `worktree repair`, `prune`, or unrelated cleanup.
-   If linked-worktree cleanup has no permitted surviving worktree, stop and obtain
-   an agreed cleanup location. Do not apply this requirement to standalone clones.
-4. In repositories that will survive cleanup, delete only inventoried local
-   topic branches that are **verified-merged** or
-   explicitly selected for discard, after their worktrees are removed. Keep every
-   branch/ref the user chose to preserve, regardless of what `branch -d` would
-   allow relative to its upstream. Prefer `git branch -d <branch>`. If it refuses because the surviving
-   checkout/upstream differs from the verified integration target or because of
-   verified rewritten history, `-D` is permitted **only** with the recorded
-   complete merge proof and a rechecked unchanged branch tip. For an unmerged
-   branch, `-D` instead requires the user's explicit discard authorization for
-   that exact unchanged tip. Otherwise ask before proceeding.
-   Never remove a branch still used by another worktree. Do not delete remote
-   branches or recreate missing remotes.
-5. For **standalone clones**, use the clone procedure below after their linked
-   worktrees are removed. Do not create a temporary worktree just to delete the
-   primary checkout, and do not use another clone's Git commands to remove it.
-6. Recheck that `.archived/<slug>` is absent; create `.archived` if needed, and
-   move the quest directory there without replacement. Only remove leftover
-   `work/` directories if empty. If a step fails, report what completed and what
-   remains; do not continue blindly or describe a partial archive as complete.
+### 4. Ask about every finding
 
-### Standalone clone removal
+Put all the findings to the user in one message: paths, branches and commits,
+the target, and anything uncertain. Say that archiving neither merges the work
+nor cancels automation on the remote. Commits that only reflogs hold are
+usually earlier versions of commits that were amended or rebased. Say so when
+that is what they look like, and still ask. The user can choose differently for
+each item:
 
-For a clean, self-contained quest clone whose quest-owned work is verified
-merged, the archive request authorizes this procedure without another cleanup
-approval. No repository bundle or repository backup is required for a clean,
-verified-merged clone. Dirty/unmerged work still requires the decisions above. If the user
-instead chooses to retain the clone, keep it as an explicitly inactive recovery
-checkout and verify that moving it leaves no broken Git registrations.
+- **Preserve it and archive** (recommended). Agree on the method first. In a
+  repository that outlives the quest, keep the unmerged branch, and give
+  detached commits a new named ref. From a clone that will be removed, the
+  work has to leave the clone: a ref inside it preserves nothing. For
+  uncommitted work, copy staged, unstaged, untracked, and relevant ignored
+  files out of the checkout; a diff alone is not a backup. Commit or stash only
+  if the user picks that method. Verify the result and record how to restore
+  it.
+- **Discard it and archive.** Get a confirmation that names the paths,
+  branches, and commits to be lost, and say what is lost. It permits forcing
+  the removal of those worktrees and deleting those unmerged local branches,
+  nothing wider, and nothing on a remote.
+- **Defer or cancel.** Leave everything as it is.
 
-1. Record the clone path, branch/HEAD, origin, and verified integration target
-   and merge evidence. Preserve identified non-reproducible local material
-   separately without printing secrets. For work the user chose to preserve,
-   verify the agreed preservation method and record recovery instructions before
-   removal; recovery refs inside the clone being removed are not preservation.
-2. Stop only quest-owned processes that use the clone, and move the executing
-   session outside it. Recheck HEAD, refs, status, ignored-file classification,
-   locks, and registrations against the inventory. Any unexpected change stops
-   removal. Confirm all promised preservation is present and verified.
-   Check removal permissions before starting, especially container-owned generated
-   dependencies. Resolve ownership only within the approved cleanup target; do
-   not broaden permissions or deletion scope to overcome a failed removal.
-3. Remove only the exact inventoried clone directory, including its own `.git`
-   and classified generated files. Scoped directory removal is appropriate here;
-   `git worktree remove` is not. Never recursively delete a parent workspace,
-   another clone, shared object storage, or external worktrees. Individual branch
-    deletion inside this soon-to-be-removed clone is unnecessary. Record the
-    removed checkout and any explicitly agreed preservation.
+Wait for an explicit answer. "Archive anyway" does not say whether to preserve
+or discard, so ask which. For a process, a lock, or an operation in progress,
+agree with the user what happens to it; do not stop, unlock, or abort it
+yourself.
 
-### Reconcile and verify
+### 5. Remove and move
 
-- Update the archived `QUEST.md`'s Current State: archived, actual checkout disposition,
-  preserved branch/merge evidence, and any unresolved obligations. Identify any
-  retained checkout as inactive and record its final path and recovery purpose;
-  state when all checkouts were removed. No next task is required while
-  intentionally archived; explain how to resume if needed.
-- Keep the final outcome and unresolved obligations in that summary. Reconcile
-  checkpoints and instructions that still present superseded state as current;
-  preserve useful historical evidence with its time, scope, and limits in its
-  existing owning location. Tailor recovery guidance to material actually
-  preserved rather than repeating generic archive boilerplate.
-- Correct local instructions that still select a removed worktree. Repair
-  affected relative links within the archive and known inbound links. Mark old
-  absolute worktree paths as historical instead of rewriting validation history.
-  For source references needed after checkout removal, use revision-pinned links
-  or precise repository paths with the inspected revision. A historical-path
-  disclaimer alone does not make a broken source link usable. Reconcile competing
-  resumption instructions under the shared update contract.
-- Clear a project current-quest pointer only if it selects this quest; preserve
-  unrelated selections. Update registered navigation/session paths when the
-  project uses them, without changing unrelated entries.
-- Verify source absence, destination `QUEST.md` and retained artifacts, removal of
-  targeted Git registrations/approved branches, existence of every promised
-   recovery ref and backup when preservation was agreed, and repaired links.
-  Keep all unrelated
-   quests, worktrees, branches, and remote state untouched.
-- Verify that the quest's existing `.git` directory was retained at the archived
-  path alongside the reconciled records.
-- Report the archive path, removed clones/worktrees/branches, retained local material,
-  and any incomplete steps. Do not claim provider, staging, or production
-  validation merely because the quest was archived.
+1. Record in `QUEST.md` what will be removed and why that is safe: checkout
+   paths, branches and their commits, the target and the check's verdict, where
+   preserved work went and how to restore it, and any discard the user
+   confirmed.
+2. Carry out the agreed preservation without overwriting anything, and verify
+   it.
+3. Run the check again. Take anything that differs from what the user decided
+   on, other than what the preservation changed, back to the user.
+4. Move the session's working directory out of the checkouts.
+5. For each worktree of a repository outside the quest, run the removal command
+   the check printed, without `--force` unless the user approved losing or
+   preserving that worktree's uncommitted work. Then delete the branch it was
+   on with `git branch -d` if the check reported it merged. Use `-D` only when
+   `-d` refuses such a branch, or for one whose discard the user confirmed, and
+   only while its commit is the one the check saw. Delete no other branch
+   there, none that another worktree uses, and nothing on a remote. Do not run
+   `git worktree prune` or `repair`.
+6. For a repository inside the quest, delete the checkout directories the check
+   listed, the clone last. A clean, merged clone needs no backup first. Never
+   delete a parent directory, another quest's checkout, or storage outside the
+   quest. If a file resists removal, as dependencies created by a container
+   can, fix permissions only inside that checkout. Remove `work/` once it is
+   empty. A clone the user wants kept moves with the quest as an inactive
+   recovery checkout: take its other worktrees away with `git worktree remove`
+   instead of deleting their directories.
+7. Confirm that `.archived/<slug>` is still absent, create `.archived` if
+   needed, and move the quest directory there.
+
+If a step fails, stop, and report what was done and what remains. Do not
+describe a partial archive as complete.
+
+### 6. Reconcile the record
+
+- Update `Current State` in the archived `QUEST.md`: that the quest is
+  archived, what became of each checkout, the merge evidence, what was
+  preserved and where, any obligation still open, and how to resume. No next
+  action is needed. Archiving does not complete an unchecked goal, so leave
+  those as they are.
+- Repair relative links inside the archive and known links into it. Where a
+  source reference is still needed, pin it to a revision or give the
+  repository path and revision; mark old absolute checkout paths as historical
+  instead of rewriting what was validated there.
+- Clear a current-quest pointer or a registered session path in the project
+  only when it selects this quest.
+- Verify that the quest is gone from its old path, that the archive holds
+  `QUEST.md`, its `.git`, and the retained documents, that the removed
+  worktrees and branches are gone, that every promised preservation exists, and
+  that nothing else was touched.
+- Tell the user the archive path, what was removed, what was kept, and anything
+  left incomplete.
