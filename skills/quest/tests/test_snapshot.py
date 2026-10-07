@@ -252,16 +252,49 @@ class SnapshotTests(unittest.TestCase):
         self.assertIn("does not own its repository", result.stderr)
         self.assertEqual(self.git(self.project, "ls-files", "--stage"), "")
 
-    def test_tracked_excluded_content_is_refused_without_untracking(self):
+    def test_file_ignored_after_it_was_recorded_leaves_later_snapshots(self):
+        (self.quest / "qa").mkdir()
+        (self.quest / "qa" / "server.log").write_text("first run\n")
+        (self.quest / "qa" / "caf\udce9 [1].log").write_text("odd name\n")
+        (self.quest / "qa" / "journey.ts").write_text("steps\n")
+        self.snapshot_ok()
+        self.assertIn("qa/server.log", self.git(self.quest, "ls-files"))
+
+        (self.quest / "qa" / ".gitignore").write_text("*.log\n")
+        (self.quest / "qa" / "server.log").write_text("second run\n")
+        (self.quest / "QUEST.md").write_text("# Changed\n")
+        self.assertEqual(
+            self.snapshot_ok(),
+            "sample-quest: Snapshot quest records: 4 paths (QUEST.md, qa/.gitignore)\n")
+        self.assertEqual(
+            self.git(self.quest, "ls-files"), ".gitignore\nQUEST.md\nqa/.gitignore\nqa/journey.ts")
+        self.assertEqual((self.quest / "qa" / "server.log").read_text(), "second run\n")
+        self.assertEqual(self.git(self.quest, "show", "HEAD^:qa/server.log"), "first run")
+        self.assertEqual(self.snapshot_ok(), "")
+
+    def test_forced_tracking_of_an_excluded_path_is_undone(self):
         self.snapshot_ok()
         (self.quest / "local-data").mkdir()
         (self.quest / "local-data" / "dump.sql").write_text("data\n")
         self.git(self.quest, "add", "-f", "local-data/dump.sql")
+        self.assertEqual(self.snapshot_ok(), "")
+        self.assertEqual(self.git(self.quest, "ls-files"), ".gitignore\nQUEST.md")
+        self.assertTrue((self.quest / "local-data" / "dump.sql").exists())
+        self.assertEqual(self.commits(self.quest), 1)
+
+    def test_tracked_nested_repository_is_refused(self):
+        self.snapshot_ok()
+        nested = self.quest / "vendor"
+        nested.mkdir()
+        self.git(nested, "init", "--quiet")
+        (nested / "file.txt").write_text("nested\n")
+        self.git(nested, "add", "file.txt")
+        self.git(nested, "commit", "--quiet", "-m", "nested")
+        self.git(self.quest, "add", "-f", "vendor")
         result = self.snapshot()
         self.assertEqual(result.returncode, 1)
-        self.assertIn("automatic untracking is refused", result.stderr)
+        self.assertIn("tracks a nested repository", result.stderr)
         self.assertEqual(self.commits(self.quest), 1)
-        self.assertIn("local-data/dump.sql", self.git(self.quest, "ls-files"))
 
     def test_one_failing_quest_does_not_stop_the_others(self):
         sibling = self.add_quest("sibling-quest", "# Existing sibling\n")

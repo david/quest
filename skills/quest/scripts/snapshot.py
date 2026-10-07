@@ -34,13 +34,14 @@ class SnapshotError(Exception):
     pass
 
 
-def git(directory: Path, *args: str, check: bool = True) -> str | None:
+def git(directory: Path, *args: str, check: bool = True, stdin: str = "") -> str | None:
     # Never inherit a caller's alternate Git repository or index.
     env = {key: value for key, value in os.environ.items() if key not in ROUTING}
+    # surrogateescape returns file names that are not UTF-8 to Git unchanged.
     result = subprocess.run(
         ["git", "-C", str(directory), *args],
-        env=env, stdin=subprocess.DEVNULL, capture_output=True,
-        encoding="utf-8", errors="replace",
+        env=env, input=stdin, capture_output=True,
+        encoding="utf-8", errors="surrogateescape",
     )
     if result.returncode:
         if not check:
@@ -180,9 +181,9 @@ def snapshot(quest: Path) -> str | None:
         if dotgit.is_symlink() or not dotgit.is_dir():
             raise SnapshotError("the quest does not own its repository")
 
-        def run(*args: str, check: bool = True) -> str | None:
+        def run(*args: str, check: bool = True, stdin: str = "") -> str | None:
             # Pinned, so a broken .git never sends a command to an enclosing repository.
-            return git(quest, "--git-dir=.git", "--work-tree=.", *args, check=check)
+            return git(quest, "--git-dir=.git", "--work-tree=.", *args, check=check, stdin=stdin)
 
         def has_gitlink() -> bool:
             return any(line.startswith("160000 ") for line in run("ls-files", "--stage").splitlines())
@@ -192,10 +193,14 @@ def snapshot(quest: Path) -> str | None:
 
         nested = sorted(nested_repositories(quest))
         append_missing(quest / ".gitignore", EXCLUDED + [ignore_pattern(path) for path in nested], last=True)
-        if run("ls-files", "-z", "-ci", "--exclude-standard") or has_gitlink():
+        if has_gitlink():
             raise SnapshotError(
-                "the quest tracks excluded content or a nested repository; "
-                "automatic untracking is refused")
+                "the quest tracks a nested repository; automatic untracking is refused")
+        # A rule added after a file was recorded takes it out of later snapshots.
+        # Earlier snapshots and the file itself are kept.
+        ignored = run("ls-files", "-z", "-ci", "--exclude-standard")
+        if ignored:
+            run("update-index", "--force-remove", "-z", "--stdin", stdin=ignored)
         # Includes deletions and other writers' partial edits by design.
         run("add", "-A", "--", ".")
         if has_gitlink():
@@ -211,7 +216,7 @@ def snapshot(quest: Path) -> str | None:
         subject = "{} quest records: {} path{} ({})".format(
             "Snapshot" if parent else "Initialize", len(changed),
             "" if len(changed) == 1 else "s", ", ".join(changed[:2]))
-        subject = re.sub(r"[\x00-\x1f\x7f]", "?", subject)[:100]
+        subject = re.sub(r"[\x00-\x1f\x7f\udc80-\udcff]", "?", subject)[:100]
 
         # Commit exactly the tree summarized above. update-ref is compare-and-swap,
         # so a writer outside this lock cannot be overwritten.

@@ -20,6 +20,8 @@ For each quest the script:
 - creates the quest's `.git` on the first run;
 - keeps the required exclusions as the last lines of the quest's `.gitignore`,
   after any rules already there, and adds each nested repository it finds;
+- stops recording a file once an ignore rule covers it, keeping the file and
+  the snapshots already taken of it;
 - stages every other addition, change, and deletion, and commits when anything
   differs from the last snapshot, as in
   `Snapshot quest records: 2 paths (QUEST.md, plan.md)`.
@@ -35,7 +37,7 @@ The script refuses, rather than repairs, when:
 - an enclosing repository tracks files under the quest root, or the quest root
   is itself a repository;
 - a quest's `.git` is not an ordinary directory of its own;
-- a quest's repository tracks excluded content or a nested repository.
+- a quest's repository tracks a nested repository.
 
 Report a refusal to the user. Do not untrack or move records to make a snapshot
 succeed.
