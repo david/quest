@@ -18,10 +18,10 @@ For installation or reconciliation of an existing setup, the baseline is:
 
 1. Reuse the configured quest root or default to `./quests` under the project
    directory. The root must be named `quests`. Create the storage directory.
-   The snapshot plugin establishes the enclosing-repository exclusion and refuses
-   already tracked quest contents under the skill's Versioned Checkpoints rules.
-   Preserve records if it reports a boundary conflict; do not untrack or migrate
-   them automatically.
+   The [snapshot script](snapshot.md) excludes the root from an enclosing
+   repository and refuses a root whose contents that repository already tracks.
+   Preserve records if it reports that conflict; do not untrack or migrate them
+   automatically.
 2. Add or narrowly update a quest setup section in the project's `AGENTS.md`.
    Preserve all unrelated instructions. Declare `Quest root: <path>` using the
    selected root's absolute path or a path relative to this instruction file.

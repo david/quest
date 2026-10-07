@@ -13,12 +13,12 @@ stashing, remote branch deletion, deployments, credential changes, or stopping
 unrelated processes. Additional explicit instructions can authorize scoped local
 preservation or discard as described below.
 
-Automatic quest-record snapshots follow the skill's Versioned Checkpoints rules.
-Preserve the quest's own repository,
-including `.git`, when moving it. The checkout inventory, merge checks, and
-removal procedures below concern implementation repositories, not this retained
-quest-record repository. Automatic scans exclude archived quests; their current
-files and existing Git history are retained without further automatic snapshots.
+Quest-record snapshots follow the skill's Versioned Checkpoints rules. Run the
+[snapshot script](snapshot.md) before moving the quest: snapshots skip archived
+quests, so their files and existing Git history are kept and later edits are
+not committed. Preserve the quest's own repository, including `.git`, when
+moving it. The checkout inventory, merge checks, and removal procedures below
+concern implementation repositories, not this retained quest-record repository.
 
 ### Resolve and inventory
 

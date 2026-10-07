@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -179,21 +179,25 @@ repository's own instructions govern the work.
 
 ## Versioned Checkpoints
 
-Where the OpenCode `quest-snapshots` plugin is running, each quest directory is
-its own Git repository, owned by the plugin: it initializes the repository and
-commits record changes when a turn completes, including partial state and other
-writers' edits. It keeps quest storage out of any enclosing repository, will not
-untrack content that repository already tracks, and leaves `work/`,
-`local-data/`, `mise.local.toml`, and nested repositories out of snapshots. Put
-other private or generated material in those excluded locations, or add a
-quest-local ignore rule before creating it.
+`scripts/snapshot.py` makes each active quest directory its own Git repository
+and commits the quest's records there, including partial state and other
+writers' edits. A harness hook should run it whenever a turn ends, so that
+snapshots do not depend on an agent remembering them. `sync`, `handoff`, and
+`archive` run it as well, which covers a session that has no such hook.
+[Snapshots](references/snapshot.md) describes the script and the hook.
+
+The script owns each quest's `.git`; do not initialize it or commit to it by
+hand. It keeps quest storage out of any enclosing repository, will not untrack
+content that repository already tracks, and leaves `work/`, `local-data/`,
+`mise.local.toml`, and nested repositories out of snapshots. Put other private
+or generated material in those excluded locations, or add a quest-local ignore
+rule before creating it.
 
 Snapshots are recovery points. The current files remain the only thing a
-resuming agent should need to read. Sessions without the plugin are not
-snapshotted, so check that the quest has a `.git` directory before counting on
-history to recover removed material.
+resuming agent should need to read. Check the quest's own `git log` before
+counting on history to recover removed material.
 
-Archiving keeps the quest's `.git` directory and ends its automatic snapshots.
+Archiving keeps the quest's `.git` directory and ends its snapshots.
 
 ## Opening A Quest
 

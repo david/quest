@@ -40,6 +40,6 @@ readiness while relevant state remains only in chat or transient output. The
 handoff is `QUEST.md` and its references, not a new handoff file or routine audit
 report. Leave unaffected supporting records alone.
 
-The snapshot plugin preserves eligible changes under the skill's Versioned
-Checkpoints rules. Sync maintains records; it does not imply remote synchronization
-or continuing the quest's next task.
+After editing records, run the [snapshot script](snapshot.md) so that they are a
+recovery point even in a session with no snapshot hook. Sync maintains records;
+it does not imply remote synchronization or continuing the quest's next task.

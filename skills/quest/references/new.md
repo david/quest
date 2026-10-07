@@ -24,8 +24,8 @@ Creating a quest covers the record and its workspace setup. It does not by
 itself start research, planning, or implementation; continue into those only
 when the same request asks for them and the goal is clear enough.
 
-The snapshot plugin discovers the new quest at turn completion and preserves its
-initial records under the skill's Versioned Checkpoints rules.
+Do not initialize a Git repository in the quest directory. The next snapshot
+does that under the skill's Versioned Checkpoints rules.
 
 ## Slugs
 
