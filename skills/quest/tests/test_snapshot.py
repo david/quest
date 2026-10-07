@@ -1,17 +1,15 @@
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "snapshot.py"
-EXCLUDED = (
-    "/work/\n/local-data/\n/mise.local.toml\n.env\n.env.*\n!.env.example\n"
-    "node_modules/\n.cache/\n__pycache__/\n*.pyc\n.DS_Store\n/tmp/\n/temp/\n"
-    "/build/\n/dist/\n/coverage/\n"
-)
+SKILL = Path(__file__).resolve().parents[1]
+SCRIPT = SKILL / "scripts" / "snapshot.py"
+DEFAULT_RULES = (SKILL / "assets" / "snapshot-exclude").read_text()
 
 
 class SnapshotTests(unittest.TestCase):
@@ -61,13 +59,18 @@ class SnapshotTests(unittest.TestCase):
     def commits(self, quest):
         return int(self.git(quest, "rev-list", "--count", "HEAD"))
 
+    def rules(self, quest):
+        return (quest / ".git" / "info" / "exclude").read_text()
+
     def test_baseline_changes_deletions_and_no_op(self):
         (self.quest / "research").mkdir()
         (self.quest / "research" / "notes.md").write_text("notes\n")
         self.assertEqual(
             self.snapshot_ok(),
-            "sample-quest: Initialize quest records: 3 paths (.gitignore, QUEST.md)\n")
+            "sample-quest: Initialize quest records: 2 paths (QUEST.md, research/notes.md)\n")
         self.assertEqual(self.git(self.quest, "show", "HEAD:QUEST.md"), "# Existing records")
+        self.assertEqual(self.rules(self.quest), DEFAULT_RULES)
+        self.assertFalse((self.quest / ".gitignore").exists())
 
         (self.quest / "QUEST.md").write_text("# Changed\n")
         (self.quest / "plan.md").write_text("plan\n")
@@ -75,7 +78,7 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(
             self.snapshot_ok(),
             "sample-quest: Snapshot quest records: 3 paths (QUEST.md, plan.md)\n")
-        self.assertEqual(self.git(self.quest, "ls-files"), ".gitignore\nQUEST.md\nplan.md")
+        self.assertEqual(self.git(self.quest, "ls-files"), "QUEST.md\nplan.md")
 
         (self.quest / "plan.md").write_text("one more\n")
         self.assertEqual(
@@ -93,41 +96,62 @@ class SnapshotTests(unittest.TestCase):
             (self.quest / path).write_text("private\n")
         (self.quest / ".env.example").write_text("EXAMPLE=1\n")
         self.snapshot_ok()
-        self.assertEqual(self.git(self.quest, "ls-files"), ".env.example\n.gitignore\nQUEST.md")
+        self.assertEqual(self.git(self.quest, "ls-files"), ".env.example\nQUEST.md")
 
-    def test_existing_ignores_are_kept_and_nested_repositories_never_staged(self):
-        (self.quest / ".gitignore").write_text("/qa/\n!/work/\n")
+    def test_quest_ignore_file_is_left_alone_and_nested_repositories_never_staged(self):
+        (self.quest / ".gitignore").write_bytes(b"/qa/\n/caf\xe9/\n")
         (self.quest / "qa").mkdir()
         (self.quest / "qa" / "shot.png").write_text("image\n")
-        (self.quest / "work").mkdir()
-        (self.quest / "work" / "kept-out.txt").write_text("checkout\n")
         nested = self.quest / "vendor" / "odd name"
         nested.mkdir(parents=True)
         self.git(nested, "init", "--quiet")
         (nested / "file.txt").write_text("nested\n")
         self.snapshot_ok()
         self.assertEqual(self.git(self.quest, "ls-files"), ".gitignore\nQUEST.md")
-        self.assertEqual(
-            (self.quest / ".gitignore").read_text(),
-            "/qa/\n!/work/\n" + EXCLUDED + "/vendor/odd\\ name/\n")
+        self.assertEqual((self.quest / ".gitignore").read_bytes(), b"/qa/\n/caf\xe9/\n")
+        self.assertEqual(self.rules(self.quest), DEFAULT_RULES + "/vendor/odd\\ name/\n")
         self.assertNotIn("160000", self.git(self.quest, "ls-files", "--stage"))
-        # The required block is already last, so a second run rewrites nothing.
         self.assertEqual(self.snapshot_ok(), "")
         self.assertEqual(self.commits(self.quest), 1)
 
-        # A later negation cannot re-include an excluded path.
-        with (self.quest / ".gitignore").open("a") as ignore:
-            ignore.write("!/work/\n")
+    def test_rules_file_is_owned_by_the_script(self):
         self.snapshot_ok()
-        self.assertEqual(self.git(self.quest, "ls-files"), ".gitignore\nQUEST.md")
-        self.assertTrue((self.quest / ".gitignore").read_text().endswith(
-            "!/work/\n" + EXCLUDED + "/vendor/odd\\ name/\n"))
+        (self.quest / ".git" / "info" / "exclude").write_text("QUEST.md\n")
+        (self.quest / "plan.md").write_text("plan\n")
+        (self.quest / "local-data").mkdir()
+        (self.quest / "local-data" / "dump.sql").write_text("private\n")
+        self.snapshot_ok()
+        self.assertEqual(self.rules(self.quest), DEFAULT_RULES)
+        self.assertEqual(self.git(self.quest, "ls-files"), "QUEST.md\nplan.md")
 
-    def test_ignore_file_that_is_not_utf8_is_extended_byte_for_byte(self):
-        (self.quest / ".gitignore").write_bytes(b"/caf\xe9/\n")
+    def test_quest_rule_can_override_a_default(self):
+        (self.quest / ".gitignore").write_text("!/build/\n")
+        (self.quest / "build").mkdir()
+        (self.quest / "build" / "report.md").write_text("kept on purpose\n")
+        (self.quest / "dist").mkdir()
+        (self.quest / "dist" / "bundle.js").write_text("generated\n")
         self.snapshot_ok()
         self.assertEqual(
-            (self.quest / ".gitignore").read_bytes(), b"/caf\xe9/\n" + EXCLUDED.encode())
+            self.git(self.quest, "ls-files"), ".gitignore\nQUEST.md\nbuild/report.md")
+
+    def test_missing_default_rules_are_reported_once_and_nothing_is_created(self):
+        self.add_quest("sibling-quest", "# Existing sibling\n")
+        copy = self.base / "skill" / "scripts"
+        copy.mkdir(parents=True)
+        shutil.copy(SCRIPT, copy)
+        result = subprocess.run(
+            [sys.executable, str(copy / "snapshot.py")],
+            cwd=self.quest, env=self.env, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(len(result.stderr.splitlines()), 1)
+        self.assertIn("snapshot-exclude", result.stderr)
+        self.assertFalse((self.quest / ".git").exists())
+        outside = self.base / "outside"
+        outside.mkdir()
+        result = subprocess.run(
+            [sys.executable, str(copy / "snapshot.py")],
+            cwd=outside, env=self.env, capture_output=True, text=True)
+        self.assertEqual((result.returncode, result.stderr), (0, ""))
 
     def test_entirely_ignored_quest_makes_no_empty_commit(self):
         (self.quest / ".gitignore").write_text("*\n")
@@ -155,7 +179,7 @@ class SnapshotTests(unittest.TestCase):
             "# Quests\n\nQuest root: ./quests\n\nQuest root: `../declared/quests`\n")
         self.assertEqual(
             self.snapshot_ok(cwd=repo),
-            "other-quest: Initialize quest records: 2 paths (.gitignore, QUEST.md)\n")
+            "other-quest: Initialize quest records: 1 path (QUEST.md)\n")
         self.assertFalse((self.quest / ".git").exists())
 
         # The nearest instruction file wins, and CLAUDE.md is read like AGENTS.md.
@@ -267,7 +291,7 @@ class SnapshotTests(unittest.TestCase):
             self.snapshot_ok(),
             "sample-quest: Snapshot quest records: 4 paths (QUEST.md, qa/.gitignore)\n")
         self.assertEqual(
-            self.git(self.quest, "ls-files"), ".gitignore\nQUEST.md\nqa/.gitignore\nqa/journey.ts")
+            self.git(self.quest, "ls-files"), "QUEST.md\nqa/.gitignore\nqa/journey.ts")
         self.assertEqual((self.quest / "qa" / "server.log").read_text(), "second run\n")
         self.assertEqual(self.git(self.quest, "show", "HEAD^:qa/server.log"), "first run")
         self.assertEqual(self.snapshot_ok(), "")
@@ -278,7 +302,7 @@ class SnapshotTests(unittest.TestCase):
         (self.quest / "local-data" / "dump.sql").write_text("data\n")
         self.git(self.quest, "add", "-f", "local-data/dump.sql")
         self.assertEqual(self.snapshot_ok(), "")
-        self.assertEqual(self.git(self.quest, "ls-files"), ".gitignore\nQUEST.md")
+        self.assertEqual(self.git(self.quest, "ls-files"), "QUEST.md")
         self.assertTrue((self.quest / "local-data" / "dump.sql").exists())
         self.assertEqual(self.commits(self.quest), 1)
 

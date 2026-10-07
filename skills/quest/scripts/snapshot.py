@@ -15,19 +15,15 @@ import time
 SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 DECLARATION = re.compile(r"^\s*Quest root:\s*([^\r\n]+)$", re.MULTILINE)
 INSTRUCTIONS = ("AGENTS.md", "CLAUDE.md")
-# Every quest's .gitignore must end with these lines, so changing the list
-# appends a new block to each quest the next time it is snapshotted.
-EXCLUDED = [
-    "/work/", "/local-data/", "/mise.local.toml", ".env", ".env.*",
-    "!.env.example", "node_modules/", ".cache/", "__pycache__/", "*.pyc",
-    ".DS_Store", "/tmp/", "/temp/", "/build/", "/dist/", "/coverage/",
-]
+DEFAULT_RULES = Path(__file__).resolve().parents[1] / "assets" / "snapshot-exclude"
 UNSCANNED = {".git", "work", "local-data", "node_modules", ".cache", "__pycache__"}
 ROUTING = {
     "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR",
     "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_PREFIX",
 }
 LOCK_WAIT_SECONDS = 30
+# surrogateescape carries bytes that are not UTF-8, as in file names, through unchanged.
+TEXT = {"encoding": "utf-8", "errors": "surrogateescape"}
 
 
 class SnapshotError(Exception):
@@ -37,11 +33,9 @@ class SnapshotError(Exception):
 def git(directory: Path, *args: str, check: bool = True, stdin: str = "") -> str | None:
     # Never inherit a caller's alternate Git repository or index.
     env = {key: value for key, value in os.environ.items() if key not in ROUTING}
-    # surrogateescape returns file names that are not UTF-8 to Git unchanged.
     result = subprocess.run(
         ["git", "-C", str(directory), *args],
-        env=env, input=stdin, capture_output=True,
-        encoding="utf-8", errors="surrogateescape",
+        env=env, input=stdin, capture_output=True, **TEXT,
     )
     if result.returncode:
         if not check:
@@ -118,20 +112,13 @@ def ignore_pattern(relative: str) -> str:
     return f"/{escaped}/"
 
 
-def append_missing(file: Path, lines: list[str], last: bool = False) -> None:
-    # surrogateescape carries bytes that are not UTF-8 through unchanged.
-    encoding = {"encoding": "utf-8", "errors": "surrogateescape"}
-    content = file.read_text(**encoding) if file.exists() else ""
-    if last:
-        # Rules that must follow every other rule, so no negation re-includes them.
-        missing = [] if content.endswith("\n".join(lines) + "\n") else lines
-    else:
-        missing = [line for line in lines if line not in content.splitlines()]
-    if missing:
+def append_missing(file: Path, line: str) -> None:
+    content = file.read_text(**TEXT) if file.exists() else ""
+    if line not in content.splitlines():
         file.parent.mkdir(parents=True, exist_ok=True)
         separator = "\n" if content and not content.endswith("\n") else ""
-        with file.open("a", **encoding) as output:
-            output.write(separator + "\n".join(missing) + "\n")
+        with file.open("a", **TEXT) as output:
+            output.write(f"{separator}{line}\n")
 
 
 def exclude_from_enclosing(root: Path) -> None:
@@ -151,7 +138,7 @@ def exclude_from_enclosing(root: Path) -> None:
             if git(top, "ls-files", "-z", "--", f":(literal){relative}"):
                 raise SnapshotError(
                     f"{top} tracks quest storage {root}; automatic untracking is refused")
-            append_missing(common / "info" / "exclude", [ignore_pattern(relative)])
+            append_missing(common / "info" / "exclude", ignore_pattern(relative))
             if git(top, "check-ignore", "-q", "--", f"{root}/", check=False) is None:
                 raise SnapshotError(f"{top} does not ignore quest storage {root}")
 
@@ -172,7 +159,7 @@ def nested_repositories(quest: Path, prefix: str = "") -> list[str]:
     return found
 
 
-def snapshot(quest: Path) -> str | None:
+def snapshot(quest: Path, default_rules: str) -> str | None:
     """Commit the quest's records; return the subject, or None if nothing changed."""
     with locked(quest):
         dotgit = quest / ".git"
@@ -191,8 +178,15 @@ def snapshot(quest: Path) -> str | None:
         if not run("--no-optional-locks", "status", "--porcelain"):
             return None
 
-        nested = sorted(nested_repositories(quest))
-        append_missing(quest / ".gitignore", EXCLUDED + [ignore_pattern(path) for path in nested], last=True)
+        # The script owns this file and replaces it whenever it differs, so a
+        # change to the defaults reaches every quest. A quest's own rules live
+        # in its .gitignore, which Git reads with higher precedence.
+        rules = default_rules + "".join(
+            f"{ignore_pattern(path)}\n" for path in sorted(nested_repositories(quest)))
+        exclude = dotgit / "info" / "exclude"
+        if not exclude.is_file() or exclude.read_text(**TEXT) != rules:
+            exclude.parent.mkdir(exist_ok=True)
+            exclude.write_text(rules, **TEXT)
         if has_gitlink():
             raise SnapshotError(
                 "the quest tracks a nested repository; automatic untracking is refused")
@@ -255,6 +249,16 @@ def main() -> int:
         if root and root not in roots:
             roots.append(root)
 
+    if not roots:
+        return 1 if failed else 0
+    try:
+        default_rules = DEFAULT_RULES.read_text(**TEXT)
+    except OSError as error:
+        report(DEFAULT_RULES, error)
+        return 1
+    if not default_rules.endswith("\n"):
+        default_rules += "\n"
+
     for root in roots:
         try:
             exclude_from_enclosing(root)
@@ -264,7 +268,7 @@ def main() -> int:
             continue
         for quest in quests:
             try:
-                subject = snapshot(quest)
+                subject = snapshot(quest, default_rules)
             except (OSError, SnapshotError) as error:
                 report(quest, error)
             else:

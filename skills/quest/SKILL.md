@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.1.2"
+  version: "2.2.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -189,8 +189,8 @@ The script owns each quest's `.git`; do not initialize it or commit to it by
 hand. It keeps quest storage out of any enclosing repository, will not untrack
 content that repository already tracks, and leaves `work/`, `local-data/`,
 `mise.local.toml`, and nested repositories out of snapshots. Put other private
-or generated material in those excluded locations, or add a quest-local ignore
-rule before creating it.
+or generated material in those excluded locations, or add a rule to the quest's
+own `.gitignore` before creating it.
 
 Snapshots are recovery points. The current files remain the only thing a
 resuming agent should need to read. Check the quest's own `git log` before

@@ -18,13 +18,18 @@ and a directory with no quest root is not an error.
 For each quest the script:
 
 - creates the quest's `.git` on the first run;
-- keeps the required exclusions as the last lines of the quest's `.gitignore`,
-  after any rules already there, and adds each nested repository it finds;
+- writes the default rules in `assets/snapshot-exclude`, and a rule for each
+  nested repository it finds, to the quest's `.git/info/exclude`, replacing
+  whatever is there;
 - stops recording a file once an ignore rule covers it, keeping the file and
   the snapshots already taken of it;
 - stages every other addition, change, and deletion, and commits when anything
   differs from the last snapshot, as in
   `Snapshot quest records: 2 paths (QUEST.md, plan.md)`.
+
+To change what every quest leaves out, edit `assets/snapshot-exclude`. A quest's
+own rules go in its `.gitignore`, which the script never edits and which can
+override a default.
 
 It uses the Git identity and signing configuration already in effect, runs no
 commit hooks, and never pushes. Each quest is locked while it is snapshotted,
