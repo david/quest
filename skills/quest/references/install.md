@@ -17,14 +17,11 @@ preserve existing files and avoid duplicate instruction blocks.
 For installation or reconciliation of an existing setup, the baseline is:
 
 1. Reuse the configured quest root or default to `./quests` under the project
-   directory. The root must be named `quests` and lie outside the project
-   repository; if the project directory is itself the repository, agree with
-   the user where the root goes before creating anything. Create the storage
-   directory.
-   The [snapshot script](snapshot.md) excludes the root from an enclosing
-   repository and refuses a root whose contents that repository already tracks.
-   Preserve records if it reports that conflict; do not untrack or migrate them
-   automatically.
+   directory. The root must be named `quests` and lie outside any repository,
+   which the [snapshot script](snapshot.md) enforces; if the project directory
+   is itself a repository, agree with the user where the root goes before
+   creating anything. Create the storage directory. Where the script refuses
+   an existing root, preserve its records and ask before moving them.
 2. Add or narrowly update a quest setup section in the project's `AGENTS.md`.
    Preserve all unrelated instructions. Declare `Quest root: <path>` using the
    selected root's absolute path or a path relative to this instruction file.

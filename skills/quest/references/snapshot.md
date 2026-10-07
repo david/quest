@@ -39,8 +39,7 @@ The script prints one line per commit. A problem goes to standard error with
 exit status 1, leaves the records as they were, and is retried by the next run.
 The script refuses, rather than repairs, when:
 
-- an enclosing repository tracks files under the quest root, or the quest root
-  is itself a repository;
+- the quest root is inside a repository, or is one itself;
 - a quest's `.git` is not an ordinary directory of its own;
 - a quest's repository tracks a nested repository.
 

@@ -112,35 +112,11 @@ def ignore_pattern(relative: str) -> str:
     return f"/{escaped}/"
 
 
-def append_missing(file: Path, line: str) -> None:
-    content = file.read_text(**TEXT) if file.exists() else ""
-    if line not in content.splitlines():
-        file.parent.mkdir(parents=True, exist_ok=True)
-        separator = "\n" if content and not content.endswith("\n") else ""
-        with file.open("a", **TEXT) as output:
-            output.write(f"{separator}{line}\n")
-
-
-def exclude_from_enclosing(root: Path) -> None:
-    seen = set()
+def refuse_enclosing(root: Path) -> None:
     for directory in (root, *root.parents):
-        if not (directory / ".git").exists():
-            continue
-        top = Path(os.path.realpath(git(directory, "rev-parse", "--show-toplevel")))
-        if top in seen:
-            continue
-        seen.add(top)
-        if top == root:
-            raise SnapshotError(f"quest storage must not itself be a repository: {root}")
-        relative = str(root.relative_to(top))
-        common = Path(os.path.realpath(top / git(top, "rev-parse", "--git-common-dir")))
-        with locked(common):
-            if git(top, "ls-files", "-z", "--", f":(literal){relative}"):
-                raise SnapshotError(
-                    f"{top} tracks quest storage {root}; automatic untracking is refused")
-            append_missing(common / "info" / "exclude", ignore_pattern(relative))
-            if git(top, "check-ignore", "-q", "--", f"{root}/", check=False) is None:
-                raise SnapshotError(f"{top} does not ignore quest storage {root}")
+        if os.path.lexists(directory / ".git"):
+            raise SnapshotError(
+                f"quest storage must lie outside any repository, but {directory} is one")
 
 
 def nested_repositories(quest: Path, prefix: str = "") -> list[str]:
@@ -261,7 +237,7 @@ def main() -> int:
 
     for root in roots:
         try:
-            exclude_from_enclosing(root)
+            refuse_enclosing(root)
             quests = active_quests(root)
         except (OSError, SnapshotError) as error:
             report(root, error)

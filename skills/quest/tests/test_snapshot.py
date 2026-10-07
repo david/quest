@@ -248,33 +248,25 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(self.git(archive, "show", "HEAD:QUEST.md"), "# Existing records")
         self.assertEqual(self.git(sibling, "show", "HEAD:QUEST.md"), "# Sibling after archive")
 
-    def test_enclosing_repository_excludes_all_quest_storage(self):
-        self.git(self.project, "init", "--quiet")
-        (self.project / "app.txt").write_text("app\n")
-        self.git(self.project, "add", "app.txt")
-        self.snapshot_ok()
-        self.assertEqual(self.git(self.quest, "rev-parse", "--show-toplevel"), str(self.quest))
-        self.git(self.project, "check-ignore", "-q", "quests/.archived/anything/QUEST.md")
-        self.assertEqual(self.git(self.project, "status", "--porcelain"), "A  app.txt")
-        self.snapshot_ok()
-        self.assertEqual((self.project / ".git" / "info" / "exclude").read_text().count("/quests/"), 1)
-
-    def test_enclosing_repository_that_tracks_quests_is_left_alone(self):
-        self.git(self.project, "init", "--quiet")
-        self.git(self.project, "add", "quests")
-        result = self.snapshot()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("automatic untracking is refused", result.stderr)
-        self.assertFalse((self.quest / ".git").exists())
-        self.assertEqual(self.git(self.project, "ls-files"), "quests/sample-quest/QUEST.md")
+    def test_root_inside_a_repository_is_refused(self):
+        for repository in (self.root, self.project):
+            self.git(repository, "init", "--quiet")
+            result = self.snapshot()
+            self.assertEqual(result.returncode, 1)
+            self.assertIn(f"but {repository} is one", result.stderr)
+            self.assertFalse((self.quest / ".git").exists())
+            self.assertIn("??", self.git(repository, "status", "--porcelain"))
+            shutil.rmtree(repository / ".git")
 
     def test_quest_that_does_not_own_its_repository_is_refused(self):
-        self.git(self.project, "init", "--quiet")
-        (self.quest / ".git").write_text("gitdir: ../../.git\n")
+        other = self.base / "other-repo"
+        other.mkdir()
+        self.git(other, "init", "--quiet")
+        (self.quest / ".git").write_text(f"gitdir: {other / '.git'}\n")
         result = self.snapshot()
         self.assertEqual(result.returncode, 1)
         self.assertIn("does not own its repository", result.stderr)
-        self.assertEqual(self.git(self.project, "ls-files", "--stage"), "")
+        self.assertEqual(self.git(other, "ls-files", "--stage"), "")
 
     def test_file_ignored_after_it_was_recorded_leaves_later_snapshots(self):
         (self.quest / "qa").mkdir()
