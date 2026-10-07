@@ -21,3 +21,15 @@ project worktree or modify `QUEST.md` merely because the quest was opened.
 ## `open <slug>`
 
 Look for an exact slug directory in the quest root. If absent, look for clearly similar slugs among its immediate directories. Open one clear match and report the mapping. If several match, list them and ask the user to choose. If none match, say that no quest was found.
+
+## Herdr workspace label
+
+After resolving the quest to open, when the session runs inside a Herdr-managed
+pane (`HERDR_ENV=1`), label the calling pane's workspace with the quest slug:
+
+```sh
+herdr workspace rename "$HERDR_WORKSPACE_ID" <slug>
+```
+
+Skip this silently outside Herdr. A failed rename does not block opening the
+quest; mention it briefly and continue.
