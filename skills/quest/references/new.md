@@ -3,43 +3,31 @@
 ## `new <slug>`
 
 Refuse an invalid slug or a slug that already exists in the quest root. Create
-`<quest-root>/<slug>/QUEST.md` with `quest_skill_version` YAML frontmatter set
-from this skill's `metadata.version`, followed by the quest title and `Current State`.
-Add Backlog or References only when supplied context needs them.
+`<quest-root>/<slug>/QUEST.md` from the skill's record template: frontmatter
+with `quest_skill_version`, the quest title, and `Current State`. Add Backlog or
+References only when the supplied context needs them.
+
+Capture the objective, relevant background, and explicit constraints the user
+supplied, linking substantial existing material instead of copying it and
+reading only what capturing the goal requires. Keep what the user stated
+distinct from goals, approaches, or tasks that were only suggested. If no
+objective was supplied, record it as unresolved rather than inventing one. Start
+Current State with no task begun, a checkpoint that the quest was created, and
+any setup blockers.
+
+Then summarize the captured objective and constraints for the user. If a gap in
+the goal could change the work, ask the smallest useful question; clear intent
+needs no confirmation round. Respect an explicit request to create the record
+and pause.
+
+Creating a quest covers the record and its workspace setup. It does not by
+itself start research, planning, or implementation; continue into those only
+when the same request asks for them and the goal is clear enough.
 
 The snapshot plugin discovers the new quest at turn completion and preserves its
-initial eligible records under the skill's Versioned Checkpoints rules.
+initial records under the skill's Versioned Checkpoints rules.
 
-Capture the supplied objective, relevant background, and explicit constraints in
-Current State, linking substantial existing material. Distinguish confirmed intent
-from suggested goals, approaches, or tasks; creation does not establish findings,
-accept decisions, or approve a plan. If no objective was supplied, state that it
-is unresolved rather than inventing one.
-
-Initialize Current State with no substantive task started, a checkpoint that the
-quest was created, and any setup blockers.
-
-After required setup, summarize the captured objective and
-material constraints. If goal gaps could change the work, use
-[goal clarification](goals.md) and ask the smallest useful question. Clear supplied
-intent does not require another confirmation round. Keep unresolved questions and
-provisional interpretations recoverable without inventing an alignment blocker.
-
-Continue further work explicitly requested alongside creation when the goal is
-clear enough. Otherwise report creation and any unresolved goal or setup gap;
-recommend a next action only when useful. Respect an explicit request to create
-the record and pause. Keep the usable workspace location, material setup gaps,
-and recovery actions in Current State; successful routine setup needs no activity
-checklist. Creation alone does not authorize planning or implementation.
-
-Quest creation includes bounded workspace setup and necessary goal clarification.
-Create the record and perform any required workspace setup, parent linkage, and
-indexing from supplied or already-known context. Link authoritative existing
-artifacts, reading only what capturing or clarifying the goal needs. Creation does
-not by itself authorize codebase inventory, external research, implementation planning,
-architecture or delivery decision changes, reconciliation of downstream contracts,
-testing, or implementation. Perform those activities only when the user explicitly
-requests them separately.
+## Slugs
 
 When generating an issue-backed quest slug, preserve the leading issue number
 and use a concise, recognizable summary of the title. For PR-based quests, use
@@ -47,20 +35,26 @@ and use a concise, recognizable summary of the title. For PR-based quests, use
 Concision is a default, not a word-count limit; preserve an explicitly supplied
 valid user slug.
 
-When project instructions configure a quest template, follow their source and
-destination rules. Use [Template rendering](render-template.md) for
-`mise.local.toml` after its destination directory exists, selecting an app port
-only when the template uses one. Keep the directory slug hyphenated; the renderer
-normalizes only substituted values. Record workspace paths and selected ports
-needed to use the workspace, plus material setup exceptions, without copying
-secrets or narrating each successful setup command. The default destination is
-the individual quest directory alongside its `QUEST.md`, not the shared quest root
-or an application worktree. Application worktrees, when authorized, use
-`<quest-root>/<slug>/work/<n>/`; rendering the quest config does not require a
-worktree to exist. Preserve explicit project alternatives. Do not overwrite
-existing configuration or infer permission
-to provision resources from the presence of a template. If required workspace
-setup is blocked, preserve the quest record and the exact next setup action.
+## Workspace setup
+
+Perform the setup the project's instructions require for a new quest, from
+supplied or already-known context. When they configure a quest template, follow
+their source and destination rules and use [Template rendering](render-template.md)
+for `mise.local.toml` once its destination directory exists, selecting an app
+port only when the template uses one. Keep the directory slug hyphenated; the
+renderer normalizes only substituted values.
+
+The default destination is the individual quest directory alongside its
+`QUEST.md`, not the shared quest root or an application worktree. Application
+worktrees, when authorized, use `<quest-root>/<slug>/work/<n>/`; rendering the
+quest config does not require a worktree to exist. Preserve explicit project
+alternatives. Do not overwrite existing configuration, and do not treat the
+presence of a template as permission to provision resources.
+
+Record the workspace paths and selected ports needed to use the workspace, plus
+material setup exceptions, in Current State, without copying secrets or
+narrating each successful setup command. If required setup is blocked, keep the
+quest record and record the exact next setup action.
 
 ## Herdr workspace label
 

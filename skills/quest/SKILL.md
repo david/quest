@@ -1,116 +1,78 @@
 ---
 name: quest
 description: >
-  Create, open, and maintain durable quest records for work that spans sessions or
-  needs a recoverable handoff. Use for quest workspace discovery, lifecycle and
-  state management, and conditional guidance for quest activities.
+  Maintain quests: one directory per task holding a QUEST.md memory record plus
+  the documents and code checkouts that belong to that task. Use to install,
+  create, open, list, sync, hand off, distill, or archive a quest, and to keep
+  its records current while working inside one.
 metadata:
-  version: "1.0.0"
+  version: "2.0.0"
 ---
 
-<!-- argument-hint: <install|open|new|goals|planning|acceptance|partition|coding|review|distill|handoff|master|list|sync|archive> [path|slug] -->
+<!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
 
 # Quest
 
-Use quests as lightweight shared context, not as a mandatory project process.
-A quest may involve any kind of work, and its activities need not follow a
-linear sequence. This skill maintains durable memory and captures supplied goals
-at creation, clarifying material gaps when needed; it does not prescribe a delivery
-workflow.
+A quest is one directory for one task. It gathers three things in a single
+place: `QUEST.md`, the memory that lets an agent resume the task without the
+conversation that produced it; the documents the task generates; and the code
+checkouts the task works in.
 
-Optimize quest memory for correct resumption at low reading and maintenance cost:
-preserve the smallest sufficient body of current, useful information. It is a
-maintained representation of understanding, not an activity log. Goals, research,
-decisions, and plans must reflect the current contract. Every retained item should
-help continuation, a current decision, verification, recovery, or an explicit
-deliverable, provenance, or audit requirement. Preserve information when losing
-it could cause a materially worse decision, costly reinvestigation, a forgotten
-obligation, or incorrect resumption. Remove redundant, obsolete, and irrelevant
-material; routine activity and historical interest alone are not retention purposes.
+This skill covers finding, creating, maintaining, and archiving that directory.
+How the work itself is done is outside it: follow the user's direction and the
+project's own instructions.
+
+## Layout
+
+```text
+<quest-root>/                  # a directory named `quests`
+├── <slug>/
+│   ├── QUEST.md               # the memory record; the only required file
+│   ├── research/              # findings and evidence, read on demand
+│   ├── mise.local.toml        # per-quest environment, when the project uses one
+│   ├── local-data/            # private or non-reproducible local files
+│   └── work/<n>/              # code checkouts, numbered from 1
+└── .archived/<slug>/          # archived quests, not active
+```
+
+A slug matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and other names.
+Create a file or directory only when there is something to put in it. Follow a
+layout the project's instructions configure, and any coherent structure a quest
+already has, rather than rearranging it to match this one.
 
 ## Resolve The Quest
 
-Resolve the quest root and any current quest context once per operation from
-the session's current working directory, never from the skill directory:
+Resolve the quest root once per operation, starting from the session's current
+working directory (never the skill directory), and use its absolute path for
+every quest read, write, and search in that operation.
 
-Exception: `install` bootstraps a project that may not have a quest root yet.
-Use its dedicated reference to select the installation target instead.
+1. Look at the working directory and its ancestors for a directory that has a
+   slug name, contains `QUEST.md`, and sits directly inside a directory named
+   `quests`. That directory is the current quest and its parent is the root.
+   This check comes first so that a session started inside a quest, including
+   inside one of its checkouts, identifies it without any configuration.
+2. Otherwise use a `Quest root: <path>` declaration from the repository
+   instructions already in context. Resolve a relative path from the directory
+   of the file that declares it; the most specific applicable declaration wins.
+   It counts only when it resolves to an existing directory named `quests`.
+   Work from the instructions already loaded rather than searching for more.
+3. Otherwise use the working directory if it is named `quests`, or `./quests`
+   if that directory exists.
+4. Otherwise stop and report which candidates were checked. Creating a `quests`
+   directory so that resolution succeeds, or guessing a root from repository
+   depth, puts records where nobody will look for them.
 
-1. First inspect the current working directory and its ancestors for a
-   canonical quest directory. A candidate must have a slug basename, contain
-   `QUEST.md`, and have a parent named `quests`. When a match exists, it is the
-   current quest and its parent is the quest root. Run this check before
-   considering any configured root so a quest opened directly remains
-   self-identifying.
-2. If the session is not inside a quest, inspect the applicable repository
-   instructions already supplied in the session context for a declaration
-   written as `Quest root: <path>`. Never search for instruction files. Resolve
-   an absolute declaration directly and a relative declaration from the
-   directory containing the declaring instruction file. The most specific
-   applicable declaration wins. Use it only when it resolves to an existing
-   directory named `quests`.
-3. If no applicable declaration exists and the current directory itself is named
-   `quests`, use it. Otherwise, if `./quests` is an existing directory, use it.
-4. If no candidate succeeds, stop and report the current-quest, declared-root,
-   and `./quests` candidates checked. Do not create a `quests` directory merely
-   to make root detection succeed, infer one from repository depth, or fall
-   back to a fixed path.
+`install` is the exception: it sets up a project that may not have a root yet.
 
-Canonicalize the selected quest root to an absolute path and use it for every
-quest read, write, and search in that operation.
-
-```text
-<quest-root>/
-├── <quest-slug>/
-│   └── QUEST.md
-└── .archived/
-    └── <archived-quest-slug>/
-        └── QUEST.md
-```
-
-A slug must match `^[a-z0-9]+(?:-[a-z0-9]+)*$`. Reject paths and non-slug names.
-
-`.archived` is reserved storage, not an active quest. Archiving is explicit and
-does not imply that every goal, provider validation, or release gate is complete.
-Use the archive reference for its safety gates and cleanup; do not simply move a
-directory containing registered worktrees.
+A command acts on the current quest or on an explicit slug in the resolved root.
+When neither is available, ask which quest is meant. Only `new` creates a quest,
+and nothing replaces an existing quest directory or file.
 
 ## Quest Record
 
-Every quest is a workspace whose only required record is `QUEST.md`, with
-`Current State` as its only required section. Do not create empty directories,
-per-session reports, or workflow metadata merely for consistency.
-
-New `QUEST.md` files must include YAML frontmatter with `quest_skill_version`
-set to this skill's `metadata.version`. This is the creation version: preserve
-it during updates, migration, and archival. Older records without the field remain
-valid; do not infer their creation version from the currently installed skill.
-The version covers this skill and its references. When changing guidance that
-affects retained quest information, increment `metadata.version` so new records
-can be correlated with that revision through Git history.
-
-For an existing quest that uses `README.md` as its state record, migration means
-renaming that record to `QUEST.md` and updating links to it. Preserve its contents
-and Git history. Do not overwrite an existing `QUEST.md` or rename a project
-README. A README-only directory is not recognized as a canonical quest.
-
-Always read `QUEST.md` first. When the prompt only loads or opens an existing
-quest or selects Quest Master, read only the quest's `QUEST.md`, summarize its current
-state, and wait for user direction. Include recorded next actions and any gaps
-apparent in `QUEST.md`; do not follow links, inspect project files, delegate, or update
-records merely to orient. Recorded next actions are context, not a request to
-execute them.
-
-The user's subsequent direction determines what additional context to load. If
-the same prompt includes a question or request for work, load what that request
-needs and proceed in the same turn. Select context according to the decision or
-action at hand, starting with the records governing the active task. Consult
-relevant research when developing or revisiting an approach, checking its
-assumptions, or resolving a gap; carrying out an established approach does not by
-itself require loading its supporting research. Before changing shared quest
-material, reread the affected content and preserve unrelated updates.
-
-Create new records with this minimal structure:
+`QUEST.md` is the only required record and `Current State` its only required
+section. A new record starts like this, with `quest_skill_version` set to this
+skill's `metadata.version`:
 
 ```markdown
 ---
@@ -121,293 +83,142 @@ quest_skill_version: "<metadata.version>"
 
 ## Current State
 
-- Objective: The current desired outcome and what would count as success.
-- Constraints: Material scope and authorization boundaries, or links to them.
-- Active work: One or more active tasks or activities, or none.
-- Checkpoint: The latest durable progress or result.
-- Next actions: The exact recommended resumption step for each active task, or the recommended next overall step.
-- Blockers: None, or the unresolved blockers and approvals.
+- Objective: The desired outcome and what would count as success.
+- Constraints: What the user has and has not authorized, and other material limits.
+- Workspace: Each checkout's path, branch, and purpose, with any ports or services allocated to the quest, or none.
+- Active work: The active tasks, or none.
+- Checkpoint: The latest durable result, what has been verified on which revision, and where to check it.
+- Next actions: The exact resumption step for each active task, or that the work is complete or paused.
+- Blockers: None, or the unresolved blockers and decisions waiting on the user.
 ```
 
-Substitute the current skill version for `<metadata.version>` when creating the file.
+`quest_skill_version` records the version a quest was created under, so leave it
+unchanged afterwards. Records without it are valid.
 
-`QUEST.md` is a resumption interface, not a workflow outline:
+`Current State` is the handoff. An agent with no session history should be able
+to read it, follow only the links relevant to the next step, and continue
+correctly. The template's fields say what that takes; they are a starting
+point, so use the prose or bullets that suit the work. Keep this section near
+the top and short enough to read in one pass, linking to detail instead of
+including it.
 
-- `Current State` is the single durable handoff. Include the current objective,
-  material constraints, and context needed to act correctly, not just recent
-  progress. Link to detail instead of duplicating it. The fields above are a
-  starting point; use concise prose or bullets suited to the work. Keep this
-  resumption summary easy to find near the beginning of the record. It should
-  explain what is true now and what follows, without requiring a reader to work
-  through investigation chronology, individual validation runs, or setup history.
-  Keep necessary evidence in its existing owning location; link substantial
-  detail when it would obscure the resumption summary.
-- Add `Backlog` when useful for pending or deferred work outside the immediate
-  next actions. Preserve enough context to pick it up; link an existing task
-  record rather than maintaining a second checklist.
-- Add `References` when useful as an annotated index of supporting material and
-  authoritative sources, including designs, decisions, research, acceptance
-  contracts, evidence, and deliverables. State why each link matters.
+Larger quests can add two sections: `Backlog` for pending or deferred work
+outside the immediate next actions, and `References` as an annotated index of
+supporting material that says why each link matters.
 
-Capabilities prescribe information to preserve, not `QUEST.md` headings or directory
-names. Organize detail around the subject matter. A small quest may fit entirely
-in Current State; larger work may use linked records. Respect user-defined and
-coherent existing structures; do not rearrange them merely to adopt this layout.
-
-Keep each task in one owning location. An unchecked normal task remains pending.
-Check it only after recording its outcome and appropriate evidence. Add a missing
-Current State during the next substantive update, not merely because a quest was
-opened or listed. Do not create empty headings for completeness.
-
-At creation, capture supplied context and initialize Current State according to
-[New](references/new.md).
-Clarify material goal gaps when needed; clear supplied intent does not require a
-separate confirmation checkpoint.
-Distinguish clear user intent and explicit constraints
-from proposed goals, approaches, or tasks. Suggestions are not accepted decisions
-or an approved task list. Build on supplied answers without requiring repetition.
-As understanding develops, replace provisional or obsolete context with current
-goals and decisions rather than maintaining an immutable request transcript.
-
-## File Ownership And Stability
-
-Organize retained material by subject and purpose. Make supporting material
-discoverable from `QUEST.md`, using References for an index when useful and
-direct links from Current State for the active work.
-Respect user-requested locations, specialist conventions, and coherent existing
-layouts; do not relocate material solely to enforce a default.
-
-Keep related context together: a design may include its problem, research,
-alternatives, accepted choices, and rationale. Separate aspects when they are
-independently useful or likely to change independently, not merely because they
-arose during different workflow activities. Prefer updating the file that already
-owns an aspect over creating a file for each activity, worker, session, or status change.
-
-Use `research/` to keep code exploration and research available without loading
-it into context by default. Store synthesized findings, comparisons, and supporting
-evidence there, with concise annotated links from `QUEST.md` or relevant plan.
-Keep only conclusions needed for current action in those entry points; read the
-linked research selectively when the task needs its detail. Do not load the whole
-directory when opening or resuming a quest.
-
-Keep related findings in subject-focused files and
-refresh those files when relevant code, sources, or assumptions change before
-relying on them. Identify the sources and their version or observation time when
-needed to assess freshness. Research is versioned quest knowledge. Plans and task
-specifications must state or explicitly link the requirements needed to act
-correctly, so essential constraints are not discoverable only by reading
-background research. Reference supporting investigation rather than duplicate it.
-
-Keep the layout shallow. Create `research/` only when a separate research file is
-useful; brief conclusions needed for current action may stay in `QUEST.md` or an
-existing subject-focused record. Prefer files directly in `research/` over subdirectories, and avoid
-separate directories for each activity, artifact type, or temporary-versus-durable
-classification. Add directories only when the volume or subject structure makes
-navigation materially easier.
-
-Keep volatile coordination state in `QUEST.md`'s `Current State`. Supporting files
-should be self-contained for their purpose through concise context and
-references, not repeated goals, workspace details, live blockers, or next
-actions. Keep a fact in one owning location; indexes and other files should
-link rather than copy it. A required follow-up intrinsic to a finding belongs
-with that finding, while the choice of what to do next belongs in Current State.
-
-Create a supporting file when useful detail would obscure `QUEST.md` or when
-the file is itself a requested deliverable. Prefer a reference to an existing
-authoritative source over copying it. Retain local rationale, evidence, or
-uncertainty when that source does not capture it or may not remain available.
-Identify a version or observation time when needed to interpret evidence;
-refresh live external state before relying on it for action.
-
-Apply the same retention test to artifacts as to prose. Prefer concise results
-and the evidence needed to substantiate them over accumulating every run's output.
-Keep distinct failed-run evidence when it explains a current decision or recovery
-need. Generated or reproducible material needs a concrete continuing purpose;
-size alone does not make evidence disposable. Preserve explicitly required
-backups and deliverables. State a non-obvious retention or recovery purpose in
-the owning record, without creating a separate inventory merely for compliance.
-
-## Versioned Checkpoints
-
-Each quest owns a Git repository rooted at its quest directory. Current files
-describe the understanding an agent should act on; Git history preserves earlier
-states for recovery and comparison. Normal resumption must not require reading
-history. Keep rationale that still matters in the current records under the
-shared retention test.
-
-The global OpenCode `quest-snapshots` plugin owns quest repository initialization
-and local snapshots. It discovers active quests on load and before prompts to
-preserve a baseline, then discovers and snapshots eligible record changes at turn
-completion, including newly created quests. Agents maintain useful current records.
-
-Snapshots include eligible additions, modifications, and deletions, including
-partial state and concurrent writers' changes. They are recovery points, not
-coherent-unit approvals or agent-attributed commits. Continue reconciling supporting
-records and Current State for useful resumption.
-
-Quest storage may be outside Git or inside an enclosing repository. The plugin
-excludes the entire storage root, including archived quests, from enclosing
-repositories using local Git excludes. It refuses automatic untracking of existing
-tracked content or gitlinks. It preserves existing ignore rules and excludes
-`/work/`, `/local-data/`, `/mise.local.toml`, common generated/private data, and
-nested repositories from snapshots. Keep other private or generated material in
-excluded locations or add appropriate quest-local ignore rules before creating it.
-Implementation checkouts may live under the configured quest workspace layout.
-
-Snapshot failures preserve records and produce diagnostics; the plugin retries on
-the next trigger without prompting an agent.
-
-Archive the quest with its `.git` directory intact. The quest-record repository
-is retained memory, not an implementation checkout subject to removal or merge
-verification. Automatic scans exclude `.archived`; archiving preserves current
-files and existing history but ends automatic snapshots for that quest.
+An unchecked checklist item is pending; check it once its outcome is recorded.
+Prefix an item with `Approval:` when it needs an explicit decision from the
+user, and check it only on their explicit authorization. While one is waiting,
+say so under Blockers and make the next action the request for that decision.
 
 ## Shared Update Contract
 
-Before writing, identify what changed in the durable context needed to continue.
-If nothing material changed, no quest update is necessary. Otherwise update its
-owning record and only those indexes, tasks, links, or current instructions that
-would become misleading. Update Current State when the active work, checkpoint,
-next action, or blocker changes; do not repeat the outcome across artifacts to
-demonstrate reconciliation. This preserves stable context for selective loading
-and cache reuse.
+These rules apply to `QUEST.md` and to every supporting file.
 
-Before substantive work, confirm the active task's intended outcome, boundaries,
-authorization, dependencies, and expected evidence. Follow applicable project,
-environment, safety, and domain instructions; preserve unrelated work; and use
-the simplest approach that satisfies the current contract. Validate the result
-proportionately. A failed or incomplete attempt may contain important evidence:
-preserve observations needed to resume or avoid repeating the mistake, not an
-exhaustive execution trace. Do not present attempted work as complete.
+**Write what is true now.** The record is a maintained description of the task,
+not a log of the sessions that worked on it. When something changes, replace the
+old checkpoint, next action, plan, or decision instead of adding a new entry
+beside it, and correct any linked file the change makes misleading. A reader who
+finds two statements that disagree has to investigate which one is current, and
+sparing them that investigation is what the record is for.
 
-Keep the user oriented in the conversation as the work develops. At the outset
-of substantive work, briefly state your current understanding, the next useful
-step and why, and any consequential uncertainty. As evidence emerges, explain
-material changes in understanding or direction and how they affect the work.
-Scale updates to their significance and build on what the user already knows.
-Make clear how you will check the result, refining that approach as needed.
-Durable quest updates do not substitute for user-facing communication. These
-updates do not introduce approval gates.
+**Apply the retention test.** Keep an item when losing it could cause a worse
+decision, a repeated investigation, a forgotten obligation, or a wrong
+resumption, or when it is a requested deliverable or needed for audit. Remove
+what fails the test rather than labelling it superseded. When an abandoned
+approach would otherwise be rediscovered, keep one line: "Rejected A because X."
+Ask before deleting material whose owner or purpose is unclear.
 
-Retain commands, identifiers, and operational details when needed for reproduction, interpretation,
-or recovery, not as proof that routine work occurred. Reference standing policy
-rather than repeatedly copying it; preserve quest-specific decisions or exceptions
-when they materially constrain continuation.
+**Keep each fact in one place.** Link to the file or authoritative source that
+owns a fact instead of copying it. Volatile state, such as active work, blockers,
+and next actions, belongs in `Current State` so that supporting files stay
+stable.
 
-Treat chat history, transient output, live processes, and session-local IDs as
-non-durable. Replace obsolete checkpoints and next actions rather than stacking
-new status snapshots above them. When understanding changes, replace obsolete
-goals, choices, and plans, correct misleading guidance, and remove resolved
-questions or invalidated research. Apply this to affected supporting files,
-tasks, and indexes as well as `QUEST.md`; a current summary does not compensate
-for stale linked guidance. Remove content and files that fail the shared retention
-test, repairing affected links; labeling them superseded or archiving them is not
-a retention purpose.
+**Record decisions as the user made them.** Only what the user stated or agreed
+to is a goal, constraint, or decision; write a proposal as a proposal and an
+open question as open. If a change invalidates a plan and its replacement is
+not yet decided, remove the stale plan and state the gap instead of inventing
+one.
 
-Keep the useful conclusion of a discarded approach, not its investigation and
-planning trail. When it still prevents costly rediscovery or constrains current
-choices, record a concise rejection and reason, for example: "Rejected A because
-X; B because Y." Apply the shared retention test to supporting detail.
+**Keep evidence tied to what it tested.** Name the revision or observation time
+a result applies to, and do not let it stand for later work. Record a failed or
+partial attempt as such, with what is needed to resume it or avoid repeating it.
 
-Earlier-version evidence may remain valid without describing the current state.
-Keep it only when it supports current decisions, validation, recovery, or an
-explicit retention requirement; identify its scope and separate it from current
-guidance. Do not rewrite old evidence to imply validation of a newer contract.
+**Update when durable context changes**, not after every action: a new
+checkpoint, decision, blocker, or next action. Reread the affected content just
+before editing so that concurrent updates survive, and edit narrowly. Chat
+history, terminal output, running processes, and session IDs do not outlive the
+session, so anything needed later has to be written into the record.
 
-If a change invalidates a plan or decision but selecting its replacement is
-unresolved or outside the authorized scope, remove the obsolete guidance and
-state the gap and required next action explicitly. Do not invent a replacement
-or leave stale instructions pending reconciliation. Preserve unrelated work;
-if ownership or retention requirements are unclear, ask before deleting it.
-Prefer targeted edits; rewrite a document only when targeted changes would leave
-it incoherent. Do not use routine updates as a reason for unrelated reorganization.
+The record does not replace talking to the user. Tell them the outcome and the
+recommended next step directly as well as recording it.
 
-Prefix a checklist item with `Approval:` only when an explicit user decision is
-actually required by the user, applicable policy, or a consequential reserved
-choice. Only explicit user authorization may check that item. When a result is
-ready for approval, set `Blockers` to `Awaiting user approval` and make the next
-action request acceptance or rejection. For older records without the prefix,
-treat an unchecked result as an approval gate only when `Current State`
-explicitly says it awaits approval, then add `Approval:` during the next
-substantive update.
+## Documents And Code
 
-## Actionable Handoff
+Supporting documents, such as research, designs, plans, evidence, and
+deliverables, live in the quest directory, organized by subject. Extend the file
+that already owns a subject rather than adding one per session, worker, or
+activity. Start a separate file when the detail would obscure `QUEST.md` or when
+the file is itself a deliverable, and link it from `QUEST.md`. Keep the layout
+shallow.
 
-Continue work within the active request until it is complete or genuinely blocked.
-Treat user agreement as resolving the point under discussion, then proceed with
-remaining in-scope work. Independently investigate gaps that available evidence
-can resolve; ask the user when progress requires their decision or unavailable
-information. Recording progress or completing a workflow stage is not itself a
-stopping condition. Respect explicit pauses, scope limits, and approval boundaries.
+`research/` keeps code exploration and source research available without loading
+it by default. Put synthesized findings there, with their sources and the
+revision or date observed when freshness matters, and keep in `QUEST.md` only
+the conclusions needed to act. Read research files selectively, when a decision
+needs their detail, and recheck a finding against the current code or live state
+before acting on it. Anything an agent must know to act correctly belongs in the
+plan or `Current State`, not only in background research.
 
-At a handoff, blocker, or material change in direction, make the next useful action
-explicit to the user when work remains, including during capability-specific
-conversations. Briefly explain why it follows from the current state; do not leave
-the recommendation only in the quest record. During ongoing work, a focused
-question or announced action is sufficient; avoid repeating an already-clear next
-step. Continue authorized work rather than stopping at a recommendation; request
-a decision only when one is needed. When the agreed work is complete or
-intentionally paused, say so without inventing a follow-up.
+Keep the evidence that substantiates a result rather than the output of every
+run.
 
-`Current State` and its linked records or authoritative sources must let an agent
-without session history recover the current goal and active tasks, meaningful
-checkpoint, next actions, blockers and approvals, relevant files or workspaces,
-and the validation or evidence state and where to verify it. Individual artifacts
-need not repeat this context.
+Code checkouts live under `work/<n>/` unless the project configures another
+location. Record each one in `Current State`. Inside a checkout, that
+repository's own instructions govern the work.
 
-When reporting progress, completing substantive work, or encountering a blocker,
-preserve one concrete recommended next action for each active task, or the next
-overall action if work remains. If the agreed work is
-complete or intentionally paused, record that without inventing a next task.
-Derive next actions from the user's direction, the active capability, or an
-explicitly selected workflow, not from the order of `QUEST.md` sections.
-If work remains but no next action is established,
-recommend the smallest useful action supported by the current goal and evidence;
-do not infer a lifecycle or expand authorization. Keep `Current State` aligned
-with the recommendation and make unresolved decisions and blockers explicit.
+## Versioned Checkpoints
 
-## Commands And Conditional Guidance
+Where the OpenCode `quest-snapshots` plugin is running, each quest directory is
+its own Git repository, owned by the plugin: it initializes the repository and
+commits record changes when a turn completes, including partial state and other
+writers' edits. It keeps quest storage out of any enclosing repository, will not
+untrack content that repository already tracks, and leaves `work/`,
+`local-data/`, `mise.local.toml`, and nested repositories out of snapshots. Put
+other private or generated material in those excluded locations, or add a
+quest-local ignore rule before creating it.
 
-Route by the user's intent, whether expressed as a command or natural language.
-Load the matching reference or skill before performing that activity. Read additional
-references only when their conditions apply, including dependencies required by
-the active guidance. For combined requests, load each reference or skill as its activity
-becomes relevant rather than loading the whole collection.
-For orientation-only invocations, apply the `QUEST.md`-only rule above and defer
-references for substantive work until the user directs that work.
+Snapshots are recovery points. The current files remain the only thing a
+resuming agent should need to read. Sessions without the plugin are not
+snapshotted, so check that the quest has a `.git` directory before counting on
+history to recover removed material.
 
-These activities may be used in any order or more than once; they are not a
-mandatory sequence. Creation captures goals without requiring a separate alignment
-exercise. Planning and task breakdown share one guide; handoff is a thorough sync.
-Loading guidance does not expand authorization or reserve ordinary decisions
-for approval. Preserve its specific scope and decision boundaries.
+Archiving keeps the quest's `.git` directory and ends its automatic snapshots.
 
-| Command | Load this guidance when… | Guidance |
+## Opening A Quest
+
+Always read `QUEST.md` first. When the prompt only opens a quest, apply the
+`QUEST.md`-only orientation rule: read nothing else, summarize the current
+state, including recorded next actions and any gaps visible in the record, and
+wait. Recorded next actions describe where the work stands; they are not a
+request to carry them out. When the same prompt also asks for something, load
+what that request needs and proceed in the same turn.
+
+After that, load context for the decision at hand, starting with the records
+that govern the active task, rather than reading the whole quest.
+
+## Commands
+
+Route by intent, whether it arrives as a command or in plain language, and read
+the matching guide before acting.
+
+| Command | Use when | Guide |
 | --- | --- | --- |
-| `install` | Installing quest support in a project. | [Install](references/install.md) |
-| `open` | Opening an existing quest, including `open current` or `open current quest`. | [Open](references/open.md) |
-| `new` | Creating a quest and capturing supplied goals and constraints. | [New](references/new.md) |
-| `goals` | Clarifying material gaps or revisiting outcomes, priorities, scope, or success expectations. | [Goal clarification](references/goals.md) |
-| `planning` | Choosing or revising an approach and its success evidence. | [Planning and task breakdown](references/planning.md) |
-| `acceptance` | Designing or revising acceptance scenarios and evidence, or preparing user-executed acceptance tests within a quest; routes to the `acceptance-testing` skill. | [Acceptance integration](references/acceptance.md) |
-| `partition` | Turning an established plan into executable tasks; this does not authorize execution. | [Planning and task breakdown](references/planning.md) |
-| `coding` | Implementing an authorized source-code or configuration change within a quest. | [Implementation](references/coding.md) |
-| `review` | Assessing a quest plan, tasks, output, or functionality on explicit request. | [Review integration](references/review.md) |
-| `distill` | Requested consolidation or retrospectives, or material findings that need a maintained project home. | [Knowledge transfer](references/distill.md) |
-| `handoff` | Preparing for reset, transfer, or pause, or auditing recoverability. | [Sync: recoverability check](references/sync.md#recoverability-check) |
-| `master` | Coordinating requested work while Quest Master is selected, or when the user requests delegated investigation or subagent coordination within a quest. | `quest-master` skill |
+| `install` | Setting up quest support in a project. | [Install](references/install.md) |
+| `new` | Creating a quest and capturing its goal. | [New](references/new.md) |
+| `open` | Opening an existing quest. | [Open](references/open.md) |
 | `list` | Listing quests. | [List](references/list.md) |
-| `sync` | Reconciling current quest state, including `sync quest` or an unambiguous quest-state sync request. | [Sync](references/sync.md) |
-| `archive` | Archiving a quest, including `archive current` or `archive <slug>`. | [Archive](references/archive.md) |
-
-Activity commands use the current quest or an explicit valid slug in the resolved
-quest root. Ask which quest to use when neither is available; do not create a
-quest implicitly. Follow lifecycle references for their command-specific arguments.
-Load the `quest-master` skill when its explicit selection or delegation condition
-applies; loading quest alone does not select delegated coordination.
-
-Specialized domain skills may be used alongside quest guidance when relevant.
-Do not duplicate a specialist workflow inside the quest record.
-
-When creating a quest, never replace an existing quest directory or file. Edit
-existing quest material narrowly under the shared update contract.
+| `sync` | Bringing the record up to date with the session. | [Sync](references/sync.md) |
+| `handoff` | Preparing for a reset, transfer, or pause, or checking that another agent could resume. | [Sync: recoverability check](references/sync.md#recoverability-check) |
+| `distill` | Moving quest findings into the project's maintained documentation. | [Knowledge transfer](references/distill.md) |
+| `archive` | Archiving a quest and cleaning up its checkouts. | [Archive](references/archive.md) |

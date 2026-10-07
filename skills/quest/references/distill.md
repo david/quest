@@ -41,8 +41,8 @@ guidance. Respect any explicitly requested inspect-and-propose-only mode.
 
 Reread affected files before editing and preserve unrelated work. Verify accuracy,
 links, and examples, and run proportionate checks plus required repository commands.
-Follow [implementation guidance](coding.md) for implementation-repository changes
-and commits. Include pre-merge documentation changes in the PR when applicable;
+Follow the project's own instructions for implementation-repository changes and
+commits. Include pre-merge documentation changes in the PR when applicable;
 do not bypass delivery checks or publication permissions.
 
 ## Preserve Obligations And Report The Result
