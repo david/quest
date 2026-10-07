@@ -17,7 +17,10 @@ preserve existing files and avoid duplicate instruction blocks.
 For installation or reconciliation of an existing setup, the baseline is:
 
 1. Reuse the configured quest root or default to `./quests` under the project
-   directory. The root must be named `quests`. Create the storage directory.
+   directory. The root must be named `quests` and lie outside the project
+   repository; if the project directory is itself the repository, agree with
+   the user where the root goes before creating anything. Create the storage
+   directory.
    The [snapshot script](snapshot.md) excludes the root from an enclosing
    repository and refuses a root whose contents that repository already tracks.
    Preserve records if it reports that conflict; do not untrack or migrate them
@@ -48,13 +51,11 @@ Add only the workspace conventions applicable to the project:
    inside a checkout.
 3. For projects whose quests work on code, name the repository that a quest's
    `work/1` is cloned from under the skill's Documents And Code rules, and add
-   only what the project does differently, such as how branches are named. If
-   that repository contains the quest root, the default cannot copy it, so
-   settle the arrangement with the user. Preserve an established alternative,
-   such as worktrees of the project repository or one shared checkout, and ask
-   before changing it; for such a project, record where a quest's code lives
-   and how its commands load quest configuration without overwriting shared
-   configuration.
+   only what the project does differently, such as how branches are named.
+   Preserve an established alternative, such as worktrees of the project
+   repository or one shared checkout, and ask before changing it; for such a
+   project, record where a quest's code lives and how its commands load quest
+   configuration without overwriting shared configuration.
    Do not create checkouts during installation.
 4. When services need ports, establish the app-port selection convention and any
    additional project-specific template values. Prefer the project's existing

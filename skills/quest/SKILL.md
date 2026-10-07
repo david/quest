@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.3.1"
+  version: "2.3.2"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -37,8 +37,9 @@ project's own instructions.
 └── .archived/<slug>/          # archived quests, not active
 ```
 
-A slug matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and other names.
-Create a file or directory only when there is something to put in it. Follow a
+The quest root lies outside the project repository, never inside it. A slug
+matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and other names. Create a
+file or directory only when there is something to put in it. Follow a
 layout the project's instructions configure, and any coherent structure a quest
 already has, rather than rearranging it to match this one.
 
@@ -195,9 +196,7 @@ only there, which is why archiving checks for unmerged work first.
 
 The copy is of a whole checkout, so:
 
-- Copy from a checkout whose `.git` is a directory, not a linked worktree, and
-  that does not contain the quest root. If the project has none, ask how
-  checkouts should be made.
+- Copy from a checkout whose `.git` is a directory, not from a linked worktree.
 - Right after copying, delete the copy's `.git/worktrees/` if it exists. It
   holds the source's worktree registrations, which point outside the quest.
 - The copy includes the source's uncommitted changes. Discard those that are
