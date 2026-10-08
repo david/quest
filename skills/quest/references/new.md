@@ -56,14 +56,9 @@ material setup exceptions, in Current State, without copying secrets or
 narrating each successful setup command. If required setup is blocked, keep the
 quest record and record the exact next setup action.
 
-## Herdr workspace label
+## After creating
 
-After creating the quest, when the session runs inside a Herdr-managed pane
-(`HERDR_ENV=1`), label the calling pane's workspace with the quest slug:
-
-```sh
-herdr workspace rename "$HERDR_WORKSPACE_ID" <slug>
-```
-
-Skip this silently outside Herdr. A failed rename does not block creating the
-quest; mention it briefly and continue.
+The session that created the quest is usually outside it. End by giving the
+quest directory's absolute path and recommending that the user change to it and
+start a session there to work on the quest: a session inside the quest finds it
+without being told, and `open` works only there.

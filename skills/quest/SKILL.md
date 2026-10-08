@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.6.0"
+  version: "2.7.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -68,8 +68,9 @@ every quest read, write, and search in that operation.
 `install` is the exception: it sets up a project that may not have a root yet.
 
 A command acts on the current quest or on an explicit slug in the resolved root.
-When neither is available, ask which quest is meant. Only `new` creates a quest,
-and nothing replaces an existing quest directory or file.
+When neither is available, ask which quest is meant. `open` is stricter: it acts
+only on the current quest. Only `new` creates a quest, and nothing replaces an
+existing quest directory or file.
 
 ## Quest Record
 
@@ -253,7 +254,7 @@ the matching guide before acting.
 | --- | --- | --- |
 | `install` | Setting up quest support in a project. | [Install](references/install.md) |
 | `new` | Creating a quest and capturing its goal. | [New](references/new.md) |
-| `open` | Opening an existing quest. | [Open](references/open.md) |
+| `open` | Opening the quest the session is in. | [Open](references/open.md) |
 | `list` | Listing quests. | [List](references/list.md) |
 | `sync` | Bringing the record up to date with the session. | [Sync](references/sync.md) |
 | `handoff` | Preparing for a reset, transfer, or pause, or checking that another agent could resume. | [Sync: recoverability check](references/sync.md#recoverability-check) |

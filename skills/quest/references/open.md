@@ -1,8 +1,10 @@
 # Open
 
-## `open`, `open current`, or `open current quest`
+## `open`
 
-When the session is inside a canonically detected quest workspace, open the current quest. If the session is not inside a quest, ask for a slug.
+Opening requires the session's working directory to be inside the quest: the
+quest directory itself, which holds `QUEST.md`, or anything below it, such as
+one of its checkouts. Open that quest.
 
 Read only `QUEST.md` and summarize its goals and `Current State`, including
 recorded next actions, blockers, and approvals. If `QUEST.md` shows that the work
@@ -18,18 +20,11 @@ quest material predating the `Approval:` convention, also preserve that behavior
 when `Current State` explicitly says the item awaits approval. Do not inspect a
 checkout or modify `QUEST.md` merely because the quest was opened.
 
-## `open <slug>`
+## Outside the quest
 
-Look for an exact slug directory in the quest root. If absent, look for clearly similar slugs among its immediate directories. Open one clear match and report the mapping. If several match, list them and ask the user to choose. If none match, say that no quest was found.
-
-## Herdr workspace label
-
-After resolving the quest to open, when the session runs inside a Herdr-managed
-pane (`HERDR_ENV=1`), label the calling pane's workspace with the quest slug:
-
-```sh
-herdr workspace rename "$HERDR_WORKSPACE_ID" <slug>
-```
-
-Skip this silently outside Herdr. A failed rename does not block opening the
-quest; mention it briefly and continue.
+When no quest contains the working directory, or the user names a quest other
+than the one that does, do not open it. Say so, and ask the user to change to
+that quest's directory and start the session there. Give the absolute path: for
+a named slug that exists in the quest root, `<quest-root>/<slug>`; for a name
+that clearly matches other slugs, those paths; with no name, the output of
+`list`.
