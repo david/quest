@@ -60,5 +60,5 @@ quest record and record the exact next setup action.
 
 The session that created the quest is usually outside it. End by giving the
 quest directory's absolute path and recommending that the user change to it and
-start a session there to work on the quest: a session inside the quest finds it
-without being told, and `open` works only there.
+start a session there to work on the quest: a session started there finds the
+quest without being told, and `open` works only there.

@@ -2,9 +2,9 @@
 
 ## `open`
 
-Opening requires the session's working directory to be inside the quest: the
-quest directory itself, which holds `QUEST.md`, or anything below it, such as
-one of its checkouts. Open that quest.
+Opening requires the session's working directory to be the quest directory
+itself, the one that holds `QUEST.md`. Open that quest. A directory below it,
+such as one of its checkouts, does not qualify.
 
 Read only `QUEST.md` and summarize its goals and `Current State`, including
 recorded next actions, blockers, and approvals. If `QUEST.md` shows that the work
@@ -20,11 +20,11 @@ quest material predating the `Approval:` convention, also preserve that behavior
 when `Current State` explicitly says the item awaits approval. Do not inspect a
 checkout or modify `QUEST.md` merely because the quest was opened.
 
-## Outside the quest
+## Outside the quest directory
 
-When no quest contains the working directory, or the user names a quest other
-than the one that does, do not open it. Say so, and ask the user to change to
+When the working directory is not a quest directory, or the user names a quest
+other than the one it is, do not open it. Say so, and ask the user to change to
 that quest's directory and start the session there. Give the absolute path: for
-a named slug that exists in the quest root, `<quest-root>/<slug>`; for a name
-that clearly matches other slugs, those paths; with no name, the output of
-`list`.
+a session below a quest directory, that directory; for a named slug that exists
+in the quest root, `<quest-root>/<slug>`; for a name that clearly matches other
+slugs, those paths; otherwise the output of `list`.
