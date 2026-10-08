@@ -33,6 +33,9 @@ active scope without performing unrelated work merely to make records look compl
   point and reconcile the owning records. Apply the retention test to affected
   material, including obsolete recommendations, duplicate state, and empty
   scaffolding. Do not turn this into an unrelated whole-directory cleanup.
+- When an agent with no session history can be started, give it only `QUEST.md`
+  and ask what the record leaves out or says in two ways that disagree, then
+  repair what is the record's fault. A record's author reads past its own gaps.
 
 Report the durable checkpoint and whether the records are ready for resumption.
 If not, identify the precise gap and first action needed to close it. Do not claim
