@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.7.1"
+  version: "2.8.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -235,12 +235,14 @@ Archiving keeps the quest's `.git` directory and ends its snapshots.
 
 ## Opening A Quest
 
-Always read `QUEST.md` first. When the prompt only opens a quest, apply the
-`QUEST.md`-only orientation rule: read nothing else, summarize the current
-state, including recorded next actions and any gaps visible in the record, and
-wait. Recorded next actions describe where the work stands; they are not a
-request to carry them out. When the same prompt also asks for something, load
-what that request needs and proceed in the same turn.
+Always read `QUEST.md` first, then the first checkout's instructions:
+`work/1/AGENTS.md`, or `work/1/CLAUDE.md` when there is no `AGENTS.md`. They
+govern the work in the checkout, and a session started in the quest directory
+does not load them on its own. When the prompt only opens a quest, read nothing
+else, summarize the current state, including recorded next actions and any gaps
+visible in the record, and wait. Recorded next actions describe where the work
+stands; they are not a request to carry them out. When the same prompt also
+asks for something, load what that request needs and proceed in the same turn.
 
 After that, load context for the decision at hand, starting with the records
 that govern the active task, rather than reading the whole quest.
