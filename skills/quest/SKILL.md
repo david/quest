@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.8.0"
+  version: "2.8.1"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -236,7 +236,8 @@ Archiving keeps the quest's `.git` directory and ends its snapshots.
 ## Opening A Quest
 
 Always read `QUEST.md` first, then the first checkout's instructions:
-`work/1/AGENTS.md`, or `work/1/CLAUDE.md` when there is no `AGENTS.md`. They
+`work/1/CLAUDE.md` when you are Claude Code and `work/1/AGENTS.md` otherwise,
+falling back to the other file when yours does not exist. They
 govern the work in the checkout, and a session started in the quest directory
 does not load them on its own. When the prompt only opens a quest, read nothing
 else, summarize the current state, including recorded next actions and any gaps

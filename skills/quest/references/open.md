@@ -6,8 +6,9 @@ Opening requires the session's working directory to be the quest directory
 itself, the one that holds `QUEST.md`. Open that quest. A directory below it,
 such as one of its checkouts, does not qualify.
 
-Read `QUEST.md`, then the first checkout's instructions: `work/1/AGENTS.md`, or
-`work/1/CLAUDE.md` when there is no `AGENTS.md`. Skip this when the quest has no
+Read `QUEST.md`, then the first checkout's instructions: `work/1/CLAUDE.md`
+when you are Claude Code and `work/1/AGENTS.md` otherwise, falling back to the
+other file when yours does not exist. Skip this when the quest has no
 `work/1` or it holds neither file. Follow those instructions in the work that
 comes after; they are not part of the summary. Read nothing else.
 
