@@ -20,12 +20,23 @@ when it holds neither file, or when the session started inside `work/1` and so
 loaded them already. Follow those instructions in the work that comes after;
 they are not part of the summary. Read nothing else.
 
-Summarize the goals and `Current State` in `QUEST.md`, including
-recorded next actions, blockers, and approvals. If `QUEST.md` shows that the work
-is complete or intentionally paused, say so. Report gaps apparent in `QUEST.md`
-without following links or investigating them. Wait for the user's direction;
-when the opening prompt also includes a question or request for work, load the
-context needed for that request and proceed in the same turn.
+Summarize the goals and `Current State` in `QUEST.md`, including blockers and
+approvals. If `QUEST.md` shows that the work is complete or intentionally
+paused, say so.
+
+End with what can be done next to move the quest forward, as a short list the
+user can choose from. Take it from the recorded next actions, with any decision
+or approval waiting on the user first. Where the record names no next action,
+or leaves open something a step depends on, suggest the steps that would get
+the work moving and say that they are suggestions. Something missing from the
+record appears there as the step that settles it, such as a question to answer
+or a check to run, and not as a gap in the record; leave it out when no next
+step depends on it. Work the list out from `QUEST.md` alone, without following
+links or investigating.
+
+Wait for the user's direction; when the opening prompt also includes a question
+or request for work, load the context needed for that request and proceed in
+the same turn.
 
 An unchecked normal task remains pending. An unchecked `Approval:` item with a
 result or outcome link awaits user approval and must not cause the underlying
