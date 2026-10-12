@@ -58,7 +58,6 @@ quest record and record the exact next setup action.
 
 ## After creating
 
-The session that created the quest is usually outside it. End by giving the
-quest directory's absolute path and recommending that the user change to it and
-start a session there to work on the quest: a session started there finds the
-quest without being told, and `open` works only there.
+Work on the quest can continue in the session that created it. Before working
+in a checkout made for the quest, read that checkout's instructions as the
+skill's Opening A Quest rules describe, unless the session has them already.

@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.8.1"
+  version: "2.9.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -67,10 +67,13 @@ every quest read, write, and search in that operation.
 
 `install` is the exception: it sets up a project that may not have a root yet.
 
-A command acts on the current quest or on an explicit slug in the resolved root.
-When neither is available, ask which quest is meant. `open` is stricter: it acts
-only when the working directory is the quest directory itself. Only `new` creates a quest, and nothing replaces an
-existing quest directory or file.
+A command acts on an explicit slug in the resolved root. Without one it acts on
+the current quest or, in a session outside any quest, on the quest that session
+last created or opened. When none of these applies, ask which quest is meant.
+`archive` is stricter, as its guide says. A session does not have to run in the
+quest directory, so resolve relative paths in a quest's records from that
+quest's directory. Only `new` creates a quest, and nothing replaces an existing
+quest directory or file.
 
 ## Quest Record
 
@@ -238,7 +241,7 @@ Archiving keeps the quest's `.git` directory and ends its snapshots.
 Always read `QUEST.md` first, then the first checkout's instructions:
 `work/1/CLAUDE.md` when you are Claude Code and `work/1/AGENTS.md` otherwise,
 falling back to the other file when yours does not exist. They
-govern the work in the checkout, and a session started in the quest directory
+govern the work in the checkout, and a session started outside that checkout
 does not load them on its own. When the prompt only opens a quest, read nothing
 else, summarize the current state, including recorded next actions and any gaps
 visible in the record, and wait. Recorded next actions describe where the work
@@ -257,7 +260,7 @@ the matching guide before acting.
 | --- | --- | --- |
 | `install` | Setting up quest support in a project. | [Install](references/install.md) |
 | `new` | Creating a quest and capturing its goal. | [New](references/new.md) |
-| `open` | Opening the quest whose directory the session is in. | [Open](references/open.md) |
+| `open` | Opening an existing quest. | [Open](references/open.md) |
 | `list` | Listing quests. | [List](references/list.md) |
 | `sync` | Bringing the record up to date with the session. | [Sync](references/sync.md) |
 | `handoff` | Preparing for a reset, transfer, or pause, or checking that another agent could resume. | [Sync: recoverability check](references/sync.md#recoverability-check) |

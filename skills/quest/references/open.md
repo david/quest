@@ -1,16 +1,24 @@
 # Open
 
-## `open`
+## `open` or `open <slug>`
 
-Opening requires the session's working directory to be the quest directory
-itself, the one that holds `QUEST.md`. Open that quest. A directory below it,
-such as one of its checkouts, does not qualify.
+Open the named quest, or without a slug the quest the skill's resolution rules
+select. The session can be anywhere: in the quest directory, below it, such as
+in one of its checkouts, or outside it, such as in the project directory. When
+no slug is given and the rules select no quest, ask which one to open and give
+the output of `list`.
+
+For a slug with no exact match in the quest root, look for clearly similar
+slugs among the root's immediate directories. Open a single clear match and say
+which quest it is. If several match, list them and ask the user to choose. If
+none does, say that no quest was found.
 
 Read `QUEST.md`, then the first checkout's instructions: `work/1/CLAUDE.md`
 when you are Claude Code and `work/1/AGENTS.md` otherwise, falling back to the
-other file when yours does not exist. Skip this when the quest has no
-`work/1` or it holds neither file. Follow those instructions in the work that
-comes after; they are not part of the summary. Read nothing else.
+other file when yours does not exist. Skip this when the quest has no `work/1`,
+when it holds neither file, or when the session started inside `work/1` and so
+loaded them already. Follow those instructions in the work that comes after;
+they are not part of the summary. Read nothing else.
 
 Summarize the goals and `Current State` in `QUEST.md`, including
 recorded next actions, blockers, and approvals. If `QUEST.md` shows that the work
@@ -26,12 +34,3 @@ quest material predating the `Approval:` convention, also preserve that behavior
 when `Current State` explicitly says the item awaits approval. Do not inspect a
 checkout beyond that instruction file, or modify `QUEST.md`, merely because the
 quest was opened.
-
-## Outside the quest directory
-
-When the working directory is not a quest directory, or the user names a quest
-other than the one it is, do not open it. Say so, and ask the user to change to
-that quest's directory and start the session there. Give the absolute path: for
-a session below a quest directory, that directory; for a named slug that exists
-in the quest root, `<quest-root>/<slug>`; for a name that clearly matches other
-slugs, those paths; otherwise the output of `list`.
