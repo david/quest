@@ -131,7 +131,9 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertIn("    main: merged into origin/main\n", report)
 
         # The remote moves without this clone hearing of it; the check fetches.
-        self.git(checkout, "push", "--quiet", str(self.origin), "topic:main")
+        # The remote takes the commit itself, because a push from the clone,
+        # even one to the remote's path, can update the clone's origin/main.
+        self.git(self.origin, "fetch", "--quiet", str(checkout), "topic:main")
         self.assertEqual(
             self.findings("--no-fetch")[0],
             ["origin/main was not fetched; merge status is as of the last fetch",
@@ -419,7 +421,8 @@ class ArchiveCheckTests(unittest.TestCase):
         shutil.rmtree(checkout / ".git" / "worktrees" / "2")
         error = self.refusal()
         self.assertIn("any report above is incomplete", error)
-        self.assertIn(f"git rev-parse in {self.work / '2'}: fatal: not a git repository", error)
+        # Git's own wording for a worktree whose registration is gone varies by version.
+        self.assertIn(f"git rev-parse in {self.work / '2'}: fatal: ", error)
 
     def test_changes_nothing_without_a_fetch(self):
         checkout = self.clone()
