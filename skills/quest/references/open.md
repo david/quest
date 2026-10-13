@@ -26,20 +26,23 @@ The user opens a quest to pick its work up again, usually while switching from
 another task. They arrive cold: they remember roughly what the quest is, but
 not its details or the names the work gave to things. Brief them the way a
 colleague would in half a minute of talking. The summary tells them three
-things and nothing else:
+things and nothing else, each under its own Markdown heading so that the user
+can find a part at a glance:
 
-1. **What the quest is about.** The slug and title on their own line, then one
-   or two sentences on the problem and the outcome the user wants, in your own
-   words and not the record's objective copied out.
-2. **Where we left off.** Three to five sentences: what the work has produced
-   so far, then where it stopped and why, whether that is under way, waiting on
-   the user, paused, or complete. Give the result and not its history: what is
-   now known or built, with its cause in a few words, and not the steps that
-   led there or how the thing works inside.
-3. **What to do next.** A numbered list of at most three items, so that the
-   user can answer with a number or a few words. Each item is one question or
-   one step in one sentence, with a second sentence only for something the user
-   needs in order to answer. Decisions and approvals waiting on the user come
+1. **What the quest is about.** The slug and title as a first-level heading,
+   then one or two sentences on the problem and the outcome the user wants, in
+   your own words and not the record's objective copied out.
+2. **Where we left off.** Under a second-level heading with those words, three
+   to five sentences: what the work has produced so far, then where it stopped
+   and why, whether that is under way, waiting on the user, paused, or
+   complete. Give the result and not its history: what is now known or built,
+   with its cause in a few words, and not the steps that led there or how the
+   thing works inside.
+3. **What to do next.** Under a second-level heading with those words, a
+   numbered list of at most three items, so that the user can answer with a
+   number or a few words. Each item is one question or one step in one
+   sentence, with a second sentence only for something the user needs in order
+   to answer. Decisions and approvals waiting on the user come
    first, as questions, and name the options when the answer is not a yes or a
    no. After them comes the step you would take on their go-ahead: the recorded
    next action or, where the record names none or leaves open something that
@@ -49,13 +52,15 @@ things and nothing else:
 For example:
 
 ```markdown
-**slow-invoice-export**: Invoice export times out for large accounts
+# slow-invoice-export: Invoice export times out for large accounts
 
 Customers with many invoices cannot download their yearly export, because the request times out. You want the export to work for an account of any size.
 
-**Where we left off:** We found the cause. The export loads every invoice into memory before it writes the file, and that takes too long for the largest accounts. A version that writes the file as it reads is built and passes its tests, but it has not been tried on a large account. The work stopped there because that trial needs a copy of production data, which you have not approved.
+## Where we left off
 
-**What to do next:**
+We found the cause. The export loads every invoice into memory before it writes the file, and that takes too long for the largest accounts. A version that writes the file as it reads is built and passes its tests, but it has not been tried on a large account. The work stopped there because that trial needs a copy of production data, which you have not approved.
+
+## What to do next
 
 1. May I use a copy of production data to try the new export on a large account?
 2. Suggestion: if not, I build a large account locally and try it on that.
