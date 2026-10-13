@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.11.0"
+  version: "2.12.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -141,11 +141,11 @@ owns a fact instead of copying it. Volatile state, such as active work, blockers
 and next actions, belongs in `Current State` so that supporting files stay
 stable.
 
-**Record decisions as the user made them.** Only what the user stated or agreed
-to is a goal, constraint, or decision; write a proposal as a proposal and an
-open question as open. If a change invalidates a plan and its replacement is
-not yet decided, remove the stale plan and state the gap instead of inventing
-one.
+**Record who made each decision.** Say whether the user or the agent made it. A
+resuming agent may revisit an agent's choice when the facts change, but must
+ask before changing the user's. Write an open question as open. If a change
+invalidates a plan and its replacement is not yet decided, remove the stale
+plan and state the gap instead of inventing one.
 
 **Keep evidence tied to what it tested.** Name the revision or observation time
 a result applies to, and do not let it stand for later work. Record a failed or
