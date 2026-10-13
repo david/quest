@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.10.0"
+  version: "2.11.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -243,12 +243,12 @@ Always read `QUEST.md` first, then the first checkout's instructions:
 falling back to the other file when yours does not exist. They
 govern the work in the checkout, and a session started outside that checkout
 does not load them on its own. When the prompt only opens a quest, read nothing
-else, summarize the current state, and end with what can be done next to move
-the quest forward: the recorded next actions and, where the record leaves the
-next step open, the steps you suggest, marked as suggestions. Then wait.
-Recorded next actions describe where the work stands; they are not a request
-to carry them out. When the same prompt also asks for something, load what
-that request needs and proceed in the same turn.
+else and brief the user as the [Open](references/open.md#the-summary) guide
+describes: in plain language, what the quest is about, where the work left off,
+and what to do next, not a retelling of the record. Then wait. Recorded next
+actions describe where the work stands; they are not a request to carry them
+out. When the same prompt also asks for something, load what that request
+needs and proceed in the same turn.
 
 After that, load context for the decision at hand, starting with the records
 that govern the active task, rather than reading the whole quest.
