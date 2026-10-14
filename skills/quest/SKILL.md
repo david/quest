@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.14.0"
+  version: "2.15.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -183,6 +183,11 @@ run.
 Code checkouts live under `worktrees/`, numbered from 1. Record each one in
 `Current State`. Inside a checkout, that repository's own instructions govern
 the work.
+
+Do not `cd` into a checkout. A `cd` outlives the command that ran it, so every
+later command, and the harness, would run inside the checkout. Point commands
+at the checkout instead, for example `git -C <checkout>` or `mise -C
+<checkout> exec -- <command>`.
 
 Unless the project's instructions arrange checkouts another way, `worktrees/1`
 is a copy-on-write clone of the project repository and every further checkout
