@@ -94,3 +94,7 @@ Change the path if the skill is installed somewhere else. See
 cd skills
 python3 -m unittest discover -s quest/tests
 ```
+
+## License
+
+[MIT](LICENSE)
