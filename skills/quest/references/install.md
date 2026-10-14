@@ -47,8 +47,8 @@ Add only the workspace conventions applicable to the project:
    [Template rendering](render-template.md). Do not put generated config
    inside a checkout.
 3. For projects whose quests work on code, name the repository that a quest's
-   `work/1` is cloned from under the skill's Documents And Code rules, and add
-   only what the project does differently, such as a default branch other
+   `worktrees/1` is cloned from under the skill's Documents And Code rules, and
+   add only what the project does differently, such as a default branch other
    than `main` or how branches are named.
    Preserve an established alternative, such as worktrees of the project
    repository or one shared checkout, and ask before changing it; for such a
@@ -75,7 +75,7 @@ checkout creation is:
 <quest-root>/<slug>/
 ├── QUEST.md
 ├── mise.local.toml
-└── work/
+└── worktrees/
     ├── 1/                 # The quest's clone of the repository
     └── 2/                 # Optional worktree of that clone
 ```
@@ -84,8 +84,8 @@ When mise is configured, explain that it loads the quest config through ancestor
 discovery when run inside a nested checkout, alongside that checkout's own
 `mise.toml`. Once the
 configs are trusted as authorized, use `mise run <task>` from the checkout or
-`mise -C work/1 run <task>` from the quest directory. An outer `mise exec` wrapper
-is not needed for this layout. For a reused alternative layout, document and
+`mise -C worktrees/1 run <task>` from the quest directory. An outer
+`mise exec` wrapper is not needed for this layout. For a reused alternative layout, document and
 validate explicit config loading if ancestor discovery cannot reach the quest.
 
 The bundled template offers primary and test database URLs, an app port, and

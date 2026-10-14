@@ -52,8 +52,8 @@ nothing: fix what it names, or ask the user, and run it again.
 
 It reports, marking each finding with `!`:
 
-- Every checkout in the quest's `work/`, and every worktree that a clone there
-  has anywhere else: its uncommitted paths, tracked files that Git was told not
+- Every checkout in the quest's `worktrees/`, and every worktree that a clone
+  there has anywhere else: its uncommitted paths, tracked files that Git was told not
   to watch for changes, submodules, any merge, rebase, or similar operation in
   progress, a lock, and its ignored files.
 - For a repository inside the quest, which is removed whole: every local
@@ -72,7 +72,7 @@ squashed work whose lines the target has since changed again. A merged pull
 request is not evidence by itself: what counts is the check's verdict on the
 tip as it is now.
 
-Pass `--source` when `work/1` is a copy of the project repository. A copy
+Pass `--source` when `worktrees/1` is a copy of the project repository. A copy
 starts with that repository's branches, stashes, and reflogs, and the script
 leaves out whatever that repository still keeps. What it has dropped since is
 reported, and is the user's to dismiss. Pass `--target <remote>/<branch>` when
@@ -88,8 +88,8 @@ Three things remain yours:
   configuration, uploads, logs, and QA evidence. Copy what cannot into
   `<quest>/local-data/<checkout>/` before removal, restrict access to anything
   sensitive, and never print a secret. Ask when it is unclear.
-- **What the script cannot see.** It looks only at `work/` and at the worktrees
-  of clones there, and not inside a submodule it reports. Inspect by hand any
+- **What the script cannot see.** It looks only at `worktrees/` and at the
+  worktrees of clones there, and not inside a submodule it reports. Inspect by hand any
   other checkout or branch that `QUEST.md` records as the quest's, servers,
   containers, and databases that use the quest's ports or paths, and anything
   the quest added to a clone's `.git`, such as hooks. Git state you cannot
@@ -148,8 +148,8 @@ yourself.
    listed, the clone last. A clean, merged clone needs no backup first. Never
    delete a parent directory, another quest's checkout, or storage outside the
    quest. If a file resists removal, as dependencies created by a container
-   can, fix permissions only inside that checkout. Remove `work/` once it is
-   empty. A clone the user wants kept moves with the quest as an inactive
+   can, fix permissions only inside that checkout. Remove `worktrees/` once it
+   is empty. A clone the user wants kept moves with the quest as an inactive
    recovery checkout: take its other worktrees away with `git worktree remove`
    instead of deleting their directories.
 7. Confirm that `.archived/<slug>` is still absent, create `.archived` if

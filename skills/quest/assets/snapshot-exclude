@@ -1,7 +1,7 @@
 # Default ignore rules for quest snapshots. The quest skill's snapshot script
 # copies this file to each quest's .git/info/exclude and overwrites edits made
 # there. Put a quest's own rules in that quest's .gitignore.
-/work/
+/worktrees/
 /local-data/
 /mise.local.toml
 .env

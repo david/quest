@@ -38,7 +38,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.quest = self.project / "quests" / "sample-quest"
         self.quest.mkdir(parents=True)
         (self.quest / "QUEST.md").write_text("# Sample\n")
-        self.work = self.quest / "work"
+        self.worktrees = self.quest / "worktrees"
 
     def git(self, directory, *args):
         result = subprocess.run(
@@ -55,9 +55,9 @@ class ArchiveCheckTests(unittest.TestCase):
 
     def clone(self):
         """Copy the project repository as the skill does, without needing reflinks."""
-        self.work.mkdir(exist_ok=True)
-        shutil.copytree(self.repository, self.work / "1", symlinks=True)
-        return self.work / "1"
+        self.worktrees.mkdir(exist_ok=True)
+        shutil.copytree(self.repository, self.worktrees / "1", symlinks=True)
+        return self.worktrees / "1"
 
     def check(self, *options, quest=None):
         return subprocess.run(
@@ -82,15 +82,15 @@ class ArchiveCheckTests(unittest.TestCase):
         self.clone()
         found, report = self.findings()
         self.assertEqual(found, [])
-        self.assertIn("work/1: clone, on main at ", report)
-        self.assertIn("Repository work/1/.git: the quest's own", report)
-        self.assertIn("    main (work/1): merged into origin/main\n", report)
+        self.assertIn("worktrees/1: clone, on main at ", report)
+        self.assertIn("Repository worktrees/1/.git: the quest's own", report)
+        self.assertIn("    main (worktrees/1): merged into origin/main\n", report)
         self.assertTrue(report.endswith("\nNo findings.\n"))
 
     def test_quest_without_checkouts(self):
         found, report = self.findings()
         self.assertEqual(found, [])
-        self.assertIn("No checkouts in work/.", report)
+        self.assertIn("No checkouts in worktrees/.", report)
 
     def test_uncommitted_ignored_and_stray_files(self):
         checkout = self.clone()
@@ -100,15 +100,15 @@ class ArchiveCheckTests(unittest.TestCase):
         for directory in ("node_modules", "web/node_modules"):
             (checkout / directory).mkdir(parents=True)
             (checkout / directory / "package.js").write_text("generated\n")
-        (self.work / "scratch").mkdir()
-        (self.work / "scratch" / "data.csv").write_text("1\n")
-        (self.work / "empty").mkdir()
+        (self.worktrees / "scratch").mkdir()
+        (self.worktrees / "scratch" / "data.csv").write_text("1\n")
+        (self.worktrees / "empty").mkdir()
         found, report = self.findings()
         self.assertEqual(found, [
-            "2 uncommitted paths", "in work/ but not a checkout, so removed with it:"])
+            "2 uncommitted paths", "in worktrees/ but not a checkout, so removed with it:"])
         self.assertIn("         M app.txt\n        ?? notes.txt\n", report)
-        self.assertIn("        work/scratch\n", report)
-        self.assertNotIn("work/empty", report)
+        self.assertIn("        worktrees/scratch\n", report)
+        self.assertNotIn("worktrees/empty", report)
         self.assertIn(
             "    ignored files, to classify before removal:\n        debug.log\n"
             "        node_modules/ in 2 places, such as node_modules/\n", report)
@@ -126,7 +126,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.git(checkout, "switch", "--quiet", "-c", "topic")
         short = self.commit(checkout, "feature.txt", "feature\n", "Add the feature")
         found, report = self.findings()
-        self.assertEqual(found, ["topic (work/1): 1 commit not in origin/main"])
+        self.assertEqual(found, ["topic (worktrees/1): 1 commit not in origin/main"])
         self.assertIn(f"        {short} Add the feature\n", report)
         self.assertIn("    main: merged into origin/main\n", report)
 
@@ -137,10 +137,10 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertEqual(
             self.findings("--no-fetch")[0],
             ["origin/main was not fetched; merge status is as of the last fetch",
-             "topic (work/1): 1 commit not in origin/main"])
+             "topic (worktrees/1): 1 commit not in origin/main"])
         found, report = self.findings()
         self.assertEqual(found, [])
-        self.assertIn("    topic (work/1): merged into origin/main\n", report)
+        self.assertIn("    topic (worktrees/1): merged into origin/main\n", report)
 
     def test_squashed_and_rebased_work_counts_as_merged(self):
         checkout = self.clone()
@@ -157,7 +157,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.git(self.repository, "push", "--quiet", "origin", "main")
         found, report = self.findings()
         self.assertEqual(found, [])
-        self.assertIn("    rebased (work/1): merged into origin/main, as other commits\n", report)
+        self.assertIn("    rebased (worktrees/1): merged into origin/main, as other commits\n", report)
         self.assertIn("    squashed: merged into origin/main, as other commits\n", report)
 
     def test_work_that_cancels_out_is_not_merged(self):
@@ -165,7 +165,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.commit(checkout, "idea.txt", "idea\n", "Try an idea")
         self.git(checkout, "revert", "--no-edit", "HEAD")
         found, report = self.findings()
-        self.assertEqual(found, ["main (work/1): 2 commits not in origin/main"])
+        self.assertEqual(found, ["main (worktrees/1): 2 commits not in origin/main"])
         self.assertIn(" Try an idea\n", report)
 
     def test_equal_patches_that_leave_work_out(self):
@@ -185,7 +185,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertEqual([line[0] for line in self.git(
             checkout, "cherry", "origin/main", "topic").splitlines()], ["-", "-"])
         found, _ = self.findings()
-        self.assertEqual(found, ["topic (work/1): 2 commits not in origin/main"])
+        self.assertEqual(found, ["topic (worktrees/1): 2 commits not in origin/main"])
 
     def test_work_past_a_squash_merge_is_unmerged(self):
         checkout = self.clone()
@@ -195,7 +195,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.git(self.repository, "push", "--quiet", "origin", "main")
         short = self.commit(checkout, "feature.txt", "first\nlater\n", "Extend the feature")
         found, report = self.findings()
-        self.assertEqual(found, ["topic (work/1): 1 commit not in origin/main"])
+        self.assertEqual(found, ["topic (worktrees/1): 1 commit not in origin/main"])
         self.assertIn(f"        {short} Extend the feature\n", report)
         self.assertNotIn("Start the feature", report)
 
@@ -203,51 +203,51 @@ class ArchiveCheckTests(unittest.TestCase):
         checkout = self.clone()
         self.git(checkout, "worktree", "add", "--quiet", "-b", "second", "../2")
         self.git(checkout, "worktree", "add", "--quiet", "--detach", "../10")
-        short = self.commit(self.work / "10", "loose.txt", "loose\n", "Try something")
+        short = self.commit(self.worktrees / "10", "loose.txt", "loose\n", "Try something")
         self.git(checkout, "worktree", "lock", "--reason", "in use", "../2")
         outside = self.base / "elsewhere"
         self.git(checkout, "worktree", "add", "--quiet", "-b", "outside", str(outside))
         found, report = self.findings()
         self.assertEqual(found, [
             "locked: in use",
-            "outside the quest's work directory; removing its repository breaks it",
-            "detached HEAD of work/10: 1 commit not in origin/main",
+            "outside the quest's worktrees/; removing its repository breaks it",
+            "detached HEAD of worktrees/10: 1 commit not in origin/main",
         ])
         self.assertIn(f"        {short} Try something\n", report)
-        # Numbered checkouts in order, then what lies outside work/.
+        # Numbered checkouts in order, then what lies outside worktrees/.
         lines = [line for line in report.splitlines() if line and not line.startswith(" ")]
         self.assertEqual([line.split(":")[0] for line in lines[2:6]],
-                         ["work/1", "work/2", "work/10", str(outside)])
-        self.assertIn("work/2: worktree of work/1, on second at ", report)
-        self.assertIn("work/10: worktree of work/1, detached at ", report)
+                         ["worktrees/1", "worktrees/2", "worktrees/10", str(outside)])
+        self.assertIn("worktrees/2: worktree of worktrees/1, on second at ", report)
+        self.assertIn("worktrees/10: worktree of worktrees/1, detached at ", report)
         self.assertIn(f"    outside ({outside}): merged into origin/main\n", report)
 
     def test_worktree_of_a_repository_that_outlives_the_quest(self):
-        self.work.mkdir()
-        self.git(self.repository, "worktree", "add", "--quiet", "-b", "quest/sample", str(self.work / "1"))
+        self.worktrees.mkdir()
+        self.git(self.repository, "worktree", "add", "--quiet", "-b", "quest/sample", str(self.worktrees / "1"))
         self.git(self.repository, "branch", "someone-elses", "main")
         self.git(self.repository, "switch", "--quiet", "someone-elses")
         self.commit(self.repository, "theirs.txt", "theirs\n", "Not the quest's")
         found, report = self.findings()
         self.assertEqual(found, [])
-        self.assertIn(f"work/1: worktree of {self.repository}, on quest/sample at ", report)
+        self.assertIn(f"worktrees/1: worktree of {self.repository}, on quest/sample at ", report)
         self.assertIn(f"Repository {self.repository / '.git'}: outside the quest, and outlives it\n", report)
         self.assertIn(f"    remove a worktree with: git -C {self.repository} worktree remove <path>\n", report)
-        self.assertIn("    quest/sample (work/1): merged into origin/main\n", report)
+        self.assertIn("    quest/sample (worktrees/1): merged into origin/main\n", report)
         self.assertNotIn("someone-elses", report)
 
-        self.commit(self.work / "1", "feature.txt", "feature\n", "Add the feature")
-        self.assertEqual(self.findings()[0], ["quest/sample (work/1): 1 commit not in origin/main"])
+        self.commit(self.worktrees / "1", "feature.txt", "feature\n", "Add the feature")
+        self.assertEqual(self.findings()[0], ["quest/sample (worktrees/1): 1 commit not in origin/main"])
 
         # Removing the worktree and its branch removes their reflogs, and what only those hold.
-        self.git(self.work / "1", "reset", "--quiet", "--hard", "origin/main")
+        self.git(self.worktrees / "1", "reset", "--quiet", "--hard", "origin/main")
         found, report = self.findings()
         self.assertEqual(found, [
             "1 commit only in the reflogs of the quest's worktrees and their branches,"
             " and not in origin/main"])
         self.assertIn(" Add the feature\n", report)
         # Another branch of that repository holding the commit keeps it.
-        commit = self.git(self.work / "1", "rev-parse", "HEAD@{1}")
+        commit = self.git(self.worktrees / "1", "rev-parse", "HEAD@{1}")
         self.git(self.repository, "branch", "keeps-it", commit)
         self.assertEqual(self.findings()[0], [])
 
@@ -276,7 +276,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.git(checkout, "switch", "--quiet", "old-topic")
         self.commit(checkout, "more.txt", "more\n", "More on the old topic")
         found, report = self.findings("--source", str(self.repository))
-        self.assertEqual(found, ["old-topic (work/1): 1 commit not in origin/main", "1 stash entry"])
+        self.assertEqual(found, ["old-topic (worktrees/1): 1 commit not in origin/main", "1 stash entry"])
         self.assertIn("        stash@{0}: On main: quest stash\n", report)
         self.assertNotIn("inherited stash", report)
         self.assertNotIn("Old unmerged work", report)
@@ -287,7 +287,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.git(self.repository, "push", "--quiet", "origin", "main")
         found, report = self.findings("--source", str(self.repository))
         self.assertEqual(found, ["1 stash entry"])
-        self.assertIn(f"    old-topic (work/1): not in origin/main, but {self.repository} keeps it\n", report)
+        self.assertIn(f"    old-topic (worktrees/1): not in origin/main, but {self.repository} keeps it\n", report)
 
     def test_commits_left_only_in_reflogs(self):
         checkout = self.clone()
@@ -315,7 +315,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertIn(f"        {tagged} Tagged only\n", report)
 
     def test_inherited_worktree_registrations_are_not_the_quests(self):
-        other = self.project / "quests" / "other-quest" / "work" / "1"
+        other = self.project / "quests" / "other-quest" / "worktrees" / "1"
         other.parent.mkdir(parents=True)
         self.git(self.repository, "worktree", "add", "--quiet", "-b", "other", str(other))
         (other / "dirty.txt").write_text("another quest's work\n")
@@ -345,21 +345,21 @@ class ArchiveCheckTests(unittest.TestCase):
         self.git(checkout, "remote", "set-url", "origin", str(self.base / "missing.git"))
         found, report = self.findings()
         self.assertEqual(found, ["could not fetch origin/main; merge status is as of the last fetch"])
-        self.assertIn("    main (work/1): merged into origin/main\n", report)
+        self.assertIn("    main (worktrees/1): merged into origin/main\n", report)
         self.assertEqual(
             self.findings("--target", "origin/release")[0],
             ["could not fetch origin/release; merge status is as of the last fetch",
-             "main (work/1): there is no remote branch origin/release to compare it with"])
+             "main (worktrees/1): there is no remote branch origin/release to compare it with"])
 
     def test_nothing_local_stands_in_for_the_target(self):
         checkout = self.clone()
         self.git(checkout, "switch", "--quiet", "-c", "origin/main")
         self.commit(checkout, "feature.txt", "feature\n", "Add the feature")
         self.git(checkout, "tag", "origin/main")
-        self.assertEqual(self.findings()[0], ["origin/main (work/1): 1 commit not in origin/main"])
+        self.assertEqual(self.findings()[0], ["origin/main (worktrees/1): 1 commit not in origin/main"])
         self.assertEqual(self.findings("--target", "main")[0], [
             "main: there is no remote branch main to compare it with",
-            "origin/main (work/1): there is no remote branch main to compare it with"])
+            "origin/main (worktrees/1): there is no remote branch main to compare it with"])
 
     def test_what_status_does_not_show(self):
         nested = self.repository / "lib"
@@ -386,9 +386,9 @@ class ArchiveCheckTests(unittest.TestCase):
             self.git(checkout, "stash", "push", "--quiet", "-m", message)
         self.git(checkout, "switch", "--quiet", "-c", "topic\u2028odd")
         self.commit(checkout, "feature.txt", "feature\n", "Add\x0bthe feature")
-        (self.work / "\u00b2").mkdir()
+        (self.worktrees / "\u00b2").mkdir()
         found, report = self.findings()
-        self.assertEqual(found, ["topic\u2028odd (work/1): 1 commit not in origin/main", "2 stash entries"])
+        self.assertEqual(found, ["topic\u2028odd (worktrees/1): 1 commit not in origin/main", "2 stash entries"])
         self.assertIn("        stash@{1}: On main: part one\u2028part two\n", report)
 
     def test_commits_a_remote_has_are_not_reflog_leftovers(self):
@@ -409,7 +409,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertIn("rev-parse", self.refusal("--source", str(self.base)))
         checkout = self.clone()
         self.assertIn("is inside the quest", self.refusal("--source", str(checkout)))
-        shutil.rmtree(self.work)
+        shutil.rmtree(self.worktrees)
 
         archived = self.quest.parent / ".archived" / "sample-quest"
         archived.mkdir(parents=True)
@@ -422,7 +422,7 @@ class ArchiveCheckTests(unittest.TestCase):
         error = self.refusal()
         self.assertIn("any report above is incomplete", error)
         # Git's own wording for a worktree whose registration is gone varies by version.
-        self.assertIn(f"git rev-parse in {self.work / '2'}: fatal: ", error)
+        self.assertIn(f"git rev-parse in {self.worktrees / '2'}: fatal: ", error)
 
     def test_changes_nothing_without_a_fetch(self):
         checkout = self.clone()
@@ -441,7 +441,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertEqual(self.findings("--no-fetch")[0], [
             "1 uncommitted path",
             "origin/main was not fetched; merge status is as of the last fetch",
-            "topic (work/1): 1 commit not in origin/main",
+            "topic (worktrees/1): 1 commit not in origin/main",
         ])
         self.assertEqual(state(), before)
 

@@ -16,7 +16,7 @@ SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 DECLARATION = re.compile(r"^\s*Quest root:\s*([^\r\n]+)$", re.MULTILINE)
 INSTRUCTIONS = ("AGENTS.md", "CLAUDE.md")
 DEFAULT_RULES = Path(__file__).resolve().parents[1] / "assets" / "snapshot-exclude"
-UNSCANNED = {".git", "work", "local-data", "node_modules", ".cache", "__pycache__"}
+UNSCANNED = {".git", "worktrees", "local-data", "node_modules", ".cache", "__pycache__"}
 ROUTING = {
     "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR",
     "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_PREFIX",

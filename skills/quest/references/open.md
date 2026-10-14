@@ -13,11 +13,11 @@ slugs among the root's immediate directories. Open a single clear match and say
 which quest it is. If several match, list them and ask the user to choose. If
 none does, say that no quest was found.
 
-Read `QUEST.md`, then the first checkout's instructions: `work/1/CLAUDE.md`
-when you are Claude Code and `work/1/AGENTS.md` otherwise, falling back to the
-other file when yours does not exist. Skip this when the quest has no `work/1`,
-when it holds neither file, or when the session started inside `work/1` and so
-loaded them already. Follow those instructions in the work that comes after;
+Read `QUEST.md`, then the first checkout's instructions:
+`worktrees/1/CLAUDE.md` when you are Claude Code and `worktrees/1/AGENTS.md`
+otherwise, falling back to the other file when yours does not exist. Skip this
+when the quest has no `worktrees/1`, when it holds neither file, or when the
+session started inside `worktrees/1` and so loaded them already. Follow those instructions in the work that comes after;
 they are not part of the summary. Read nothing else.
 
 ## The Summary

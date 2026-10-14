@@ -13,7 +13,7 @@ python3 <quest-skill-directory>/scripts/render-template.py \
 ```
 
 The default destination is the quest directory alongside its `QUEST.md`, not a
-checkout. Checkouts live beneath it at `work/<n>/` and inherit the
+checkout. Checkouts live beneath it at `worktrees/<n>/` and inherit the
 configuration through mise's ancestor discovery. Follow an existing
 project's explicitly configured alternative destination instead of migrating it.
 

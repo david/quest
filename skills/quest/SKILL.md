@@ -6,7 +6,7 @@ description: >
   create, open, list, sync, hand off, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "2.13.0"
+  version: "2.14.0"
 ---
 
 <!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -31,7 +31,7 @@ project's own instructions.
 │   ├── research/              # findings and evidence, read on demand
 │   ├── mise.local.toml        # per-quest environment, when the project uses one
 │   ├── local-data/            # private or non-reproducible local files
-│   └── work/                  # code checkouts, numbered from 1
+│   └── worktrees/             # code checkouts, numbered from 1
 │       ├── 1/                 # by default, a clone of the project repository
 │       └── <n>/               # by default, a worktree of that clone
 └── .archived/<slug>/          # archived quests, not active
@@ -180,25 +180,25 @@ plan or `Current State`, not only in background research.
 Keep the evidence that substantiates a result rather than the output of every
 run.
 
-Code checkouts live under `work/`, numbered from 1. Record each one in
+Code checkouts live under `worktrees/`, numbered from 1. Record each one in
 `Current State`. Inside a checkout, that repository's own instructions govern
 the work.
 
-Unless the project's instructions arrange checkouts another way, `work/1` is a
-copy-on-write clone of the project repository and every further checkout is a
-Git worktree of that clone. Always make the clone from the repository's local
+Unless the project's instructions arrange checkouts another way, `worktrees/1`
+is a copy-on-write clone of the project repository and every further checkout
+is a Git worktree of that clone. Always make the clone from the repository's local
 `main`, after bringing `main` up to date with `origin`:
 
 ```sh
 git -C <repository> pull --ff-only origin main
-cp -a --reflink=always <repository> <quest>/work/1
-git -C <quest>/work/1 worktree add -b <branch> ../<n>
+cp -a --reflink=always <repository> <quest>/worktrees/1
+git -C <quest>/worktrees/1 worktree add -b <branch> ../<n>
 ```
 
 The clone has its own `.git`, so the quest's branches and worktree
-registrations stay inside `work/`, and removing `work/` leaves nothing behind
-in the project repository. Removing it also discards any commit that exists
-only there, which is why archiving checks for unmerged work first.
+registrations stay inside `worktrees/`, and removing `worktrees/` leaves
+nothing behind in the project repository. Removing it also discards any commit
+that exists only there, which is why archiving checks for unmerged work first.
 
 The copy is of a whole checkout, so:
 
@@ -211,10 +211,11 @@ The copy is of a whole checkout, so:
 - The copy includes the source's uncommitted changes. Discard those that are
   not the quest's.
 - On a filesystem without reflinks the copy fails and leaves empty directories.
-  Remove them and make `work/1` a worktree of the project repository instead:
-  `git -C <repository> worktree add -b <branch> <quest>/work/1 main`. The
-  quest's branches and registrations then live in that repository, so say so
-  in `Current State` and remove those checkouts with `git worktree remove`.
+  Remove them and make `worktrees/1` a worktree of the project repository
+  instead: `git -C <repository> worktree add -b <branch> <quest>/worktrees/1
+  main`. The quest's branches and registrations then live in that repository,
+  so say so in `Current State` and remove those checkouts with
+  `git worktree remove`.
 
 ## Versioned Checkpoints
 
@@ -225,10 +226,10 @@ nothing from the agent. [Snapshots](references/snapshot.md) describes the
 script and the hook.
 
 The script owns each quest's `.git`; do not initialize it or commit to it by
-hand. It refuses a quest root that is inside a repository, and leaves `work/`,
-`local-data/`, `mise.local.toml`, and nested repositories out of snapshots. Put
-other private or generated material in those excluded locations, or add a rule
-to the quest's own `.gitignore` before creating it.
+hand. It refuses a quest root that is inside a repository, and leaves
+`worktrees/`, `local-data/`, `mise.local.toml`, and nested repositories out of
+snapshots. Put other private or generated material in those excluded locations,
+or add a rule to the quest's own `.gitignore` before creating it.
 
 Snapshots are recovery points. The current files remain the only thing a
 resuming agent should need to read. Check the quest's own `git log` before
@@ -239,8 +240,8 @@ Archiving keeps the quest's `.git` directory and ends its snapshots.
 ## Opening A Quest
 
 Always read `QUEST.md` first, then the first checkout's instructions:
-`work/1/CLAUDE.md` when you are Claude Code and `work/1/AGENTS.md` otherwise,
-falling back to the other file when yours does not exist. They
+`worktrees/1/CLAUDE.md` when you are Claude Code and `worktrees/1/AGENTS.md`
+otherwise, falling back to the other file when yours does not exist. They
 govern the work in the checkout, and a session started outside that checkout
 does not load them on its own. When the prompt only opens a quest, read nothing
 else and brief the user as the [Open](references/open.md#the-summary) guide

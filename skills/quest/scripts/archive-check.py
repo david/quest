@@ -360,18 +360,18 @@ def check(args: argparse.Namespace) -> int:
     destination = root / ".archived" / quest.name
     if (root / ".archived").is_symlink() or os.path.lexists(destination):
         raise CheckError(f"{destination} exists already, or .archived is a symbolic link")
-    work = quest / "work"
-    if work.is_symlink():
-        raise CheckError(f"{work} is a symbolic link")
+    worktrees = quest / "worktrees"
+    if worktrees.is_symlink():
+        raise CheckError(f"{worktrees} is a symbolic link")
     if args.source:
         kept = git(args.source, "rev-parse", "--path-format=absolute", "--git-common-dir")
         if Path(os.path.realpath(kept)).is_relative_to(quest):
             raise CheckError(f"{args.source} is inside the quest, so it keeps nothing once the quest is archived")
 
-    # Every directory in work/, then every other worktree of a repository the quest owns.
+    # Every directory in worktrees/, then every other worktree of a repository the quest owns.
     repositories: dict[Path, list[Path]] = {}
     strays = []
-    for entry in sorted(work.iterdir(), key=natural) if work.is_dir() else []:
+    for entry in sorted(worktrees.iterdir(), key=natural) if worktrees.is_dir() else []:
         if entry.is_dir() and not entry.is_symlink() and os.path.lexists(entry / ".git"):
             common = common_directory(entry, check=True)
             if common is None:
@@ -396,16 +396,16 @@ def check(args: argparse.Namespace) -> int:
 
     report = Report(quest)
     print(f"Quest {quest}\nArchives to {destination}\n")
-    for path in sorted(found, key=lambda path: (not path.is_relative_to(work), natural(path))):
+    for path in sorted(found, key=lambda path: (not path.is_relative_to(worktrees), natural(path))):
         common, entry = found[path]
         main = mains[common]
         show_checkout(report, path, "clone" if path == main else f"worktree of {report.name(main)}", entry)
-        if not path.is_relative_to(work):
-            report.finding("outside the quest's work directory; removing its repository breaks it")
+        if not path.is_relative_to(worktrees):
+            report.finding("outside the quest's worktrees/; removing its repository breaks it")
     if not found:
-        print("No checkouts in work/.")
+        print("No checkouts in worktrees/.")
     if strays:
-        report.finding("in work/ but not a checkout, so removed with it:",
+        report.finding("in worktrees/ but not a checkout, so removed with it:",
                        [report.name(entry) for entry in strays])
 
     with tempfile.TemporaryDirectory() as scratch:

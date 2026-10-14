@@ -90,7 +90,7 @@ class SnapshotTests(unittest.TestCase):
                          "Snapshot Test <test@example.invalid>")
 
     def test_private_and_generated_paths_stay_out(self):
-        for path in ("work/1/app.py", "local-data/dump.sql", "node_modules/x/index.js",
+        for path in ("worktrees/1/app.py", "local-data/dump.sql", "node_modules/x/index.js",
                      "research/.env", "mise.local.toml"):
             (self.quest / path).parent.mkdir(parents=True, exist_ok=True)
             (self.quest / path).write_text("private\n")
@@ -164,7 +164,7 @@ class SnapshotTests(unittest.TestCase):
     def test_containing_quest_wins_over_a_declaration(self):
         elsewhere = self.add_quest("other-quest", "# Elsewhere\n", self.base / "declared" / "quests")
         (self.project / "AGENTS.md").write_text("Quest root: ../declared/quests\n")
-        checkout = self.quest / "work" / "1" / "src"
+        checkout = self.quest / "worktrees" / "1" / "src"
         checkout.mkdir(parents=True)
         self.snapshot_ok(cwd=checkout)
         self.assertEqual(self.commits(self.quest), 1)
