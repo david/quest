@@ -8,6 +8,11 @@ omitted. Canonicalize the target and confirm it is the intended project when
 ambiguous. Do not require existing quest-root discovery or install into the skill
 directory. Do not create a quest, checkout, database, or running service.
 
+Stop without changing anything when the project directory is a Git repository or
+lies inside one, that is, when it or any parent holds a `.git` entry. The quest
+root and `lore/` must stay out of every repository. Tell the user to run
+`install` from a directory outside the repository, such as one that holds it.
+
 Inspect the target's existing `AGENTS.md`, quest setup, and relevant environment
 configuration. Reuse a valid existing quest-root declaration and template setup;
 do not create parallel roots or migrate existing quests. Ask before changing a
@@ -18,16 +23,32 @@ For installation or reconciliation of an existing setup, the baseline is:
 
 1. Reuse the configured quest root or default to `./quests` under the project
    directory. The root must be named `quests` and lie outside any repository,
-   which the [snapshot script](snapshot.md) enforces; if the project directory
-   is itself a repository, agree with the user where the root goes before
-   creating anything. Create the storage directory. Where the script refuses
-   an existing root, preserve its records and ask before moving them.
+   which the [snapshot script](snapshot.md) enforces. Create the storage
+   directory. Where the script refuses an existing root, preserve its records
+   and ask before moving them.
 2. Add or narrowly update a quest setup section in the project's `AGENTS.md`.
    Preserve all unrelated instructions. Declare `Quest root: <path>` using the
    selected root's absolute path or a path relative to this instruction file.
 3. Explain that new quests read their `QUEST.md` first, record active workspace paths
    there when applicable, and follow repository instructions in that workspace
    before repository work. Do not create per-quest `AGENTS.md` files by default.
+4. Create `lore/` in the project directory. It holds facts about the project's
+   environment that outlive any single quest.
+5. Add a Lore section to the same `AGENTS.md`. Name the directory by its
+   absolute path or a path relative to this instruction file, and list each
+   lore file with what it covers:
+
+   ```markdown
+   ## Lore
+
+   `<lore-path>/` holds facts about the project's environment that outlive any
+   single quest. Read the matching file when a task needs it.
+
+   - <What the file covers>: `<file>.md`.
+   ```
+
+   Leave the list out while the directory is empty. When reconciling, add
+   existing lore files the list is missing.
 
 Add only the workspace conventions applicable to the project:
 
