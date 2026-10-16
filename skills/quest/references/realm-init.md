@@ -38,13 +38,15 @@ For a new realm or reconciliation of an existing setup, the baseline is:
 5. Add a Lore section to the same `AGENTS.md` in the format
    [Lore](lore.md#the-lore-section) gives. When reconciling, bring an existing
    Lore section to that format.
+6. Create `quest-template/` in the realm. It holds the realm's templates for
+   new quests, such as the mise template below, and stays empty until the
+   realm has one.
 
 Add only the workspace conventions applicable to the realm:
 
-1. For realms using mise-based per-quest environments, create `quest-template/`
-   and adapt the skill's `assets/mise.local.toml` to
-   `quest-template/mise.local.toml`. Include only settings the realm uses.
-   When a database is needed, choose its connection format and variable names
+1. For realms using mise-based per-quest environments, adapt the skill's
+   `assets/mise.local.toml` to `quest-template/mise.local.toml`. Include only
+   settings the realm uses. When a database is needed, choose its connection format and variable names
    from actual configuration; confirm any missing convention rather than assuming
    the bundled PostgreSQL format applies.
    Replace `<realm>` with a stable realm identifier normalized to lowercase

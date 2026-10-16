@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, sync, hand off, distill, or archive a quest,
   and to keep its records current while working inside one.
 metadata:
-  version: "3.3.0"
+  version: "3.4.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -28,6 +28,7 @@ instructions of the realm and its repository.
 <realm>/
 ├── AGENTS.md                  # declares the quest root and lists the lore
 ├── lore/                      # facts that outlive any single quest
+├── quest-template/            # templates for new quests, possibly empty
 ├── <repository>/              # the realm's code, usually kept here
 └── quests/                    # the quest root
     ├── <slug>/
