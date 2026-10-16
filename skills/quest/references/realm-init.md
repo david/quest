@@ -34,22 +34,10 @@ For a new realm or reconciliation of an existing setup, the baseline is:
    there when applicable, and follow repository instructions in that workspace
    before repository work. Do not create per-quest `AGENTS.md` files by default.
 4. Create `lore/` in the realm. It holds facts about the project's
-   environment that outlive any single quest.
-5. Add a Lore section to the same `AGENTS.md`. Name the directory by its
-   absolute path or a path relative to this instruction file, and list each
-   lore file with what it covers:
-
-   ```markdown
-   ## Lore
-
-   `<lore-path>/` holds facts about the project's environment that outlive any
-   single quest. Read the matching file when a task needs it.
-
-   - <What the file covers>: `<file>.md`.
-   ```
-
-   Leave the list out while the directory is empty. When reconciling, add
-   existing lore files the list is missing.
+   environment that outlive any single quest, as [Lore](lore.md) describes.
+5. Add a Lore section to the same `AGENTS.md` in the format
+   [Lore](lore.md#the-lore-section) gives. When reconciling, bring an existing
+   Lore section to that format.
 
 Add only the workspace conventions applicable to the realm:
 

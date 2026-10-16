@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, sync, hand off, distill, or archive a quest,
   and to keep its records current while working inside one.
 metadata:
-  version: "3.1.0"
+  version: "3.2.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -45,6 +45,9 @@ A realm is a project set up for quests: the directory whose `AGENTS.md`
 declares its quest root and lists its lore. `realm init` makes one. A realm is
 never inside a repository, so its quests and lore stay out of the code, and its
 repository is the one its quests clone.
+
+Read [Lore](references/lore.md) whenever a task touches lore. It says what
+belongs there and how the realm's `AGENTS.md` lists it.
 
 A slug matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and other names.
 Create a file or directory only when there is something to put in it. Follow a

@@ -14,9 +14,9 @@ Distinguish intended, implemented, validated, merged, and released states; repor
 unavailable sources and coverage limits.
 
 Preserve information that will improve future decisions, prevent costly
-rediscovery, or explain current behavior. Useful destinations include user docs,
-architecture records, runbooks, contributor guidance, and existing project work
-tracking. Prefer a targeted update to the existing owner over a per-quest
+rediscovery, or explain current behavior. Useful destinations include the
+realm's [lore](lore.md), user docs, architecture records, runbooks, contributor
+guidance, and existing project work tracking. Prefer a targeted update to the existing owner over a per-quest
 learnings document. Do not turn tentative findings or one-off workarounds into
 standing rules.
 
