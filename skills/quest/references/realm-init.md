@@ -1,15 +1,15 @@
 # Realm Init
 
-## `realm init [project-directory]`
+## `realm init [directory]`
 
 Make a project a realm: set up quest memory in it, with workspace-template
-conventions when applicable, not a workflow. Use the explicit project
-directory, or the session's current working directory when omitted.
-Canonicalize the target and confirm it is the intended project when ambiguous.
+conventions when applicable, not a workflow. Use the explicit directory, or
+the session's current working directory when omitted.
+Canonicalize the target and confirm it is the intended realm when ambiguous.
 Do not require existing quest-root discovery or set up the skill directory as a
 realm. Do not create a quest, checkout, database, or running service.
 
-Stop without changing anything when the project directory is a Git repository or
+Stop without changing anything when the target is a Git repository or
 lies inside one, that is, when it or any parent holds a `.git` entry. The quest
 root and `lore/` must stay out of every repository. Tell the user to run
 `realm init` from a directory outside the repository, such as one that holds it.
@@ -22,18 +22,18 @@ preserve existing files and avoid duplicate instruction blocks.
 
 For a new realm or reconciliation of an existing setup, the baseline is:
 
-1. Reuse the configured quest root or default to `./quests` under the project
-   directory. The root must be named `quests` and lie outside any repository,
-   which the [snapshot script](snapshot.md) enforces. Create the storage
-   directory. Where the script refuses an existing root, preserve its records
-   and ask before moving them.
-2. Add or narrowly update a quest setup section in the project's `AGENTS.md`.
+1. Reuse the configured quest root or default to `./quests` in the realm. The
+   root must be named `quests` and lie outside any repository, which the
+   [snapshot script](snapshot.md) enforces. Create the storage directory.
+   Where the script refuses an existing root, preserve its records and ask
+   before moving them.
+2. Add or narrowly update a quest setup section in the realm's `AGENTS.md`.
    Preserve all unrelated instructions. Declare `Quest root: <path>` using the
    selected root's absolute path or a path relative to this instruction file.
 3. Explain that new quests read their `QUEST.md` first, record active workspace paths
    there when applicable, and follow repository instructions in that workspace
    before repository work. Do not create per-quest `AGENTS.md` files by default.
-4. Create `lore/` in the project directory. It holds facts about the project's
+4. Create `lore/` in the realm. It holds facts about the project's
    environment that outlive any single quest.
 5. Add a Lore section to the same `AGENTS.md`. Name the directory by its
    absolute path or a path relative to this instruction file, and list each
@@ -51,34 +51,34 @@ For a new realm or reconciliation of an existing setup, the baseline is:
    Leave the list out while the directory is empty. When reconciling, add
    existing lore files the list is missing.
 
-Add only the workspace conventions applicable to the project:
+Add only the workspace conventions applicable to the realm:
 
-1. For projects using mise-based per-quest environments, create `quest-template/`
+1. For realms using mise-based per-quest environments, create `quest-template/`
    and adapt the skill's `assets/mise.local.toml` to
-   `quest-template/mise.local.toml`. Include only settings the project uses.
+   `quest-template/mise.local.toml`. Include only settings the realm uses.
    When a database is needed, choose its connection format and variable names
    from actual configuration; confirm any missing convention rather than assuming
    the bundled PostgreSQL format applies.
-   Replace `<project>` with a stable project identifier normalized to lowercase
+   Replace `<realm>` with a stable realm identifier normalized to lowercase
    words separated by underscores; confirm an ambiguous identifier. Retain
    `<slug>` and, when needed, `<app-port>` for per-quest rendering. Do not embed
-   credentials; preserve the project's established secret-loading mechanism.
+   credentials; preserve the realm's established secret-loading mechanism.
 2. In the setup instructions, describe any configured template source,
    its destination at `<quest-root>/<slug>/mise.local.toml` alongside the quest
    `QUEST.md`, and the renderer invocation from
    [Template rendering](render-template.md). Do not put generated config
    inside a checkout.
-3. For projects whose quests work on code, name the repository that a quest's
+3. For realms whose quests work on code, name the repository that a quest's
    `worktrees/1` is cloned from under the skill's Documents And Code rules, and
-   add only what the project does differently, such as a default branch other
+   add only what the repository does differently, such as a default branch other
    than `main` or how branches are named.
-   Preserve an established alternative, such as worktrees of the project
+   Preserve an established alternative, such as worktrees of the realm's
    repository or one shared checkout, and ask before changing it; for such a
-   project, record where a quest's code lives and how its commands load quest
+   realm, record where a quest's code lives and how its commands load quest
    configuration without overwriting shared configuration.
    Do not create checkouts during `realm init`.
 4. When services need ports, establish the app-port selection convention and any
-   additional project-specific template values. Prefer the project's existing
+   additional realm-specific template values. Prefer the realm's existing
    allocator or registry. Otherwise
    select an explicit available port, compare with recorded active quests, and
    record it in `QUEST.md`. An availability check is not a port reservation.
@@ -87,10 +87,10 @@ Add only the workspace conventions applicable to the project:
    those defaults, or establish explicit per-instance overrides for concurrent
    services (ports, sockets, logs, and databases when isolation is needed).
 5. Keep provisioning, checkout creation, `mise trust`, dependency installation,
-   and service startup as separate project-specific instructions subject to their
+   and service startup as separate realm-specific instructions subject to their
    own authorization.
 
-For projects using mise, the default layout after authorized quest and
+For realms using mise, the default layout after authorized quest and
 checkout creation is:
 
 ```text
@@ -111,15 +111,15 @@ configs are trusted as authorized, use `mise run <task>` from the checkout or
 validate explicit config loading if ancestor discovery cannot reach the quest.
 
 The bundled template offers primary and test database URLs, an app port, and
-process-compose socket and log paths. Retain database settings only for projects
+process-compose socket and log paths. Retain database settings only for realms
 using databases, ports only for applicable services, and socket/log paths only
 when using process-compose. Database names and socket paths, when used, must
-distinguish projects and quests. Additional values such as Storybook ports are
-project-specific.
+distinguish realms and quests. Additional values such as Storybook ports are
+realm-specific.
 
 Do not overwrite an existing template. Compare it with the intended setup and
 propose only needed changes. Never copy local secrets into a template. Flag any
-needed ignore rules for generated local configuration under the project's policy.
+needed ignore rules for generated local configuration under the realm's policy.
 Keep quest-level private configuration excluded in the quest's own repository
 under the skill's Versioned Checkpoints rules. Application-repository ignore
 rules do not apply to files outside that repository.

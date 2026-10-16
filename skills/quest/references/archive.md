@@ -20,7 +20,7 @@ Snapshots skip archived quests, so later edits there are not committed.
 Resolve the quest root by the skill's rules. With no slug, or `current`, the
 session must be inside a quest; otherwise ask for a slug. A slug must name a
 quest directory exactly: never guess at a near match for a command that
-deletes. Read `QUEST.md` and the project's instructions. If only
+deletes. Read `QUEST.md` and the realm's instructions. If only
 `.archived/<slug>` exists, report that the quest is already archived and change
 nothing. When several quests are named, finish steps 2 to 4 for all of them
 before removing anything.
@@ -29,12 +29,12 @@ before removing anything.
 
 Check the record for documentation the quest still owes. Use
 [knowledge transfer](distill.md) when findings need a maintained home. A
-required gap needs to be closed, or deferred where the project permits, with a
+required gap needs to be closed, or deferred where the realm permits, with a
 follow-up recorded somewhere that outlives the quest; other follow-ups can be
 recorded without holding the archive up. Make sure what was transferred lives
 where cleanup will not remove it, not only in a checkout.
 
-The archive request covers such documentation edits in the quest's project but
+The archive request covers such documentation edits in the quest's realm but
 adds no permission to commit, integrate, or publish them. Make them before the
 check, so that it sees them.
 
@@ -72,12 +72,12 @@ squashed work whose lines the target has since changed again. A merged pull
 request is not evidence by itself: what counts is the check's verdict on the
 tip as it is now.
 
-Pass `--source` when `worktrees/1` is a copy of the project repository. A copy
+Pass `--source` when `worktrees/1` is a copy of the realm's repository. A copy
 starts with that repository's branches, stashes, and reflogs, and the script
 leaves out whatever that repository still keeps. What it has dropped since is
 reported, and is the user's to dismiss. Pass `--target <remote>/<branch>` when
 the work was integrated somewhere other than `origin/main`. Take the target
-from the project's instructions or the pull request, not from a branch's
+from the realm's instructions or the pull request, not from a branch's
 upstream. It has to be a branch on a remote, because anything local goes with
 the checkout.
 
@@ -169,7 +169,7 @@ describe a partial archive as complete.
   source reference is still needed, pin it to a revision or give the
   repository path and revision; mark old absolute checkout paths as historical
   instead of rewriting what was validated there.
-- Clear a current-quest pointer or a registered session path in the project
+- Clear a current-quest pointer or a registered session path in the realm
   only when it selects this quest.
 - Verify that the quest is gone from its old path, that the archive holds
   `QUEST.md`, its `.git`, and the retained documents, that the removed

@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, sync, hand off, distill, or archive a quest,
   and to keep its records current while working inside one.
 metadata:
-  version: "3.0.0"
+  version: "3.1.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -20,29 +20,36 @@ checkouts the task works in.
 
 This skill covers finding, creating, maintaining, and archiving that directory.
 How the work itself is done is outside it: follow the user's direction and the
-project's own instructions.
+instructions of the realm and its repository.
 
 ## Layout
 
 ```text
-<quest-root>/                  # a directory named `quests`
-├── <slug>/
-│   ├── QUEST.md               # the memory record; the only required file
-│   ├── research/              # findings and evidence, read on demand
-│   ├── mise.local.toml        # per-quest environment, when the project uses one
-│   ├── local-data/            # private or non-reproducible local files
-│   └── worktrees/             # code checkouts, numbered from 1
-│       ├── 1/                 # by default, a clone of the project repository
-│       └── <n>/               # by default, a worktree of that clone
-└── .archived/<slug>/          # archived quests, not active
+<realm>/
+├── AGENTS.md                  # declares the quest root and lists the lore
+├── lore/                      # facts that outlive any single quest
+├── <repository>/              # the realm's code, usually kept here
+└── quests/                    # the quest root
+    ├── <slug>/
+    │   ├── QUEST.md           # the memory record; the only required file
+    │   ├── research/          # findings and evidence, read on demand
+    │   ├── mise.local.toml    # per-quest environment, when the realm uses one
+    │   ├── local-data/        # private or non-reproducible local files
+    │   └── worktrees/         # code checkouts, numbered from 1
+    │       ├── 1/             # by default, a clone of the realm's repository
+    │       └── <n>/           # by default, a worktree of that clone
+    └── .archived/<slug>/      # archived quests, not active
 ```
 
-A realm is a project set up for quests: its `AGENTS.md` declares the quest
-root that holds them. The quest root lies outside the project repository, never
-inside it. A slug matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and other
-names. Create a file or directory only when there is something to put in it.
-Follow a layout the project's instructions configure, and any coherent
-structure a quest already has, rather than rearranging it to match this one.
+A realm is a project set up for quests: the directory whose `AGENTS.md`
+declares its quest root and lists its lore. `realm init` makes one. A realm is
+never inside a repository, so its quests and lore stay out of the code, and its
+repository is the one its quests clone.
+
+A slug matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and other names.
+Create a file or directory only when there is something to put in it. Follow a
+layout the realm's instructions configure, and any coherent structure a quest
+already has, rather than rearranging it to match this one.
 
 ## Resolve The Quest
 
@@ -55,9 +62,10 @@ every quest read, write, and search in that operation.
    `quests`. That directory is the current quest and its parent is the root.
    This check comes first so that a session started inside a quest, including
    inside one of its checkouts, identifies it without any configuration.
-2. Otherwise use a `Quest root: <path>` declaration from the repository
-   instructions already in context. Resolve a relative path from the directory
-   of the file that declares it; the most specific applicable declaration wins.
+2. Otherwise use a `Quest root: <path>` declaration from the instructions
+   already in context, normally the realm's `AGENTS.md`. Resolve a relative
+   path from the directory of the file that declares it; the most specific
+   applicable declaration wins.
    It counts only when it resolves to an existing directory named `quests`.
    Work from the instructions already loaded rather than searching for more.
 3. Otherwise use the working directory if it is named `quests`, or `./quests`
@@ -191,8 +199,8 @@ later command, and the harness, would run inside the checkout. Point commands
 at the checkout instead, for example `git -C <checkout>` or `mise -C
 <checkout> exec -- <command>`.
 
-Unless the project's instructions arrange checkouts another way, `worktrees/1`
-is a copy-on-write clone of the project repository and every further checkout
+Unless the realm's instructions arrange checkouts another way, `worktrees/1`
+is a copy-on-write clone of the realm's repository and every further checkout
 is a Git worktree of that clone. Always make the clone from the repository's local
 `main`, after bringing `main` up to date with `origin`:
 
@@ -204,7 +212,7 @@ git -C <quest>/worktrees/1 worktree add -b <branch> ../<n>
 
 The clone has its own `.git`, so the quest's branches and worktree
 registrations stay inside `worktrees/`, and removing `worktrees/` leaves
-nothing behind in the project repository. Removing it also discards any commit
+nothing behind in the realm's repository. Removing it also discards any commit
 that exists only there, which is why archiving checks for unmerged work first.
 
 The copy is of a whole checkout, so:
@@ -218,7 +226,7 @@ The copy is of a whole checkout, so:
 - The copy includes the source's uncommitted changes. Discard those that are
   not the quest's.
 - On a filesystem without reflinks the copy fails and leaves empty directories.
-  Remove them and make `worktrees/1` a worktree of the project repository
+  Remove them and make `worktrees/1` a worktree of the realm's repository
   instead: `git -C <repository> worktree add -b <branch> <quest>/worktrees/1
   main`. The quest's branches and registrations then live in that repository,
   so say so in `Current State` and remove those checkouts with
@@ -274,5 +282,5 @@ the matching guide before acting.
 | `list` | Listing quests. | [List](references/list.md) |
 | `sync` | Bringing the record up to date with the session. | [Sync](references/sync.md) |
 | `handoff` | Preparing for a reset, transfer, or pause, or checking that another agent could resume. | [Sync: recoverability check](references/sync.md#recoverability-check) |
-| `distill` | Moving quest findings into the project's maintained documentation. | [Knowledge transfer](references/distill.md) |
+| `distill` | Moving quest findings into the realm's maintained documentation. | [Knowledge transfer](references/distill.md) |
 | `archive` | Archiving a quest and cleaning up its checkouts. | [Archive](references/archive.md) |

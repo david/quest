@@ -19,7 +19,7 @@ class RenderTemplateTests(unittest.TestCase):
         self.destination = self.root / "work" / "mise.local.toml"
         self.destination.parent.mkdir()
         self.template.write_text(
-            (SKILL / "assets" / "mise.local.toml").read_text().replace("<project>", "demo")
+            (SKILL / "assets" / "mise.local.toml").read_text().replace("<realm>", "demo")
         )
 
     def run_renderer(self, slug="123-add-login", port="5101"):
@@ -54,7 +54,7 @@ class RenderTemplateTests(unittest.TestCase):
                 self.assertFalse(self.destination.exists())
 
     def test_unresolved_placeholder_creates_nothing(self):
-        self.template.write_text('[env]\nVALUE = "<project>_<slug>"\n')
+        self.template.write_text('[env]\nVALUE = "<realm>_<slug>"\n')
         self.assertNotEqual(self.run_renderer().returncode, 0)
         self.assertFalse(self.destination.exists())
 

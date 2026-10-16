@@ -1,6 +1,6 @@
 [env]
-DATABASE_URL = "postgres:///<project>_<slug>"
-TEST_DATABASE_URL = "postgres:///<project>_<slug>_test"
+DATABASE_URL = "postgres:///<realm>_<slug>"
+TEST_DATABASE_URL = "postgres:///<realm>_<slug>_test"
 PORT = "<app-port>"
-PC_SOCKET_PATH = "/tmp/<project>-process-compose-<slug>.sock"
-PC_LOG_FILE = "/tmp/<project>-process-compose-<slug>.log"
+PC_SOCKET_PATH = "/tmp/<realm>-process-compose-<slug>.sock"
+PC_LOG_FILE = "/tmp/<realm>-process-compose-<slug>.log"

@@ -12,7 +12,7 @@ With no argument it starts from the current directory. It resolves the quest
 root by the skill's rules, reading `Quest root:` declarations from `AGENTS.md`
 and `CLAUDE.md` in the directory's ancestors. It then snapshots every active
 quest directly under that root, not only the current one, so a session started
-in the project directory covers the quest it edits. Archived quests are skipped,
+in the realm covers the quest it edits. Archived quests are skipped,
 and a directory with no quest root is not an error.
 
 For each quest the script:

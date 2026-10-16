@@ -39,7 +39,7 @@ the repository, not from inside the repository; it refuses to run there.
 | `list` | List quests. |
 | `sync` | Bring the record up to date with the session. |
 | `handoff` | Check that another agent could resume from the record. |
-| `distill` | Move findings into the project's own documentation. |
+| `distill` | Move findings into the realm's own documentation. |
 | `archive` | Archive a quest after checking its checkouts for unmerged work. |
 
 Commands can also be asked for in plain language.
@@ -47,18 +47,23 @@ Commands can also be asked for in plain language.
 ## Layout
 
 ```text
-quests/
-├── <slug>/
-│   ├── QUEST.md        # the record; the only required file
-│   ├── research/       # findings, read on demand
-│   └── worktrees/
-│       ├── 1/          # a copy-on-write clone of the project repository
-│       └── <n>/        # Git worktrees of that clone
-└── .archived/<slug>/
+<realm>/
+├── AGENTS.md               # declares the quest root and lists the lore
+├── lore/                   # facts that outlive any single quest
+├── <repository>/           # the realm's code
+└── quests/
+    ├── <slug>/
+    │   ├── QUEST.md        # the record; the only required file
+    │   ├── research/       # findings, read on demand
+    │   └── worktrees/
+    │       ├── 1/          # a copy-on-write clone of the realm's repository
+    │       └── <n>/        # Git worktrees of that clone
+    └── .archived/<slug>/
 ```
 
-Each quest's code lives inside the quest, so removing the quest leaves nothing
-behind in the project repository.
+A realm is a project set up for quests. It sits outside the repository, so
+quests and lore never end up in the code. Each quest's code lives inside the
+quest, so removing the quest leaves nothing behind in the repository.
 
 ## Snapshots
 
@@ -89,7 +94,7 @@ Change the path if the skill is installed somewhere else. See
 - Python 3.10 or newer, for the scripts.
 - A filesystem with reflink support (such as Btrfs, XFS, or APFS) for the
   copy-on-write clone. Without it, the first checkout falls back to a Git
-  worktree of the project repository.
+  worktree of the realm's repository.
 
 ## Tests
 

@@ -4,7 +4,7 @@
 
 Open the named quest, or without a slug the quest the skill's resolution rules
 select. The session can be anywhere: in the quest directory, below it, such as
-in one of its checkouts, or outside it, such as in the project directory. When
+in one of its checkouts, or outside it, such as in the realm. When
 no slug is given and the rules select no quest, ask which one to open and give
 the output of `list`.
 

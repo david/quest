@@ -1,9 +1,9 @@
 # Knowledge Transfer
 
 Use this guide for requested consolidation or retrospectives, or when material
-quest findings need a maintained project home. Ordinary documentation corrections
-belong with the authorized work. PR creation, merge, and archival do not by
-themselves require a separate consolidation exercise.
+quest findings need a maintained home in the realm. Ordinary documentation
+corrections belong with the authorized work. PR creation, merge, and archival
+do not by themselves require a separate consolidation exercise.
 
 ## Identify Useful Knowledge
 
@@ -41,7 +41,7 @@ guidance. Respect any explicitly requested inspect-and-propose-only mode.
 
 Reread affected files before editing and preserve unrelated work. Verify accuracy,
 links, and examples, and run proportionate checks plus required repository commands.
-Follow the project's own instructions for implementation-repository changes and
+Follow the repository's own instructions for its changes and
 commits. Include pre-merge documentation changes in the PR when applicable;
 do not bypass delivery checks or publication permissions.
 
@@ -51,12 +51,12 @@ Distinguish required documentation or operational gaps from useful follow-up
 knowledge transfer. Required gaps must be resolved or explicitly deferred where
 permitted before the boundary that needs them. Useful follow-ups do not block
 delivery or archival by default. Use existing work tracking, or the quest when
-no authorized project destination is available, without marking deferred work
+no authorized realm destination is available, without marking deferred work
 complete.
 
 Before checkout cleanup, verify transferred knowledge survives outside removable
 checkouts. A backup preserves work but does not incorporate it into maintained
-project material. Follow [archive safety rules](archive.md) for cleanup.
+realm material. Follow [archive safety rules](archive.md) for cleanup.
 
 Keep one concise result with links to maintained destinations and any outstanding
 obligations. Identify inspected versions or history scope when needed to interpret

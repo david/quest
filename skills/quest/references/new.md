@@ -37,7 +37,7 @@ valid user slug.
 
 ## Workspace setup
 
-Perform the setup the project's instructions require for a new quest, from
+Perform the setup the realm's instructions require for a new quest, from
 supplied or already-known context. When they configure a quest template, follow
 their source and destination rules and use [Template rendering](render-template.md)
 for `mise.local.toml` once its destination directory exists, selecting an app
@@ -47,7 +47,7 @@ renderer normalizes only substituted values.
 The default destination is the individual quest directory alongside its
 `QUEST.md`, not the shared quest root or a checkout. Checkouts, when
 authorized, are made under the skill's Documents And Code rules; rendering the
-quest config does not require one to exist. Preserve explicit project
+quest config does not require one to exist. Preserve explicit realm
 alternatives. Do not overwrite existing configuration, and do not treat the
 presence of a template as permission to provision resources.
 
