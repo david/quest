@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, sync, hand off, distill, or archive a quest,
   and to keep its records current while working inside one.
 metadata:
-  version: "3.4.0"
+  version: "4.0.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -28,13 +28,12 @@ instructions of the realm and its repository.
 <realm>/
 ├── AGENTS.md                  # declares the quest root and lists the lore
 ├── lore/                      # facts that outlive any single quest
-├── quest-template/            # templates for new quests, possibly empty
+├── quest-template/            # copied into each new quest; may be empty
 ├── <repository>/              # the realm's code, usually kept here
 └── quests/                    # the quest root
     ├── <slug>/
     │   ├── QUEST.md           # the memory record; the only required file
     │   ├── research/          # findings and evidence, read on demand
-    │   ├── mise.local.toml    # per-quest environment, when the realm uses one
     │   ├── local-data/        # private or non-reproducible local files
     │   └── worktrees/         # code checkouts, numbered from 1
     │       ├── 1/             # by default, a clone of the realm's repository
@@ -203,8 +202,8 @@ the work.
 
 Do not `cd` into a checkout. A `cd` outlives the command that ran it, so every
 later command, and the harness, would run inside the checkout. Point commands
-at the checkout instead, for example `git -C <checkout>` or `mise -C
-<checkout> exec -- <command>`.
+at the checkout instead, for example `git -C <checkout>` or `make -C
+<checkout>`.
 
 Unless the realm's instructions arrange checkouts another way, `worktrees/1`
 is a copy-on-write clone of the realm's repository and every further checkout
@@ -249,7 +248,7 @@ script and the hook.
 
 The script owns each quest's `.git`; do not initialize it or commit to it by
 hand. It refuses a quest root that is inside a repository, and leaves
-`worktrees/`, `local-data/`, `mise.local.toml`, and nested repositories out of
+`worktrees/`, `local-data/`, and nested repositories out of
 snapshots. Put other private or generated material in those excluded locations,
 or add a rule to the quest's own `.gitignore` before creating it.
 

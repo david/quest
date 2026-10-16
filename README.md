@@ -27,9 +27,9 @@ a quest root, a directory named `quests` that lies outside the project
 repository, and declares it in the project's `AGENTS.md`. It also creates a
 `lore/` directory for facts that outlive any single quest, adds a Lore
 section to `AGENTS.md` that links to each of its files, and creates an empty
-`quest-template/` directory for templates new quests are made from. Run it from
-a directory that holds the repository, not from inside the repository; it
-refuses to run there.
+`quest-template/` directory whose contents are copied into each new quest. Run
+it from a directory that holds the repository, not from inside the repository;
+it refuses to run there.
 
 ## Use
 
@@ -52,7 +52,7 @@ Commands can also be asked for in plain language.
 <realm>/
 ├── AGENTS.md               # declares the quest root and lists the lore
 ├── lore/                   # facts that outlive any single quest
-├── quest-template/         # templates for new quests
+├── quest-template/         # copied into each new quest
 ├── <repository>/           # the realm's code
 └── quests/
     ├── <slug>/

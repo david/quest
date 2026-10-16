@@ -91,7 +91,7 @@ class SnapshotTests(unittest.TestCase):
 
     def test_private_and_generated_paths_stay_out(self):
         for path in ("worktrees/1/app.py", "local-data/dump.sql", "node_modules/x/index.js",
-                     "research/.env", "mise.local.toml"):
+                     "research/.env"):
             (self.quest / path).parent.mkdir(parents=True, exist_ok=True)
             (self.quest / path).write_text("private\n")
         (self.quest / ".env.example").write_text("EXAMPLE=1\n")

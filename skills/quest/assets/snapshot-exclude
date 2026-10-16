@@ -3,7 +3,6 @@
 # there. Put a quest's own rules in that quest's .gitignore.
 /worktrees/
 /local-data/
-/mise.local.toml
 .env
 .env.*
 !.env.example
