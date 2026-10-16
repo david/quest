@@ -2,14 +2,14 @@
 name: quest
 description: >
   Maintain quests: one directory per task holding a QUEST.md memory record plus
-  the documents and code checkouts that belong to that task. Use to install,
-  create, open, list, sync, hand off, distill, or archive a quest, and to keep
-  its records current while working inside one.
+  the documents and code checkouts that belong to that task. Use to set up a
+  realm, or to create, open, list, sync, hand off, distill, or archive a quest,
+  and to keep its records current while working inside one.
 metadata:
-  version: "2.15.0"
+  version: "3.0.0"
 ---
 
-<!-- argument-hint: <install|new|open|list|sync|handoff|distill|archive> [path|slug] -->
+<!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
 
 # Quest
 
@@ -37,11 +37,12 @@ project's own instructions.
 └── .archived/<slug>/          # archived quests, not active
 ```
 
-The quest root lies outside the project repository, never inside it. A slug
-matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and other names. Create a
-file or directory only when there is something to put in it. Follow a
-layout the project's instructions configure, and any coherent structure a quest
-already has, rather than rearranging it to match this one.
+A realm is a project set up for quests: its `AGENTS.md` declares the quest
+root that holds them. The quest root lies outside the project repository, never
+inside it. A slug matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and other
+names. Create a file or directory only when there is something to put in it.
+Follow a layout the project's instructions configure, and any coherent
+structure a quest already has, rather than rearranging it to match this one.
 
 ## Resolve The Quest
 
@@ -65,7 +66,8 @@ every quest read, write, and search in that operation.
    directory so that resolution succeeds, or guessing a root from repository
    depth, puts records where nobody will look for them.
 
-`install` is the exception: it sets up a project that may not have a root yet.
+`realm init` is the exception: it sets up a realm that may not have a root
+yet.
 
 A command acts on an explicit slug in the resolved root. Without one it acts on
 the current quest or, in a session outside any quest, on the quest that session
@@ -266,7 +268,7 @@ the matching guide before acting.
 
 | Command | Use when | Guide |
 | --- | --- | --- |
-| `install` | Setting up quest support in a project. | [Install](references/install.md) |
+| `realm init` | Setting up a project for quests, making it a realm. | [Realm init](references/realm-init.md) |
 | `new` | Creating a quest and capturing its goal. | [New](references/new.md) |
 | `open` | Opening an existing quest. | [Open](references/open.md) |
 | `list` | Listing quests. | [List](references/list.md) |

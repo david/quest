@@ -22,18 +22,18 @@ git clone https://github.com/david/quest.git
 ln -s "$PWD/quest/skills/quest" ~/.claude/skills/quest
 ```
 
-Then set up a project with `/quest install`. This picks a quest root, a
-directory named `quests` that lies outside the project repository, and declares
-it in the project's `AGENTS.md`. It also creates a `lore/` directory for facts
-that outlive any single quest, and adds a Lore section to `AGENTS.md` that lists
-its files. Run it from a directory that holds the repository, not from inside
-the repository; it refuses to run there.
+Then set up a project with `/quest realm init`. This makes it a realm: it picks
+a quest root, a directory named `quests` that lies outside the project
+repository, and declares it in the project's `AGENTS.md`. It also creates a
+`lore/` directory for facts that outlive any single quest, and adds a Lore
+section to `AGENTS.md` that lists its files. Run it from a directory that holds
+the repository, not from inside the repository; it refuses to run there.
 
 ## Use
 
 | Command | What it does |
 | --- | --- |
-| `install` | Set up quest support in a project. |
+| `realm init` | Set up a project for quests, making it a realm. |
 | `new` | Create a quest and capture its goal. |
 | `open` | Open a quest and summarize where it stands. |
 | `list` | List quests. |

@@ -21,7 +21,7 @@ Quote actual paths as needed. The destination parent must already exist. The
 renderer handles only this explicitly selected TOML file, not recursive copying
 or template hooks. It replaces `<slug>` with `123_add_login` and `<app-port>`
 with `5101`. The quest directory remains `123-add-login`. Project-specific values
-such as `<project>` must already be resolved during installation.
+such as `<project>` must already be resolved during `realm init`.
 
 The script validates the slug, port range, unresolved `<name>` placeholders, and
 rendered TOML before creating anything. It refuses existing destinations,

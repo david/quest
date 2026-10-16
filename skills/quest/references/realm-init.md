@@ -1,25 +1,26 @@
-# Install
+# Realm Init
 
-## `install [project-directory]`
+## `realm init [project-directory]`
 
-Install quest memory, with workspace-template conventions when applicable, not a
-workflow. Use the explicit project directory, or the session's current working directory when
-omitted. Canonicalize the target and confirm it is the intended project when
-ambiguous. Do not require existing quest-root discovery or install into the skill
-directory. Do not create a quest, checkout, database, or running service.
+Make a project a realm: set up quest memory in it, with workspace-template
+conventions when applicable, not a workflow. Use the explicit project
+directory, or the session's current working directory when omitted.
+Canonicalize the target and confirm it is the intended project when ambiguous.
+Do not require existing quest-root discovery or set up the skill directory as a
+realm. Do not create a quest, checkout, database, or running service.
 
 Stop without changing anything when the project directory is a Git repository or
 lies inside one, that is, when it or any parent holds a `.git` entry. The quest
 root and `lore/` must stay out of every repository. Tell the user to run
-`install` from a directory outside the repository, such as one that holds it.
+`realm init` from a directory outside the repository, such as one that holds it.
 
 Inspect the target's existing `AGENTS.md`, quest setup, and relevant environment
 configuration. Reuse a valid existing quest-root declaration and template setup;
 do not create parallel roots or migrate existing quests. Ask before changing a
-conflicting declaration, file layout, or setup rule. Rerunning installation must
+conflicting declaration, file layout, or setup rule. Rerunning `realm init` must
 preserve existing files and avoid duplicate instruction blocks.
 
-For installation or reconciliation of an existing setup, the baseline is:
+For a new realm or reconciliation of an existing setup, the baseline is:
 
 1. Reuse the configured quest root or default to `./quests` under the project
    directory. The root must be named `quests` and lie outside any repository,
@@ -75,7 +76,7 @@ Add only the workspace conventions applicable to the project:
    repository or one shared checkout, and ask before changing it; for such a
    project, record where a quest's code lives and how its commands load quest
    configuration without overwriting shared configuration.
-   Do not create checkouts during installation.
+   Do not create checkouts during `realm init`.
 4. When services need ports, establish the app-port selection convention and any
    additional project-specific template values. Prefer the project's existing
    allocator or registry. Otherwise
