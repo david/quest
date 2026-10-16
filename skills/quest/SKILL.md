@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, sync, hand off, distill, or archive a quest,
   and to keep its records current while working inside one.
 metadata:
-  version: "3.2.0"
+  version: "3.3.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -152,7 +152,10 @@ Ask before deleting material whose owner or purpose is unclear.
 **Keep each fact in one place.** Link to the file or authoritative source that
 owns a fact instead of copying it. Volatile state, such as active work, blockers,
 and next actions, belongs in `Current State` so that supporting files stay
-stable.
+stable. Leave out state that Git or another tool reports live, such as whether
+a commit is pushed or how far a branch is ahead or behind: it goes stale as
+soon as someone acts, and the tool remains its owner. When such a step is the
+quest's own pending work, record it as a next action.
 
 **Record who made each decision.** Say whether the user or the agent made it. A
 resuming agent may revisit an agent's choice when the facts change, but must
