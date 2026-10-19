@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, sync, hand off, distill, or archive a quest,
   and to keep its records current while working inside one.
 metadata:
-  version: "4.0.0"
+  version: "4.1.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->

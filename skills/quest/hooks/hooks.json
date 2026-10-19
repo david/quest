@@ -1,0 +1,48 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.py\" . \"$CLAUDE_PROJECT_DIR\" >/dev/null || exit 1",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.py\" . \"$CLAUDE_PROJECT_DIR\" >/dev/null || exit 1",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.py\" . \"$CLAUDE_PROJECT_DIR\" >/dev/null || exit 1",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.py\" . \"$CLAUDE_PROJECT_DIR\" >/dev/null || exit 1",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}

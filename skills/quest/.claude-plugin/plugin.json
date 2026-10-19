@@ -1,0 +1,12 @@
+{
+  "name": "quest",
+  "description": "The quest skill, with hooks that snapshot quest records into each quest's own Git repository.",
+  "author": {
+    "name": "David Leal"
+  },
+  "homepage": "https://github.com/david/quest",
+  "license": "MIT",
+  "skills": [
+    "./"
+  ]
+}

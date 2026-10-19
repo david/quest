@@ -48,6 +48,9 @@ succeed.
 
 ## Running It From A Hook
 
+Claude Code needs no setup: the skill directory is a plugin, and
+`hooks/hooks.json` holds these hooks. Another harness needs its own.
+
 Have the harness run the script from the session's working directory at two
 points: when a turn ends, whether it succeeded or failed, and when a prompt is
 submitted. The second catches an interrupted turn and edits made outside the

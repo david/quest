@@ -73,23 +73,16 @@ quest, so removing the quest leaves nothing behind in the repository.
 `scripts/snapshot.py` commits each quest's records to the quest's own Git
 repository, so earlier states can be recovered. Code checkouts and private
 files are left out. The script is meant to run from a harness hook, not by the
-agent. For Claude Code, add this to `~/.claude/settings.json` under `hooks` for
-the `UserPromptSubmit`, `Stop`, `StopFailure`, and `SessionEnd` events:
+agent.
 
-```json
-{
-  "hooks": [
-    {
-      "type": "command",
-      "command": "s=\"$HOME/.claude/skills/quest/scripts/snapshot.py\"; [ -f \"$s\" ] || exit 0; python3 \"$s\" . \"$CLAUDE_PROJECT_DIR\" >/dev/null || exit 1",
-      "timeout": 60
-    }
-  ]
-}
-```
+For Claude Code, the skill directory is also a plugin. Claude Code loads it
+from `~/.claude/skills/quest` as `quest@skills-dir` and runs the hooks in
+[`hooks/hooks.json`](skills/quest/hooks/hooks.json) in every session, so there
+are no settings to edit. If you added the snapshot hooks to
+`~/.claude/settings.json` by hand, remove them.
 
-Change the path if the skill is installed somewhere else. See
-[Snapshots](skills/quest/references/snapshot.md) for details.
+Other agents need their own hook. See
+[Snapshots](skills/quest/references/snapshot.md) for what it must do.
 
 ## Requirements
 
