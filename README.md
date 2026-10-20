@@ -71,14 +71,40 @@ quest, so removing the quest leaves nothing behind in the repository.
 ## The `quest` command
 
 `skills/quest/bin/quest` carries out the steps that a program does better than
-an agent. So far it has two commands:
+an agent, and lists quests for other tools, such as a status bar widget:
 
+- `quest world list`, `quest realm list`, and `quest list` print the worlds,
+  the realms in them, and their quests, as described below.
+- `quest realm show <realm>` and `quest show <realm> <slug>` print one realm
+  or quest, with its directory.
 - `quest snapshot` commits each quest's records, as described below.
 - `quest archive <quest>` checks a quest's checkouts for work that archiving
   would lose. When it finds none, it removes them and moves the quest to
   `.archived/`. With `--check` it only reports.
 
 Run it as `python3 skills/quest/bin/quest`, or link it into your `PATH`.
+
+## Worlds
+
+A world is a directory of realms, on this computer or on another host. List
+yours in `~/.config/quest/worlds.json`:
+
+```json
+[
+  { "host": "devbox", "path": "/home/me/Projects" },
+  { "path": "~/Projects" }
+]
+```
+
+Leave out the host, or give this computer's name, for a world here; a
+relative path starts at the home directory. Without the file, the one world is
+`~/Projects` here. `--world [<host>:]<path>` lists another world instead.
+
+A realm is a directory in a world whose `AGENTS.md` or `CLAUDE.md` declares a
+quest root. The listing commands print JSON and include the worlds and realms
+that could not be listed. For a world on another host, `quest` runs itself
+there over `ssh`, sending its own code, so that host needs only `python3` and
+`ssh <host>` must work without a prompt.
 
 ## Snapshots
 
@@ -98,7 +124,7 @@ Other agents need their own hook. See
 ## Requirements
 
 - Git.
-- Python 3.10 or newer, for `bin/quest`.
+- Python 3.9 or newer, for `bin/quest`.
 - A filesystem with reflink support (such as Btrfs, XFS, or APFS) for the
   copy-on-write clone. Without it, the first checkout falls back to a Git
   worktree of the realm's repository.

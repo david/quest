@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
-"""Snapshot quests' records, and archive a quest once a check finds nothing to lose."""
+"""List worlds, realms, and quests; snapshot quests' records; and archive a quest
+once a check finds nothing to lose."""
+
+# Annotations stay unevaluated, so Python 3.9, as on macOS, accepts X | None.
+from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import contextlib
 import fcntl
+import json
 import os
 from pathlib import Path
 import re
+import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -55,7 +63,9 @@ def git(directory: Path, *args: str, check: bool = True, stdin: str = "",
 
 DECLARATION = re.compile(r"^\s*Quest root:\s*([^\r\n]+)$", re.MULTILINE)
 INSTRUCTIONS = ("AGENTS.md", "CLAUDE.md")
-DEFAULT_RULES = Path(__file__).resolve().parents[1] / "assets" / "snapshot-exclude"
+# .parent rather than .parents[1], which fails for a script read from standard
+# input at /, as when listing a world on another host.
+DEFAULT_RULES = Path(__file__).resolve().parent.parent / "assets" / "snapshot-exclude"
 UNSCANNED = {".git", "worktrees", "local-data", "node_modules", ".cache", "__pycache__"}
 LOCK_WAIT_SECONDS = 30
 
@@ -70,6 +80,22 @@ def is_quest(directory: Path) -> bool:
     )
 
 
+def declared_root(directory: Path) -> Path | None:
+    """The quest root that the directory's instructions declare, if they declare one."""
+    for name in INSTRUCTIONS:
+        try:
+            declared = DECLARATION.findall((directory / name).read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError):
+            continue
+        if declared:
+            value = re.sub(r"^`(.*)`$", r"\1", declared[-1].strip())
+            root = Path(os.path.realpath(directory / value))
+            if root.name != "quests" or not root.is_dir():
+                raise QuestError(f"invalid Quest root declaration in {directory / name}")
+            return root
+    return None
+
+
 def find_root(directory: Path) -> Path | None:
     directory = Path(os.path.realpath(directory))
     ancestors = [directory, *directory.parents]
@@ -79,17 +105,9 @@ def find_root(directory: Path) -> Path | None:
             return parent.parent if parent.name == ".archived" else parent
     # Read known instruction paths; never search checkouts for more.
     for ancestor in ancestors:
-        for name in INSTRUCTIONS:
-            try:
-                declared = DECLARATION.findall((ancestor / name).read_text(encoding="utf-8"))
-            except (OSError, UnicodeDecodeError):
-                continue
-            if declared:
-                value = re.sub(r"^`(.*)`$", r"\1", declared[-1].strip())
-                root = Path(os.path.realpath(ancestor / value))
-                if root.name != "quests" or not root.is_dir():
-                    raise QuestError(f"invalid Quest root declaration in {ancestor / name}")
-                return root
+        root = declared_root(ancestor)
+        if root:
+            return root
     for candidate in (directory, Path(os.path.realpath(directory / "quests"))):
         if candidate.name == "quests" and candidate.is_dir():
             return candidate
@@ -684,6 +702,223 @@ def archive_command(args: argparse.Namespace) -> int:
     return 0
 
 
+# quest world, quest realm, quest list, and quest show
+
+PLACE = re.compile(r"([^:/]+):(.*)", re.DOTALL)
+HOST = re.compile(r"[A-Za-z0-9._][A-Za-z0-9._-]*")
+HEADING = re.compile(r"^#[ \t]+(.*?)[ \t]*$", re.MULTILINE)
+FRONTMATTER = re.compile(r"---\r?\n.*?^---[ \t]*$", re.MULTILINE | re.DOTALL)
+SSH_SECONDS = 60
+
+
+class World:
+    """A directory of realms, on this computer or on another host."""
+
+    def __init__(self, host: str | None, path: str):
+        if host is not None and not HOST.fullmatch(host):
+            raise QuestError(f"not a host name: {host}")
+        if not path or re.search(r"[\x00-\x1f\x7f]", path):
+            raise QuestError(f"not a path: {path!r}")
+        # As written, so a list of worlds shared between computers names each
+        # world the same way on all of them.
+        self.name = f"{host}:{path}" if host else path
+        here = socket.gethostname().split(".")[0].lower()
+        self.host = None if host in (None, "localhost") or host.split(".")[0].lower() == here else host
+        self.path = path
+
+    @classmethod
+    def parse(cls, text: str) -> World:
+        match = PLACE.fullmatch(text)
+        return cls(*match.groups()) if match else cls(None, text)
+
+    def describe(self) -> dict:
+        return {"world": self.name, "host": self.host, "path": self.path}
+
+
+def worlds_file() -> Path:
+    config = os.environ.get("XDG_CONFIG_HOME", "")
+    return (Path(config) if os.path.isabs(config) else Path.home() / ".config") / "quest" / "worlds.json"
+
+
+def configured_worlds() -> list[World]:
+    path = worlds_file()
+    try:
+        entries = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return [World(None, "~/Projects")]
+    except (OSError, UnicodeDecodeError, ValueError) as error:
+        raise QuestError(f"{path}: {error}") from None
+    if not isinstance(entries, list) or not all(
+            isinstance(entry, dict) and isinstance(entry.get("path"), str)
+            and isinstance(entry.get("host", ""), (str, type(None))) for entry in entries):
+        raise QuestError(f'{path}: expected a list of {{"host", "path"}} objects')
+    try:
+        return [World(entry.get("host") or None, entry["path"]) for entry in entries]
+    except QuestError as error:
+        raise QuestError(f"{path}: {error}") from None
+
+
+def chosen_worlds(names: list[str] | None) -> list[World]:
+    return [World.parse(name) for name in names] if names else configured_worlds()
+
+
+def title(quest: Path) -> str | None:
+    try:
+        text = (quest / "QUEST.md").read_text(**TEXT)
+    except OSError:
+        return None
+    # YAML comments in front matter also start with "#".
+    match = HEADING.search(FRONTMATTER.sub("", text, count=1) if text.startswith("---") else text)
+    return match.group(1) if match else None
+
+
+def subdirectories(directory: Path, follow: bool = True) -> list[Path]:
+    with os.scandir(directory) as entries:
+        return [directory / entry.name for entry in entries if entry.is_dir(follow_symlinks=follow)]
+
+
+def local_listing(path: str, quests: bool, realm: str | None = None,
+                  archived: bool = False) -> dict[str, list]:
+    """The realms or the quests in a world on this computer, without world and host."""
+    listing: dict[str, list] = (
+        {"quests": [], "invalid": [], "failed": []} if quests else {"realms": [], "failed": []})
+    # A relative path starts at the home directory, where ssh starts on another host.
+    top = Path(os.path.realpath(Path.home() / Path(path).expanduser()))
+    try:
+        directories = subdirectories(top)
+    except OSError as error:
+        listing["failed"].append({"error": f"{top}: {error.strerror or error}"})
+        return listing
+    for directory in directories:
+        if realm is not None and directory.name != realm:
+            continue
+        try:
+            root = declared_root(directory)
+            if root is None:
+                continue
+            if not quests:
+                listing["realms"].append({"realm": directory.name, "dir": str(directory), "root": str(root)})
+                continue
+            found = [(quest, False) for quest in subdirectories(root, follow=False)
+                     if quest.name != ".archived"]
+            shelf = root / ".archived"
+            if archived and shelf.is_dir() and not shelf.is_symlink():
+                found += [(quest, True) for quest in subdirectories(shelf, follow=False)]
+        except (OSError, QuestError) as error:
+            listing["failed"].append({"realm": directory.name, "error": str(error)})
+            continue
+        for quest, shelved in found:
+            if is_quest(quest):
+                listing["quests"].append({
+                    "realm": directory.name, "slug": quest.name, "title": title(quest),
+                    "dir": str(quest), "archived": shelved})
+            elif not shelved:
+                listing["invalid"].append({"realm": directory.name, "dir": str(quest)})
+    return listing
+
+
+def remote_listing(world: World, arguments: list[str]) -> dict[str, list]:
+    """Run this command on the world's host, with its own source sent on standard
+    input, so the host needs only python3 and always runs this version."""
+    # ./ keeps a relative path with a colon from reading as another host there.
+    path = world.path if world.path.startswith(("/", "~")) else f"./{world.path}"
+    command = shlex.join(["python3", "-", *arguments, f"--world={path}"])
+    try:
+        source = Path(__file__).read_text(**TEXT)
+        result = subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+             "-o", "ClearAllForwardings=yes", "--", world.host, command],
+            input=source, capture_output=True, timeout=SSH_SECONDS, **TEXT)
+    except subprocess.TimeoutExpired:
+        raise QuestError(f"no answer from {world.host} in {SSH_SECONDS} seconds") from None
+    if result.returncode:
+        # The last line: ssh's own error, or the exception that ended a traceback.
+        errors = [line.strip() for line in result.stderr.splitlines() if line.strip()]
+        raise QuestError(errors[-1] if errors else f"ssh exited with status {result.returncode}")
+    try:
+        listing = json.loads(result.stdout)
+    except ValueError:
+        raise QuestError(f"unexpected output from {world.host}: {result.stdout[:200]!r}") from None
+    if not isinstance(listing, dict) or not all(isinstance(value, list) for value in listing.values()):
+        raise QuestError(f"unexpected output from {world.host}: {result.stdout[:200]!r}")
+    return listing
+
+
+def gather(worlds: list[World], quests: bool, realm: str | None = None,
+           archived: bool = False) -> dict[str, list]:
+    """List the worlds at once, adding each entry's world and host."""
+    arguments = ["list", *([f"--realm={realm}"] if realm else []), *(["--archived"] if archived else [])] \
+        if quests else ["realm", "list"]
+
+    def one(world: World) -> dict[str, list]:
+        try:
+            if world.host:
+                return remote_listing(world, arguments)
+            return local_listing(world.path, quests, realm, archived)
+        except (OSError, QuestError) as error:
+            return {"failed": [{"error": str(error)}]}
+
+    combined: dict[str, list] = (
+        {"quests": [], "invalid": [], "failed": []} if quests else {"realms": [], "failed": []})
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(len(worlds), 1)) as pool:
+        for world, listing in zip(worlds, pool.map(one, worlds)):
+            for key, entries in combined.items():
+                # Another host names the world and itself as it sees them.
+                entries += [{"world": world.name, "host": world.host,
+                             **{name: value for name, value in entry.items()
+                                if name not in ("world", "host")}}
+                            for entry in listing.get(key, []) if isinstance(entry, dict)]
+    return combined
+
+
+def emit(value: object) -> None:
+    # ASCII escapes keep the output valid JSON for any path, even one that is not UTF-8.
+    print(json.dumps(value, indent=2))
+
+
+def world_list_command(args: argparse.Namespace) -> int:
+    emit([world.describe() for world in configured_worlds()])
+    return 0
+
+
+def realm_list_command(args: argparse.Namespace) -> int:
+    emit(gather(chosen_worlds(args.world), quests=False))
+    return 0
+
+
+def list_command(args: argparse.Namespace) -> int:
+    emit(gather(chosen_worlds(args.world), quests=True, realm=args.realm, archived=args.archived))
+    return 0
+
+
+def show(command: str, what: str, matches: list[dict], failed: list[dict]) -> int:
+    for failure in failed:
+        print(f"{command}: could not search {failure['world']}"
+              f"{' ' + failure['realm'] if 'realm' in failure else ''}: {failure['error']}",
+              file=sys.stderr)
+    if len(matches) == 1:
+        emit(matches[0])
+        return 0
+    if matches:
+        print(f"{command}: {what} is in more than one world, so choose one with --world: "
+              + ", ".join(match["world"] for match in matches), file=sys.stderr)
+    else:
+        print(f"{command}: no {what}", file=sys.stderr)
+    return 1
+
+
+def realm_show_command(args: argparse.Namespace) -> int:
+    listing = gather(chosen_worlds(args.world), quests=False)
+    matches = [realm for realm in listing["realms"] if realm["realm"] == args.realm]
+    return show("quest realm show", f"realm {args.realm}", matches, listing["failed"])
+
+
+def show_command(args: argparse.Namespace) -> int:
+    listing = gather(chosen_worlds(args.world), quests=True, realm=args.realm)
+    matches = [quest for quest in listing["quests"] if quest["slug"] == args.slug]
+    return show("quest show", f"quest {args.slug} in {args.realm}", matches, listing["failed"])
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True, metavar="command")
@@ -711,8 +946,58 @@ def main() -> int:
         help="the repository a clone was copied from; commits it keeps are not the quest's")
     archive_parser.set_defaults(run=archive_command)
 
+    worlds = ("a directory of realms, [<host>:]<path>, where a relative <path> starts at the "
+              "home directory; repeat for more (default: the worlds in the worlds file)")
+    world_parser = commands.add_parser(
+        "world", help="list the worlds",
+        description="Worlds are directories of realms, on this computer or on other hosts, "
+                    "listed in $XDG_CONFIG_HOME/quest/worlds.json as [{\"host\", \"path\"}]. "
+                    "Without that file, the one world is ~/Projects.")
+    world_commands = world_parser.add_subparsers(dest="action", required=True, metavar="command")
+    world_commands.add_parser(
+        "list", help="print the worlds as JSON", description="Print the worlds as JSON.",
+    ).set_defaults(run=world_list_command, name="quest world list")
+
+    realm_parser = commands.add_parser(
+        "realm", help="list or show realms",
+        description="A realm is a directory in a world whose AGENTS.md or CLAUDE.md declares "
+                    "its quest root.")
+    realm_commands = realm_parser.add_subparsers(dest="action", required=True, metavar="command")
+    realm_list_parser = realm_commands.add_parser(
+        "list", help="print the realms in the worlds as JSON",
+        description="Print the realms in the worlds as JSON, with the worlds that could not "
+                    "be listed.")
+    realm_list_parser.add_argument("--world", action="append", help=worlds)
+    realm_list_parser.set_defaults(run=realm_list_command, name="quest realm list")
+    realm_show_parser = realm_commands.add_parser(
+        "show", help="print one realm as JSON", description="Print one realm as JSON.")
+    realm_show_parser.add_argument("realm", help="the realm's directory name")
+    realm_show_parser.add_argument("--world", action="append", help=worlds)
+    realm_show_parser.set_defaults(run=realm_show_command, name="quest realm show")
+
+    list_parser = commands.add_parser(
+        "list", help="print the quests in the worlds as JSON",
+        description="Print the quests in the worlds as JSON, with the directories in quest "
+                    "roots that are not quests and the worlds that could not be listed.")
+    list_parser.add_argument("--world", action="append", help=worlds)
+    list_parser.add_argument("--realm", help="only the quests of this realm")
+    list_parser.add_argument("--archived", action="store_true", help="include archived quests")
+    list_parser.set_defaults(run=list_command, name="quest list")
+
+    show_parser = commands.add_parser(
+        "show", help="print one quest as JSON", description="Print one active quest as JSON.")
+    show_parser.add_argument("realm", help="the realm's directory name")
+    show_parser.add_argument("slug", help="the quest's slug")
+    show_parser.add_argument("--world", action="append", help=worlds)
+    show_parser.set_defaults(run=show_command, name="quest show")
+
     args = parser.parse_args()
-    return args.run(args)
+    try:
+        return args.run(args)
+    except QuestError as error:
+        # snapshot and archive report their own errors.
+        print(f"{args.name}: {error}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
