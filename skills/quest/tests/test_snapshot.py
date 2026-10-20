@@ -8,7 +8,7 @@ import unittest
 
 
 SKILL = Path(__file__).resolve().parents[1]
-SCRIPT = SKILL / "scripts" / "snapshot.py"
+QUEST = SKILL / "bin" / "quest"
 DEFAULT_RULES = (SKILL / "assets" / "snapshot-exclude").read_text()
 
 
@@ -39,7 +39,7 @@ class SnapshotTests(unittest.TestCase):
 
     def snapshot(self, *directories, cwd=None):
         return subprocess.run(
-            [sys.executable, str(SCRIPT), *map(str, directories)],
+            [sys.executable, str(QUEST), "snapshot", *map(str, directories)],
             cwd=cwd or self.quest, env=self.env, capture_output=True, text=True,
         )
 
@@ -136,11 +136,11 @@ class SnapshotTests(unittest.TestCase):
 
     def test_missing_default_rules_are_reported_once_and_nothing_is_created(self):
         self.add_quest("sibling-quest", "# Existing sibling\n")
-        copy = self.base / "skill" / "scripts"
+        copy = self.base / "skill" / "bin"
         copy.mkdir(parents=True)
-        shutil.copy(SCRIPT, copy)
+        shutil.copy(QUEST, copy)
         result = subprocess.run(
-            [sys.executable, str(copy / "snapshot.py")],
+            [sys.executable, str(copy / "quest"), "snapshot"],
             cwd=self.quest, env=self.env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 1)
         self.assertEqual(len(result.stderr.splitlines()), 1)
@@ -149,7 +149,7 @@ class SnapshotTests(unittest.TestCase):
         outside = self.base / "outside"
         outside.mkdir()
         result = subprocess.run(
-            [sys.executable, str(copy / "snapshot.py")],
+            [sys.executable, str(copy / "quest"), "snapshot"],
             cwd=outside, env=self.env, capture_output=True, text=True)
         self.assertEqual((result.returncode, result.stderr), (0, ""))
 
@@ -219,8 +219,8 @@ class SnapshotTests(unittest.TestCase):
         gone = self.base / "gone"
         gone.mkdir()
         result = subprocess.run(
-            ["sh", "-c", 'rmdir "$PWD" && exec "$0" "$1" . "$2"',
-             sys.executable, str(SCRIPT), str(self.project)],
+            ["sh", "-c", 'rmdir "$PWD" && exec "$0" "$1" snapshot . "$2"',
+             sys.executable, str(QUEST), str(self.project)],
             cwd=gone, env=self.env, capture_output=True, text=True,
         )
         self.assertEqual((result.returncode, result.stderr), (0, ""))
@@ -322,7 +322,7 @@ class SnapshotTests(unittest.TestCase):
     def test_parallel_processes_serialize(self):
         processes = [
             subprocess.Popen(
-                [sys.executable, str(SCRIPT)], cwd=self.quest, env=self.env,
+                [sys.executable, str(QUEST), "snapshot"], cwd=self.quest, env=self.env,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             for _ in range(6)
         ]

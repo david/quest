@@ -24,8 +24,8 @@ For a new realm or reconciliation of an existing setup, the baseline is:
 
 1. Reuse the configured quest root or default to `./quests` in the realm. The
    root must be named `quests` and lie outside any repository, which the
-   [snapshot script](snapshot.md) enforces. Create the storage directory.
-   Where the script refuses an existing root, preserve its records and ask
+   [snapshot command](snapshot.md) enforces. Create the storage directory.
+   Where the command refuses an existing root, preserve its records and ask
    before moving them.
 2. Add or narrowly update a quest setup section in the realm's `AGENTS.md`.
    Preserve all unrelated instructions. Declare `Quest root: <path>` using the

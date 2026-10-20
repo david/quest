@@ -40,11 +40,11 @@ check, so that it sees them.
 ### 3. Run the check
 
 ```sh
-python3 <quest-skill-directory>/scripts/archive-check.py <quest-directory> \
+python3 <quest-skill-directory>/bin/quest archive --check <quest-directory> \
   [--source <repository>] [--target <branch>]
 ```
 
-The script needs Python 3.10 or newer and Git 2.38 or newer. It changes nothing
+The check needs Python 3.10 or newer and Git 2.38 or newer. It changes nothing
 except to fetch the target branch into each repository. It exits 0 with no
 findings, 1 with findings, and 2 when it could not finish. After a 2, remove
 nothing: fix what it names, or ask the user, and run it again.
@@ -61,22 +61,22 @@ It reports, marking each finding with `!`:
   out, and the command that removes a worktree from it.
 - Processes whose working directory is in a checkout, on systems with `/proc`.
 
-To tell whether a branch's work is on the target, the script rebases a
+To tell whether a branch's work is on the target, the check rebases a
 throwaway copy of it onto the fetched target. A rebase drops commits whose
 patch the target has, and commits that change nothing there, so rebased work
 leaves nothing behind. Squashed work may not rebase commit by commit, so the
-script also tries the branch squashed into one commit. Work is on the target
+check also tries the branch squashed into one commit. Work is on the target
 when either rebase leaves nothing. Otherwise it reports the commits left over,
 or a conflict. A conflict can be a false alarm, but it still needs a look.
 
 Pass `--source` when `worktrees/1` is a copy of the realm's repository. A copy
-starts with that repository's branches and stashes, and the script leaves out
+starts with that repository's branches and stashes, and the check leaves out
 those that repository still keeps. Pass `--target <remote>/<branch>` when the
 work was integrated somewhere other than `origin/main`. Take the target from
 the realm's instructions or the pull request. It has to be a branch on a
 remote, because anything local goes with the checkout.
 
-The script does not report ignored files, look inside submodules, or search
+The check does not report ignored files, look inside submodules, or search
 reflogs. Anything Git ignores that is worth keeping, such as local settings or
 QA evidence, belongs in `<quest>/local-data/`, which archiving keeps. Check by
 hand any other checkout or branch that `QUEST.md` records as the quest's, and

@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, sync, hand off, distill, or archive a quest,
   and to keep its records current while working inside one.
 metadata:
-  version: "4.2.0"
+  version: "5.0.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -240,13 +240,13 @@ The copy is of a whole checkout, so:
 
 ## Versioned Checkpoints
 
-`scripts/snapshot.py` makes each active quest directory its own Git repository
-and commits the quest's records there, including partial state and other
-writers' edits. A harness hook runs it around every turn, so snapshots need
-nothing from the agent. [Snapshots](references/snapshot.md) describes the
-script and the hook.
+`quest snapshot`, a command of the skill's `bin/quest`, makes each active
+quest directory its own Git repository and commits the quest's records there,
+including partial state and other writers' edits. A harness hook runs it
+around every turn, so snapshots need nothing from the agent.
+[Snapshots](references/snapshot.md) describes the command and the hook.
 
-The script owns each quest's `.git`; do not initialize it or commit to it by
+The command owns each quest's `.git`; do not initialize it or commit to it by
 hand. It refuses a quest root that is inside a repository, and leaves
 `worktrees/`, `local-data/`, and nested repositories out of
 snapshots. Put other private or generated material in those excluded locations,

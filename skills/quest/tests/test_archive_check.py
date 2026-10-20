@@ -7,7 +7,7 @@ import tempfile
 import unittest
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "archive-check.py"
+QUEST = Path(__file__).resolve().parents[1] / "bin" / "quest"
 
 
 class ArchiveCheckTests(unittest.TestCase):
@@ -61,7 +61,7 @@ class ArchiveCheckTests(unittest.TestCase):
 
     def check(self, *options, quest=None):
         return subprocess.run(
-            [sys.executable, str(SCRIPT), *options, str(quest or self.quest)],
+            [sys.executable, str(QUEST), "archive", "--check", *options, str(quest or self.quest)],
             cwd=self.base, env=self.env, capture_output=True, text=True,
         )
 

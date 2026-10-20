@@ -68,12 +68,22 @@ A realm is a project set up for quests. It sits outside the repository, so
 quests and lore never end up in the code. Each quest's code lives inside the
 quest, so removing the quest leaves nothing behind in the repository.
 
+## The `quest` command
+
+`skills/quest/bin/quest` carries out the steps that a program does better than
+an agent. So far it has two commands:
+
+- `quest snapshot` commits each quest's records, as described below.
+- `quest archive --check <quest>` reports what archiving a quest would remove,
+  and what that would lose.
+
+Run it as `python3 skills/quest/bin/quest`, or link it into your `PATH`.
+
 ## Snapshots
 
-`scripts/snapshot.py` commits each quest's records to the quest's own Git
+`quest snapshot` commits each quest's records to the quest's own Git
 repository, so earlier states can be recovered. Code checkouts and private
-files are left out. The script is meant to run from a harness hook, not by the
-agent.
+files are left out. It is meant to run from a harness hook, not by the agent.
 
 For Claude Code, the skill directory is also a plugin. Claude Code loads it
 from `~/.claude/skills/quest` as `quest@skills-dir` and runs the hooks in
@@ -87,7 +97,7 @@ Other agents need their own hook. See
 ## Requirements
 
 - Git.
-- Python 3.10 or newer, for the scripts.
+- Python 3.10 or newer, for `bin/quest`.
 - A filesystem with reflink support (such as Btrfs, XFS, or APFS) for the
   copy-on-write clone. Without it, the first checkout falls back to a Git
   worktree of the realm's repository.
