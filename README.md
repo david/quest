@@ -22,9 +22,9 @@ git clone https://github.com/david/quest.git
 ln -s "$PWD/quest/skills/quest" ~/.claude/skills/quest
 ```
 
-Then set up a project with `/quest realm init`. This makes it a realm: it picks
-a quest root, a directory named `quests` that lies outside the project
-repository, and declares it in the project's `AGENTS.md`. It also creates a
+Then set up a project with `/quest realm init`. This makes it a realm: it creates
+the quest root, a directory named `quests` beside the project repository, and
+a quest setup section in the project's `AGENTS.md`. It also creates a
 `lore/` directory for facts that outlive any single quest, adds a Lore
 section to `AGENTS.md` that links to each of its files, and creates an empty
 `quest-template/` directory whose contents are copied into each new quest. Run
@@ -50,7 +50,7 @@ Commands can also be asked for in plain language.
 
 ```text
 <realm>/
-├── AGENTS.md               # declares the quest root and lists the lore
+├── AGENTS.md               # sets up quests and lists the lore
 ├── lore/                   # facts that outlive any single quest
 ├── quest-template/         # copied into each new quest
 ├── <repository>/           # the realm's code

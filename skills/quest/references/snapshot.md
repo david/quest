@@ -9,8 +9,9 @@ python3 <quest-skill-directory>/bin/quest snapshot [directory ...]
 ```
 
 With no argument it starts from the current directory. It resolves the quest
-root by the skill's rules, reading `Quest root:` declarations from `AGENTS.md`
-and `CLAUDE.md` in the directory's ancestors. It then snapshots every active
+root by the skill's rules: the root of the quest the directory is in or,
+failing that, the nearest `quests` directory, in the directory or an ancestor,
+that is outside any repository. It then snapshots every active
 quest directly under that root, not only the current one, so a session started
 in the realm covers the quest it edits. Archived quests are skipped,
 and a directory with no quest root is not an error.

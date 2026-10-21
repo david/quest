@@ -116,23 +116,15 @@ class ListingTests(unittest.TestCase):
         (self.world / "no-quests").mkdir()
         (self.world / "file-only").mkdir()
         (self.world / "file-only" / "quests").write_text("")
-        declared = self.world / "declared"
-        declared.mkdir()
-        (declared / "AGENTS.md").write_text("Quest root: ../app/quests\n")
-        broken = self.add_realm(self.world, "broken")
-        (broken / "AGENTS.md").write_text("Quest root: ./missing\n")
         (self.world / "file").write_text("")
         (self.world / ".hidden" / "quests").mkdir(parents=True)
 
         listing = self.output("realm", "list", "--world", str(self.world))
         realms = {realm["realm"]: realm["root"] for realm in listing["realms"]}
-        # A Quest root declaration counts for nothing: a realm's quests are in its quests directory.
         self.assertEqual(realms, {
             "app": str(self.realm / "quests"),
             "no-quests": None,
             "file-only": None,
-            "declared": None,
-            "broken": str(broken / "quests"),
         })
         self.assertEqual(listing["failed"], [])
 

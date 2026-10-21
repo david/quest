@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, sync, hand off, distill, or archive a quest,
   and to keep its records current while working inside one.
 metadata:
-  version: "5.0.0"
+  version: "6.0.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
@@ -26,7 +26,7 @@ instructions of the realm and its repository.
 
 ```text
 <realm>/
-├── AGENTS.md                  # declares the quest root and lists the lore
+├── AGENTS.md                  # sets up quests and lists the lore
 ├── lore/                      # facts that outlive any single quest
 ├── quest-template/            # copied into each new quest; may be empty
 ├── <repository>/              # the realm's code, usually kept here
@@ -41,9 +41,9 @@ instructions of the realm and its repository.
     └── .archived/<slug>/      # archived quests, not active
 ```
 
-A realm is a project set up for quests: the directory whose `AGENTS.md`
-declares its quest root and lists its lore. `realm init` makes one. A realm is
-never inside a repository, so its quests and lore stay out of the code, and its
+A realm is a project set up for quests: the directory that holds its quest
+root, `quests/`, and whose `AGENTS.md` lists its lore. `realm init` makes one.
+A realm is never inside a repository, so its quests and lore stay out of the code, and its
 repository is the one its quests clone.
 
 Read [Lore](references/lore.md) whenever a task touches lore. It says what
@@ -65,17 +65,14 @@ every quest read, write, and search in that operation.
    `quests`. That directory is the current quest and its parent is the root.
    This check comes first so that a session started inside a quest, including
    inside one of its checkouts, identifies it without any configuration.
-2. Otherwise use a `Quest root: <path>` declaration from the instructions
-   already in context, normally the realm's `AGENTS.md`. Resolve a relative
-   path from the directory of the file that declares it; the most specific
-   applicable declaration wins.
-   It counts only when it resolves to an existing directory named `quests`.
-   Work from the instructions already loaded rather than searching for more.
-3. Otherwise use the working directory if it is named `quests`, or `./quests`
-   if that directory exists.
-4. Otherwise stop and report which candidates were checked. Creating a `quests`
-   directory so that resolution succeeds, or guessing a root from repository
-   depth, puts records where nobody will look for them.
+2. Otherwise use the nearest `quests` directory: the working directory or an
+   ancestor that is named `quests` or contains a `quests` directory. Skip one
+   inside a Git repository, where it or a parent holds a `.git` entry, since
+   that belongs to the repository and a realm never lies inside one. A session
+   started in a realm's repository finds the realm's `quests` this way.
+3. Otherwise stop and report which directories were checked. Creating a
+   `quests` directory so that resolution succeeds puts records where nobody
+   will look for them.
 
 `realm init` is the exception: it sets up a realm that may not have a root
 yet.

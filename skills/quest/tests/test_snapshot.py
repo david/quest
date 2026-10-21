@@ -161,40 +161,22 @@ class SnapshotTests(unittest.TestCase):
             ["git", "-C", str(self.quest), "rev-parse", "--verify", "--quiet", "HEAD"], env=self.env)
         self.assertNotEqual(result.returncode, 0)
 
-    def test_containing_quest_wins_over_a_declaration(self):
-        elsewhere = self.add_quest("other-quest", "# Elsewhere\n", self.base / "declared" / "quests")
-        (self.project / "AGENTS.md").write_text("Quest root: ../declared/quests\n")
-        checkout = self.quest / "worktrees" / "1" / "src"
-        checkout.mkdir(parents=True)
+    def test_containing_quest_wins_over_a_nearer_quests_directory(self):
+        checkout = self.quest / "worktrees" / "1"
+        elsewhere = self.add_quest("other-quest", "# Elsewhere\n", checkout / "quests")
         self.snapshot_ok(cwd=checkout)
         self.assertEqual(self.commits(self.quest), 1)
         self.assertFalse((elsewhere / ".git").exists())
 
-    def test_declarations_resolve_beside_their_instruction_file(self):
-        declared = self.base / "declared" / "quests"
-        elsewhere = self.add_quest("other-quest", "# Elsewhere\n", declared)
-        repo = self.project / "repo" / "src"
-        repo.mkdir(parents=True)
-        (self.project / "AGENTS.md").write_text(
-            "# Quests\n\nQuest root: ./quests\n\nQuest root: `../declared/quests`\n")
+    def test_repository_finds_its_realms_quests_not_its_own(self):
+        repository = self.project / "repo"
+        own = self.add_quest("own-quest", "# The repository's own\n", repository / "quests")
+        (repository / "src").mkdir()
+        self.git(repository, "init", "--quiet")
         self.assertEqual(
-            self.snapshot_ok(cwd=repo),
-            "other-quest: Initialize quest records: 1 path (QUEST.md)\n")
-        self.assertFalse((self.quest / ".git").exists())
-
-        # The nearest instruction file wins, and CLAUDE.md is read like AGENTS.md.
-        (self.project / "repo" / "CLAUDE.md").write_text("Quest root: ../quests\n")
-        self.snapshot_ok(cwd=repo)
-        self.assertEqual(self.commits(self.quest), 1)
-        self.assertEqual(self.commits(elsewhere), 1)
-
-    def test_invalid_declaration_is_reported_and_creates_nothing(self):
-        (self.project / "AGENTS.md").write_text("Quest root: ./records\n")
-        (self.project / "records").mkdir()
-        result = self.snapshot(cwd=self.project)
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("invalid Quest root declaration", result.stderr)
-        self.assertFalse((self.quest / ".git").exists())
+            self.snapshot_ok(cwd=repository / "src"),
+            "sample-quest: Initialize quest records: 1 path (QUEST.md)\n")
+        self.assertFalse((own / ".git").exists())
 
     def test_root_fallbacks_and_no_root(self):
         self.snapshot_ok(cwd=self.root)

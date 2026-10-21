@@ -61,8 +61,6 @@ def git(directory: Path, *args: str, check: bool = True, stdin: str = "",
 
 # quest snapshot
 
-DECLARATION = re.compile(r"^\s*Quest root:\s*([^\r\n]+)$", re.MULTILINE)
-INSTRUCTIONS = ("AGENTS.md", "CLAUDE.md")
 # .parent rather than .parents[1], which fails for a script read from standard
 # input at /, as when listing a world on another host.
 DEFAULT_RULES = Path(__file__).resolve().parent.parent / "assets" / "snapshot-exclude"
@@ -80,20 +78,9 @@ def is_quest(directory: Path) -> bool:
     )
 
 
-def declared_root(directory: Path) -> Path | None:
-    """The quest root that the directory's instructions declare, if they declare one."""
-    for name in INSTRUCTIONS:
-        try:
-            declared = DECLARATION.findall((directory / name).read_text(encoding="utf-8"))
-        except (OSError, UnicodeDecodeError):
-            continue
-        if declared:
-            value = re.sub(r"^`(.*)`$", r"\1", declared[-1].strip())
-            root = Path(os.path.realpath(directory / value))
-            if root.name != "quests" or not root.is_dir():
-                raise QuestError(f"invalid Quest root declaration in {directory / name}")
-            return root
-    return None
+def enclosing_repository(directory: Path) -> Path | None:
+    """The directory itself or the nearest parent that holds a .git entry."""
+    return next((path for path in (directory, *directory.parents) if os.path.lexists(path / ".git")), None)
 
 
 def find_root(directory: Path) -> Path | None:
@@ -103,14 +90,12 @@ def find_root(directory: Path) -> Path | None:
         if is_quest(ancestor):
             parent = ancestor.parent
             return parent.parent if parent.name == ".archived" else parent
-    # Read known instruction paths; never search checkouts for more.
+    # Otherwise the nearest quests directory, as a realm's is to its repository.
+    # One inside a repository is that repository's own: a realm never is.
     for ancestor in ancestors:
-        root = declared_root(ancestor)
-        if root:
-            return root
-    for candidate in (directory, Path(os.path.realpath(directory / "quests"))):
-        if candidate.name == "quests" and candidate.is_dir():
-            return candidate
+        for candidate in (ancestor, ancestor / "quests"):
+            if candidate.name == "quests" and candidate.is_dir() and not enclosing_repository(candidate):
+                return Path(os.path.realpath(candidate))
     return None
 
 
@@ -146,10 +131,9 @@ def ignore_pattern(relative: str) -> str:
 
 
 def refuse_enclosing(root: Path) -> None:
-    for directory in (root, *root.parents):
-        if os.path.lexists(directory / ".git"):
-            raise QuestError(
-                f"quest storage must lie outside any repository, but {directory} is one")
+    repository = enclosing_repository(root)
+    if repository:
+        raise QuestError(f"quest storage must lie outside any repository, but {repository} is one")
 
 
 def nested_repositories(quest: Path, prefix: str = "") -> list[str]:
@@ -793,7 +777,7 @@ def local_listing(path: str, quests: bool, realm: str | None = None,
         # Every directory in a world is a realm, except a hidden one.
         if directory.name.startswith(".") or (realm is not None and directory.name != realm):
             continue
-        # A realm's quests are in its quests directory, whatever its instructions declare.
+        # A realm's quests are in its quests directory.
         root = directory / "quests"
         has_root = root.is_dir()
         entry = {"realm": directory.name, "dir": str(directory), "root": str(root) if has_root else None}

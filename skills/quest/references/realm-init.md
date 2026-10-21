@@ -15,21 +15,22 @@ root and `lore/` must stay out of every repository. Tell the user to run
 `realm init` from a directory outside the repository, such as one that holds it.
 
 Inspect the target's existing `AGENTS.md`, quest setup, and relevant environment
-configuration. Reuse a valid existing quest-root declaration and template setup;
-do not create parallel roots or migrate existing quests. Ask before changing a
-conflicting declaration, file layout, or setup rule. Rerunning `realm init` must
-preserve existing files and avoid duplicate instruction blocks.
+configuration. Reuse an existing `quests` directory and template setup; do not
+create parallel roots or migrate existing quests. Ask before changing a
+conflicting file layout or setup rule. Remove a `Quest root:` line left by an
+earlier version of the skill, which nothing reads now; when it names a
+directory other than the realm's `quests`, ask what to do with the quests
+there first. Rerunning `realm init` must preserve existing files and avoid
+duplicate instruction blocks.
 
 For a new realm or reconciliation of an existing setup, the baseline is:
 
-1. Reuse the configured quest root or default to `./quests` in the realm. The
-   root must be named `quests` and lie outside any repository, which the
-   [snapshot command](snapshot.md) enforces. Create the storage directory.
+1. Create the quest root, `quests/` in the realm, unless it exists. It lies
+   outside any repository, which the [snapshot command](snapshot.md) enforces.
    Where the command refuses an existing root, preserve its records and ask
    before moving them.
 2. Add or narrowly update a quest setup section in the realm's `AGENTS.md`.
-   Preserve all unrelated instructions. Declare `Quest root: <path>` using the
-   selected root's absolute path or a path relative to this instruction file.
+   Preserve all unrelated instructions.
 3. Explain that new quests read their `QUEST.md` first, record active workspace paths
    there when applicable, and follow repository instructions in that workspace
    before repository work. Do not create per-quest `AGENTS.md` files by default.
@@ -74,5 +75,5 @@ an ignore rule covers them, so a template can include the quest's `.gitignore`,
 as the skill's Versioned Checkpoints rules describe. Application-repository
 ignore rules do not apply to files outside that repository.
 
-Validate the quest-root declaration and resulting instructions. Report files
+Validate the resulting instructions and layout. Report files
 changed, unresolved setup choices, and any validation limits.
