@@ -74,8 +74,9 @@ quest, so removing the quest leaves nothing behind in the repository.
 an agent. So far it has two commands:
 
 - `quest snapshot` commits each quest's records, as described below.
-- `quest archive --check <quest>` reports what archiving a quest would remove,
-  and what that would lose.
+- `quest archive <quest>` checks a quest's checkouts for work that archiving
+  would lose. When it finds none, it removes them and moves the quest to
+  `.archived/`. With `--check` it only reports.
 
 Run it as `python3 skills/quest/bin/quest`, or link it into your `PATH`.
 

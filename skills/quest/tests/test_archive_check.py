@@ -73,6 +73,12 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1 if found else 0, result.stdout)
         return found, result.stdout
 
+    def archive(self, *options):
+        return subprocess.run(
+            [sys.executable, str(QUEST), "archive", *options, str(self.quest)],
+            cwd=self.base, env=self.env, capture_output=True, text=True,
+        )
+
     def refusal(self, *options, quest=None):
         result = self.check(*options, quest=quest)
         self.assertEqual(result.returncode, 2, result.stdout)
@@ -362,6 +368,51 @@ class ArchiveCheckTests(unittest.TestCase):
         found, report = self.findings()
         self.assertEqual(found, ["processes with a working directory in a checkout:"])
         self.assertIn(f"        {sleeper.pid} sleep: {checkout}\n", report)
+
+
+    def test_archive_removes_the_quests_clone_and_moves_the_quest(self):
+        checkout = self.clone()
+        self.git(checkout, "worktree", "add", "--quiet", "-b", "second", "../2")
+        (checkout / "debug.log").write_text("ignored\n")
+        (self.worktrees / "empty").mkdir()
+        (self.quest / "notes.md").write_text("notes\n")
+        result = self.archive()
+        self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+        self.assertIn(
+            "  last snapshot: Initialize quest records: 2 paths (QUEST.md, notes.md)\n"
+            "  deleted worktrees/2\n  deleted worktrees/1\n  deleted worktrees/\n", result.stdout)
+        archived = self.project / "quests" / ".archived" / "sample-quest"
+        self.assertFalse(self.quest.exists())
+        self.assertEqual(sorted(path.name for path in archived.iterdir()), [".git", "QUEST.md", "notes.md"])
+        self.assertEqual(self.git(archived, "ls-files"), "QUEST.md\nnotes.md")
+        self.assertEqual(self.git(self.repository, "branch", "--format=%(refname:short)"), "main")
+
+    def test_archive_with_findings_changes_nothing(self):
+        checkout = self.clone()
+        (checkout / "app.txt").write_text("changed\n")
+        result = self.archive()
+        self.assertEqual(result.returncode, 1, result.stderr)
+        self.assertTrue(result.stdout.endswith("\nNothing was archived.\n"), result.stdout)
+        self.assertEqual((checkout / "app.txt").read_text(), "changed\n")
+        self.assertFalse((self.quest / ".git").exists())
+        self.assertFalse((self.project / "quests" / ".archived").exists())
+
+    def test_archive_removes_worktrees_and_merged_branches_of_a_repository_that_outlives_it(self):
+        self.worktrees.mkdir()
+        self.git(self.repository, "worktree", "add", "--quiet", "-b", "quest/sample", str(self.worktrees / "1"))
+        self.commit(self.worktrees / "1", "feature.txt", "feature\n", "Add the feature")
+        self.git(self.repository, "branch", "someone-elses", "main")
+        # Upstream takes the work as another commit, which git branch -d does not see as merged.
+        self.commit(self.repository, "feature.txt", "feature\n", "Add the feature (#1)")
+        self.git(self.repository, "push", "--quiet", "origin", "main")
+        result = self.archive()
+        self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
+        self.assertIn("  removed the worktree worktrees/1\n", result.stdout)
+        self.assertIn(f"  deleted the merged branch quest/sample in {self.repository}\n", result.stdout)
+        self.assertEqual(
+            self.git(self.repository, "branch", "--format=%(refname:short)"), "main\nsomeone-elses")
+        self.assertEqual(self.git(self.repository, "worktree", "list", "--porcelain").count("worktree "), 1)
+        self.assertTrue((self.project / "quests" / ".archived" / "sample-quest" / "QUEST.md").is_file())
 
 
 if __name__ == "__main__":

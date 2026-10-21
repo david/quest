@@ -101,22 +101,39 @@ remote. With no findings and no open work, go on without asking.
 
 1. Record in `QUEST.md` what will be removed: checkout paths, branches, the
    target and the check's verdict, and what the user chose to lose.
-2. Run the check again. Take any finding the user has not seen back to them.
-3. Move the session's working directory out of the checkouts.
-4. For each worktree of a repository outside the quest, run the removal
-   command the check printed, with `--force` only if the user chose to lose
-   its uncommitted work. Then delete the branch it was on with `git branch
-   -d`. Use `-D` only when `-d` refuses a branch the check reported merged, or
-   for one whose work the user chose to lose, and only while its commit is the
-   one the check saw. Delete no other branch there, none that another worktree
-   uses, and nothing on a remote. Do not run `git worktree prune` or `repair`.
-5. For a repository inside the quest, delete the checkout directories the
-   check listed, the clone last. Never delete a parent directory, another
-   quest's checkout, or storage outside the quest. If a file resists removal,
-   as dependencies created by a container can, fix permissions only inside
-   that checkout. Remove `worktrees/` once it is empty.
-6. Confirm that `.archived/<slug>` is still absent, create `.archived` if
-   needed, and move the quest directory there.
+2. Move the session's working directory out of the checkouts.
+3. When the check had no findings, archive with the options it used:
+
+   ```sh
+   python3 <quest-skill-directory>/bin/quest archive <quest-directory> \
+     [--source <repository>] [--target <branch>]
+   ```
+
+   It runs the check again, and when that finds anything it changes nothing
+   and exits 1: take any finding the user has not seen back to them. With no
+   findings it takes a last snapshot, removes each worktree of a repository
+   outside the quest with `git worktree remove` and deletes the merged branch
+   it was on, deletes the quest's own checkouts, the clone last, and
+   `worktrees/`, and moves the quest to `.archived/<slug>`. It exits 0 when it
+   is done, and 2 when it stopped, having printed each step it finished.
+4. When the user chose to archive anyway, the command refuses, so archive by
+   hand. Run `quest archive --check` again first, as step 3 shows, and take
+   any finding the user has not seen back to them. Then:
+   - For each worktree of a repository outside the quest, run the removal
+     command the check printed, with `--force` only if the user chose to lose
+     its uncommitted work. Then delete the branch it was on with `git branch
+     -d`. Use `-D` only when `-d` refuses a branch the check reported merged,
+     or for one whose work the user chose to lose, and only while its commit
+     is the one the check saw. Delete no other branch there, none that another
+     worktree uses, and nothing on a remote. Do not run `git worktree prune`
+     or `repair`.
+   - For a repository inside the quest, delete the checkout directories the
+     check listed, the clone last. Never delete a parent directory, another
+     quest's checkout, or storage outside the quest. If a file resists
+     removal, as dependencies created by a container can, fix permissions
+     only inside that checkout. Remove `worktrees/` once it is empty.
+   - Confirm that `.archived/<slug>` is still absent, create `.archived` if
+     needed, and move the quest directory there.
 
 If a step fails, stop, and report what was done and what remains. Do not
 describe a partial archive as complete.

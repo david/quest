@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Snapshot quests' records, and check a quest before it is archived."""
+"""Snapshot quests' records, and archive a quest once a check finds nothing to lose."""
 
 import argparse
 import contextlib
@@ -7,6 +7,7 @@ import fcntl
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -212,6 +213,11 @@ def snapshot(quest: Path, default_rules: str) -> str | None:
         return subject
 
 
+def default_rules() -> str:
+    rules = DEFAULT_RULES.read_text(**TEXT)
+    return rules if rules.endswith("\n") else rules + "\n"
+
+
 def snapshot_command(args: argparse.Namespace) -> int:
     failed = False
 
@@ -236,12 +242,10 @@ def snapshot_command(args: argparse.Namespace) -> int:
     if not roots:
         return 1 if failed else 0
     try:
-        default_rules = DEFAULT_RULES.read_text(**TEXT)
+        rules = default_rules()
     except OSError as error:
         report(DEFAULT_RULES, error)
         return 1
-    if not default_rules.endswith("\n"):
-        default_rules += "\n"
 
     for root in roots:
         try:
@@ -252,7 +256,7 @@ def snapshot_command(args: argparse.Namespace) -> int:
             continue
         for quest in quests:
             try:
-                subject = snapshot(quest, default_rules)
+                subject = snapshot(quest, rules)
             except (OSError, QuestError) as error:
                 report(quest, error)
             else:
@@ -429,7 +433,8 @@ def held_by(source: Path, repository: Path) -> list[str]:
 
 def show_repository(report: Report, common: Path, main: Path, owned: bool,
                     checkouts: list[tuple[Path, dict[str, str]]],
-                    args: argparse.Namespace, scratch: Path) -> None:
+                    args: argparse.Namespace, scratch: Path) -> list[tuple[str, str]]:
+    """Report on the repository; return the quest's checked-out branches merged into the target."""
     via, target = checkouts[0][0], args.target
     if owned:
         print(f"Repository {report.name(common)}: the quest's own, removed with its checkouts")
@@ -442,24 +447,26 @@ def show_repository(report: Report, common: Path, main: Path, owned: bool,
     # A repository the quest owns is removed whole, so every local branch counts.
     # In any other, only what the quest has checked out is known to be its own.
     places: dict[str, list[str]] = {}
-    tips: list[tuple[str, str]] = []
+    tips: list[tuple[str, str, str | None]] = []
     for path, entry in checkouts:
         if "branch" in entry:
             places.setdefault(entry["branch"], []).append(report.name(path))
         elif entry.get("HEAD", "0").strip("0"):
-            tips.append((f"detached HEAD of {report.name(path)}", entry["HEAD"]))
+            tips.append((f"detached HEAD of {report.name(path)}", entry["HEAD"], None))
     for line in lines(git(via, "for-each-ref", "--format=%(objectname) %(refname)", "refs/heads")):
         commit, ref = line.split(" ", 1)
         if owned or ref in places:
             where = f" ({', '.join(places[ref])})" if ref in places else ""
-            tips.append((ref.removeprefix("refs/heads/") + where, commit))
+            tips.append((ref.removeprefix("refs/heads/") + where, commit, ref))
 
     copy = None
-    for label, tip in tips:
+    merged = []
+    for label, tip, ref in tips:
         if target_commit is None:
             report.finding(f"{label}: there is no remote branch {target} to compare it with")
         elif is_ancestor(via, tip, target_commit):
             report.note(f"{label}: merged into {target}")
+            merged.append((ref, tip))
         elif not commits(via, [tip], [target_commit, *held]):
             report.note(f"{label}: not in {target}, but {args.source} keeps it")
         else:
@@ -473,6 +480,7 @@ def show_repository(report: Report, common: Path, main: Path, owned: bool,
                 report.finding(f"{label}: {count(len(kept), 'commit')} not in {target}", kept)
             else:
                 report.note(f"{label}: merged into {target}, as other commits")
+                merged.append((ref, tip))
 
     if owned:
         stashes = [
@@ -480,7 +488,7 @@ def show_repository(report: Report, common: Path, main: Path, owned: bool,
             if line.split()[0] not in held]
         if stashes:
             report.finding(count(len(stashes), "stash entry", "stash entries"), stashes)
-
+    return [(ref, tip) for ref, tip in merged if ref in places]
 
 def processes(directories: list[Path]) -> list[str] | None:
     try:
@@ -499,7 +507,21 @@ def processes(directories: list[Path]) -> list[str] | None:
     return found
 
 
-def archive_check(args: argparse.Namespace) -> int:
+class Plan:
+    """What archiving removes, as the check found it."""
+
+    def __init__(self, quest: Path, destination: Path):
+        self.quest = quest
+        self.destination = destination
+        # Worktrees of repositories outside the quest, as (main checkout, worktree).
+        self.worktrees: list[tuple[Path, Path]] = []
+        # The merged branches they were on, as (main checkout, ref, commit).
+        self.branches: list[tuple[Path, str, str]] = []
+        # Checkouts of the quest's own repositories, each clone after its worktrees.
+        self.checkouts: list[Path] = []
+
+
+def archive_check(args: argparse.Namespace) -> tuple[int, Plan]:
     if args.quest.is_symlink():
         raise QuestError(f"{args.quest} is a symbolic link")
     quest = Path(os.path.realpath(args.quest))
@@ -544,6 +566,7 @@ def archive_check(args: argparse.Namespace) -> int:
                 raise QuestError(f"{path} is not registered in {common}")
 
     report = Report(quest)
+    plan = Plan(quest, destination)
     print(f"Quest {quest}\nArchives to {destination}\n")
     for path in sorted(found, key=lambda path: (not path.is_relative_to(worktrees), natural(path))):
         main = mains[found[path][0]]
@@ -559,10 +582,14 @@ def archive_check(args: argparse.Namespace) -> int:
     with tempfile.TemporaryDirectory() as scratch:
         for common in repositories:
             print()
-            show_repository(
-                report, common, mains[common], common.is_relative_to(quest),
-                [(path, entry) for path, (owner, entry) in found.items() if owner == common],
-                args, Path(scratch))
+            main, owned = mains[common], common.is_relative_to(quest)
+            checkouts = [(path, entry) for path, (owner, entry) in found.items() if owner == common]
+            merged = show_repository(report, common, main, owned, checkouts, args, Path(scratch))
+            if owned:
+                plan.checkouts += sorted((path for path, _ in checkouts), key=lambda path: path == main)
+            else:
+                plan.worktrees += [(main, path) for path, _ in checkouts]
+                plan.branches += [(main, ref, commit) for ref, commit in merged]
 
     print()
     running = processes(list(found))
@@ -573,19 +600,88 @@ def archive_check(args: argparse.Namespace) -> int:
     else:
         print("Processes: none has a working directory in a checkout.")
     print(f"\n{count(report.findings, 'finding')}, marked \"!\"." if report.findings else "\nNo findings.")
-    return report.findings
+    return report.findings, plan
+
+
+def archive(plan: Plan) -> None:
+    """Remove what the check found, in the order the archive guide gives, then move the quest."""
+    for main, path in plan.worktrees:
+        if path == main:
+            raise QuestError(f"{path} is the main checkout of a repository outside the quest")
+    print("\nArchiving:")
+    # A last snapshot, since snapshots skip the quest once it is archived. The
+    # records move with the quest, so a failure here loses nothing.
+    try:
+        refuse_enclosing(plan.quest.parent)
+        subject = snapshot(plan.quest, default_rules())
+    except (OSError, QuestError) as error:
+        print(f"  no last snapshot: {error}")
+    else:
+        print(f"  last snapshot: {subject or 'nothing new to record'}")
+
+    for main, path in plan.worktrees:
+        git(main, "worktree", "remove", str(path))
+        print(f"  removed the worktree {path.relative_to(plan.quest)}")
+    for main, ref, commit in plan.branches:
+        branch = ref.removeprefix("refs/heads/")
+        # -d asks HEAD or the upstream, which may lack what the check found in the
+        # target as other commits. -D only while the branch is where the check saw it.
+        if git(main, "branch", "--quiet", "-d", branch, check=False) is None:
+            if git(main, "rev-parse", "--verify", "--quiet", ref, check=False) != commit:
+                raise QuestError(f"{branch} in {main} has moved since the check, so it is kept")
+            git(main, "branch", "--quiet", "-D", branch)
+        print(f"  deleted the merged branch {branch} in {main}")
+    for path in plan.checkouts:
+        shutil.rmtree(path)
+        print(f"  deleted {path.relative_to(plan.quest)}")
+    worktrees = plan.quest / "worktrees"
+    if worktrees.is_dir():
+        # Only empty directories remain: the check reports anything else in worktrees/.
+        for entry in worktrees.iterdir():
+            entry.rmdir()
+        worktrees.rmdir()
+        print("  deleted worktrees/")
+
+    # Locked, so a snapshot is not committing while the quest moves.
+    with locked(plan.quest):
+        archived = plan.destination.parent
+        archived.mkdir(exist_ok=True)
+        if archived.is_symlink():
+            raise QuestError(f"{archived} is a symbolic link")
+        # mkdir claims the destination, failing if it exists; the rename then
+        # replaces that empty directory.
+        plan.destination.mkdir()
+        try:
+            os.rename(plan.quest, plan.destination)
+        except OSError:
+            plan.destination.rmdir()
+            raise
+    print(f"  moved the quest to {plan.destination}")
+
+
+def stopped(message: str, error: Exception) -> int:
+    # Any failure, a bug included, must not pass for the status that means findings.
+    detail = str(error) if isinstance(error, (OSError, QuestError)) else repr(error)
+    print(f"{message}: {detail}", file=sys.stderr)
+    return 2
 
 
 def archive_command(args: argparse.Namespace) -> int:
     sys.stdout.reconfigure(errors="backslashreplace")
+    command = "quest archive --check" if args.check else "quest archive"
     try:
-        return 1 if archive_check(args) else 0
+        findings, plan = archive_check(args)
     except Exception as error:
-        # Any failure, a bug included, must not pass for the status that means findings.
-        detail = str(error) if isinstance(error, (OSError, QuestError)) else repr(error)
-        print(f"quest archive --check: stopped, so any report above is incomplete: {detail}",
-              file=sys.stderr)
-        return 2
+        return stopped(f"{command}: stopped, so any report above is incomplete", error)
+    if args.check or findings:
+        if findings and not args.check:
+            print("Nothing was archived.")
+        return 1 if findings else 0
+    try:
+        archive(plan)
+    except Exception as error:
+        return stopped("quest archive: stopped partway; the lines above say what was done", error)
+    return 0
 
 
 def main() -> int:
@@ -601,11 +697,12 @@ def main() -> int:
     snapshot_parser.set_defaults(run=snapshot_command)
 
     archive_parser = commands.add_parser(
-        "archive", help="archive a quest; so far only --check",
-        description="Report what archiving a quest would remove, and what that would lose.")
+        "archive", help="check a quest, then archive it if nothing would be lost",
+        description="Report what archiving a quest would remove, and what that would lose. "
+                    "With no findings, remove the quest's checkouts and move it to .archived/.")
     archive_parser.add_argument("quest", type=Path, help="the quest directory")
     archive_parser.add_argument(
-        "--check", action="store_true", help="report, and change nothing but fetched refs")
+        "--check", action="store_true", help="only report, changing nothing but fetched refs")
     archive_parser.add_argument(
         "--target", default="origin/main",
         help="the remote branch the quest's work is merged into (default: origin/main)")
@@ -615,8 +712,6 @@ def main() -> int:
     archive_parser.set_defaults(run=archive_command)
 
     args = parser.parse_args()
-    if args.command == "archive" and not args.check:
-        archive_parser.error("archiving itself is not built yet; pass --check")
     return args.run(args)
 
 
