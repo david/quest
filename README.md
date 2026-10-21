@@ -101,9 +101,8 @@ relative path starts at the home directory. Without the file, the one world is
 `~/Projects` here. `--world [<host>:]<path>` lists another world instead.
 
 Every directory in a world is a realm, except a hidden one. Its quests are in
-the quest root its `AGENTS.md` or `CLAUDE.md` declares or, without a
-declaration, in its `quests` directory, if it has one. The listing commands print JSON and include the worlds and realms
-that could not be listed. For a world on another host, `quest` runs itself
+its `quests` directory, if it has one. The listing commands print JSON and
+include the worlds and realms that could not be listed. For a world on another host, `quest` runs itself
 there over `ssh`, sending its own code, so that host needs only `python3` and
 `ssh <host>` must work without a prompt.
 

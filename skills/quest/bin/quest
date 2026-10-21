@@ -793,24 +793,19 @@ def local_listing(path: str, quests: bool, realm: str | None = None,
         # Every directory in a world is a realm, except a hidden one.
         if directory.name.startswith(".") or (realm is not None and directory.name != realm):
             continue
-        entry = {"realm": directory.name, "dir": str(directory), "root": None}
+        # A realm's quests are in its quests directory, whatever its instructions declare.
+        root = directory / "quests"
+        has_root = root.is_dir()
+        entry = {"realm": directory.name, "dir": str(directory), "root": str(root) if has_root else None}
         found = []
         try:
-            # As the skill resolves a quest root from the realm's directory.
-            root = declared_root(directory)
-            if root is None:
-                root = Path(os.path.realpath(directory / "quests"))
-                if root.name != "quests" or not root.is_dir():
-                    root = None
-            if root:
-                entry["root"] = str(root)
-            if quests and root:
+            if quests and has_root:
                 found = [(quest, False) for quest in subdirectories(root, follow=False)
                          if quest.name != ".archived"]
                 shelf = root / ".archived"
                 if archived and shelf.is_dir() and not shelf.is_symlink():
                     found += [(quest, True) for quest in subdirectories(shelf, follow=False)]
-        except (OSError, QuestError) as error:
+        except OSError as error:
             listing["failed"].append({"realm": directory.name, "error": str(error)})
             found = []
         if not quests:
@@ -969,9 +964,8 @@ def main() -> int:
 
     realm_parser = commands.add_parser(
         "realm", help="list or show realms",
-        description="Every directory in a world is a realm, except a hidden one. Its quest "
-                    "root is the one its AGENTS.md or CLAUDE.md declares or, without one, its "
-                    "quests directory; root is null when it has neither.")
+        description="Every directory in a world is a realm, except a hidden one. Its quests "
+                    "are in its quests directory; root is null when it has none.")
     realm_commands = realm_parser.add_subparsers(dest="action", required=True, metavar="command")
     realm_list_parser = realm_commands.add_parser(
         "list", help="print the realms in the worlds as JSON",

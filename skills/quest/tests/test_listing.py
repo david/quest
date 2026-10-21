@@ -40,10 +40,9 @@ class ListingTests(unittest.TestCase):
         self.world = self.home / "Pro jects:x"
         self.realm = self.add_realm(self.world, "app")
 
-    def add_realm(self, world, name, declaration="Quest root: ./quests\n"):
+    def add_realm(self, world, name):
         realm = world / name
         (realm / "quests").mkdir(parents=True)
-        (realm / "AGENTS.md").write_text(f"# {name}\n\n{declaration}")
         return realm
 
     def add_quest(self, root, slug, text=None):
@@ -114,35 +113,28 @@ class ListingTests(unittest.TestCase):
         self.assertIn("not a host name", self.failure("list", "--world=-v:/a"))
 
     def test_every_directory_in_a_world_is_a_realm(self):
-        self.add_realm(self.world, "ticked", "Quest root: `./quests`\n")
-        (self.world / "undeclared" / "quests").mkdir(parents=True)
         (self.world / "no-quests").mkdir()
         (self.world / "file-only").mkdir()
         (self.world / "file-only" / "quests").write_text("")
-        shared = self.world / "shared" / "quests"
-        shared.mkdir(parents=True)
-        claude = self.world / "elsewhere"
-        claude.mkdir()
-        (claude / "CLAUDE.md").write_text("Quest root: ../shared/quests\n")
-        self.add_realm(self.world, "broken", "Quest root: ./missing\n")
+        declared = self.world / "declared"
+        declared.mkdir()
+        (declared / "AGENTS.md").write_text("Quest root: ../app/quests\n")
+        broken = self.add_realm(self.world, "broken")
+        (broken / "AGENTS.md").write_text("Quest root: ./missing\n")
         (self.world / "file").write_text("")
         (self.world / ".hidden" / "quests").mkdir(parents=True)
 
         listing = self.output("realm", "list", "--world", str(self.world))
         realms = {realm["realm"]: realm["root"] for realm in listing["realms"]}
+        # A Quest root declaration counts for nothing: a realm's quests are in its quests directory.
         self.assertEqual(realms, {
             "app": str(self.realm / "quests"),
-            "ticked": str(self.world / "ticked" / "quests"),
-            "elsewhere": str(shared),
-            "shared": str(shared),
-            "undeclared": str(self.world / "undeclared" / "quests"),
             "no-quests": None,
             "file-only": None,
-            "broken": None,
+            "declared": None,
+            "broken": str(broken / "quests"),
         })
-        self.assertEqual(listing["failed"], [{
-            "world": str(self.world), "host": None, "realm": "broken",
-            "error": f"invalid Quest root declaration in {self.world / 'broken' / 'AGENTS.md'}"}])
+        self.assertEqual(listing["failed"], [])
 
     def test_quests_titles_invalid_and_archived(self):
         root = self.realm / "quests"
