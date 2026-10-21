@@ -44,7 +44,7 @@ python3 <quest-skill-directory>/bin/quest archive --check <quest-directory> \
   [--source <repository>] [--target <branch>]
 ```
 
-The check needs Python 3.10 or newer and Git 2.38 or newer. It changes nothing
+The check needs Python 3.9 or newer and Git 2.38 or newer. It changes nothing
 except to fetch the target branch into each repository. It exits 0 with no
 findings, 1 with findings, and 2 when it could not finish. After a 2, remove
 nothing: fix what it names, or ask the user, and run it again.

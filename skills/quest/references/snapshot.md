@@ -2,7 +2,7 @@
 
 `quest snapshot` commits quest records into each quest's own Git repository.
 `quest` is `bin/quest` in the loaded `quest` skill directory. It needs Python
-3.10 or newer and Git, and runs on Linux and macOS.
+3.9 or newer and Git, and runs on Linux and macOS.
 
 ```sh
 python3 <quest-skill-directory>/bin/quest snapshot [directory ...]
