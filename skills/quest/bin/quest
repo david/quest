@@ -790,25 +790,31 @@ def local_listing(path: str, quests: bool, realm: str | None = None,
         listing["failed"].append({"error": f"{top}: {error.strerror or error}"})
         return listing
     for directory in directories:
-        if realm is not None and directory.name != realm:
+        # Every directory in a world is a realm, except a hidden one.
+        if directory.name.startswith(".") or (realm is not None and directory.name != realm):
             continue
+        entry = {"realm": directory.name, "dir": str(directory), "root": None}
+        found = []
         try:
             # As the skill resolves a quest root from the realm's directory.
             root = declared_root(directory)
             if root is None:
                 root = Path(os.path.realpath(directory / "quests"))
                 if root.name != "quests" or not root.is_dir():
-                    continue
-            if not quests:
-                listing["realms"].append({"realm": directory.name, "dir": str(directory), "root": str(root)})
-                continue
-            found = [(quest, False) for quest in subdirectories(root, follow=False)
-                     if quest.name != ".archived"]
-            shelf = root / ".archived"
-            if archived and shelf.is_dir() and not shelf.is_symlink():
-                found += [(quest, True) for quest in subdirectories(shelf, follow=False)]
+                    root = None
+            if root:
+                entry["root"] = str(root)
+            if quests and root:
+                found = [(quest, False) for quest in subdirectories(root, follow=False)
+                         if quest.name != ".archived"]
+                shelf = root / ".archived"
+                if archived and shelf.is_dir() and not shelf.is_symlink():
+                    found += [(quest, True) for quest in subdirectories(shelf, follow=False)]
         except (OSError, QuestError) as error:
             listing["failed"].append({"realm": directory.name, "error": str(error)})
+            found = []
+        if not quests:
+            listing["realms"].append(entry)
             continue
         for quest, shelved in found:
             if is_quest(quest):
@@ -963,8 +969,9 @@ def main() -> int:
 
     realm_parser = commands.add_parser(
         "realm", help="list or show realms",
-        description="A realm is a directory in a world whose AGENTS.md or CLAUDE.md declares "
-                    "its quest root, or that has a quests directory.")
+        description="Every directory in a world is a realm, except a hidden one. Its quest "
+                    "root is the one its AGENTS.md or CLAUDE.md declares or, without one, its "
+                    "quests directory; root is null when it has neither.")
     realm_commands = realm_parser.add_subparsers(dest="action", required=True, metavar="command")
     realm_list_parser = realm_commands.add_parser(
         "list", help="print the realms in the worlds as JSON",

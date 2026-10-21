@@ -113,7 +113,7 @@ class ListingTests(unittest.TestCase):
                 self.assertIn(error, stderr)
         self.assertIn("not a host name", self.failure("list", "--world=-v:/a"))
 
-    def test_realms_are_found_by_their_declaration(self):
+    def test_every_directory_in_a_world_is_a_realm(self):
         self.add_realm(self.world, "ticked", "Quest root: `./quests`\n")
         (self.world / "undeclared" / "quests").mkdir(parents=True)
         (self.world / "no-quests").mkdir()
@@ -126,6 +126,7 @@ class ListingTests(unittest.TestCase):
         (claude / "CLAUDE.md").write_text("Quest root: ../shared/quests\n")
         self.add_realm(self.world, "broken", "Quest root: ./missing\n")
         (self.world / "file").write_text("")
+        (self.world / ".hidden" / "quests").mkdir(parents=True)
 
         listing = self.output("realm", "list", "--world", str(self.world))
         realms = {realm["realm"]: realm["root"] for realm in listing["realms"]}
@@ -135,6 +136,9 @@ class ListingTests(unittest.TestCase):
             "elsewhere": str(shared),
             "shared": str(shared),
             "undeclared": str(self.world / "undeclared" / "quests"),
+            "no-quests": None,
+            "file-only": None,
+            "broken": None,
         })
         self.assertEqual(listing["failed"], [{
             "world": str(self.world), "host": None, "realm": "broken",
