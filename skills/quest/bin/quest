@@ -793,9 +793,12 @@ def local_listing(path: str, quests: bool, realm: str | None = None,
         if realm is not None and directory.name != realm:
             continue
         try:
+            # As the skill resolves a quest root from the realm's directory.
             root = declared_root(directory)
             if root is None:
-                continue
+                root = Path(os.path.realpath(directory / "quests"))
+                if root.name != "quests" or not root.is_dir():
+                    continue
             if not quests:
                 listing["realms"].append({"realm": directory.name, "dir": str(directory), "root": str(root)})
                 continue
@@ -961,7 +964,7 @@ def main() -> int:
     realm_parser = commands.add_parser(
         "realm", help="list or show realms",
         description="A realm is a directory in a world whose AGENTS.md or CLAUDE.md declares "
-                    "its quest root.")
+                    "its quest root, or that has a quests directory.")
     realm_commands = realm_parser.add_subparsers(dest="action", required=True, metavar="command")
     realm_list_parser = realm_commands.add_parser(
         "list", help="print the realms in the worlds as JSON",

@@ -115,7 +115,10 @@ class ListingTests(unittest.TestCase):
 
     def test_realms_are_found_by_their_declaration(self):
         self.add_realm(self.world, "ticked", "Quest root: `./quests`\n")
-        (self.world / "folder-only" / "quests").mkdir(parents=True)
+        (self.world / "undeclared" / "quests").mkdir(parents=True)
+        (self.world / "no-quests").mkdir()
+        (self.world / "file-only").mkdir()
+        (self.world / "file-only" / "quests").write_text("")
         shared = self.world / "shared" / "quests"
         shared.mkdir(parents=True)
         claude = self.world / "elsewhere"
@@ -130,6 +133,8 @@ class ListingTests(unittest.TestCase):
             "app": str(self.realm / "quests"),
             "ticked": str(self.world / "ticked" / "quests"),
             "elsewhere": str(shared),
+            "shared": str(shared),
+            "undeclared": str(self.world / "undeclared" / "quests"),
         })
         self.assertEqual(listing["failed"], [{
             "world": str(self.world), "host": None, "realm": "broken",
