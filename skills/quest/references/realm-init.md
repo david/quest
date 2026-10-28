@@ -1,79 +1,54 @@
 # Realm Init
 
-## `realm init [directory]`
+`realm init [directory]` makes a project a realm: it sets up quest memory, not
+a workflow. Use the given directory, or else the session's working directory,
+and confirm the target when it is ambiguous. It needs no existing quest root.
+Never make the skill directory a realm, and create no quest, checkout,
+database, or running service.
 
-Make a project a realm: set up quest memory in it, with a template for new
-quests and workspace conventions when applicable, not a workflow. Use the explicit directory, or
-the session's current working directory when omitted.
-Canonicalize the target and confirm it is the intended realm when ambiguous.
-Do not require existing quest-root discovery or set up the skill directory as a
-realm. Do not create a quest, checkout, database, or running service.
+Stop without changing anything when the target is a Git repository or lies
+inside one, where it or a parent holds a `.git` entry: the quest root and
+`lore/` must stay out of every repository. Tell the user to run `realm init`
+from a directory outside the repository, such as one that holds it.
 
-Stop without changing anything when the target is a Git repository or
-lies inside one, that is, when it or any parent holds a `.git` entry. The quest
-root and `lore/` must stay out of every repository. Tell the user to run
-`realm init` from a directory outside the repository, such as one that holds it.
+Read the target's `AGENTS.md` and any existing quest setup first. Reuse an
+existing `quests/` and template; never create a parallel root or migrate
+quests, and ask before changing a conflicting layout or rule. Remove a `Quest
+root:` line left by an earlier version, but when it names a directory other
+than the realm's `quests`, first ask what to do with the quests there.
+Rerunning must keep existing files and add no duplicate instructions.
 
-Inspect the target's existing `AGENTS.md`, quest setup, and relevant environment
-configuration. Reuse an existing `quests` directory and template setup; do not
-create parallel roots or migrate existing quests. Ask before changing a
-conflicting file layout or setup rule. Remove a `Quest root:` line left by an
-earlier version of the skill, which nothing reads now; when it names a
-directory other than the realm's `quests`, ask what to do with the quests
-there first. Rerunning `realm init` must preserve existing files and avoid
-duplicate instruction blocks.
+1. Create `quests/` unless it exists. If the [snapshot command](snapshot.md)
+   refuses an existing root, keep its records and ask before moving them.
+2. Add, or narrowly update, a quest setup section in the realm's `AGENTS.md`,
+   keeping unrelated instructions. It says that quests live in `quests/`, that
+   a quest's `QUEST.md` is read first and records its workspace paths, and
+   that work in a checkout follows that repository's instructions. Do not
+   create per-quest `AGENTS.md` files.
+3. Create `lore/` and add a Lore section to `AGENTS.md` as
+   [Lore](lore.md#the-lore-section) describes, or bring an existing one to
+   that format.
+4. Create `quest-template/`, whose contents every new quest copies. It stays
+   empty until the realm has something each quest starts with, such as editor
+   settings or a `.gitignore`, which snapshots honor. Never put secrets in it,
+   and do not overwrite or empty an existing one; propose changes instead.
 
-For a new realm or reconciliation of an existing setup, the baseline is:
+Add only the conventions the realm needs:
 
-1. Create the quest root, `quests/` in the realm, unless it exists. It lies
-   outside any repository, which the [snapshot command](snapshot.md) enforces.
-   Where the command refuses an existing root, preserve its records and ask
-   before moving them.
-2. Add or narrowly update a quest setup section in the realm's `AGENTS.md`.
-   Preserve all unrelated instructions.
-3. Explain that new quests read their `QUEST.md` first, record active workspace paths
-   there when applicable, and follow repository instructions in that workspace
-   before repository work. Do not create per-quest `AGENTS.md` files by default.
-4. Create `lore/` in the realm. It holds facts about the project's
-   environment that outlive any single quest, as [Lore](lore.md) describes.
-5. Add a Lore section to the same `AGENTS.md` in the format
-   [Lore](lore.md#the-lore-section) gives. When reconciling, bring an existing
-   Lore section to that format.
-6. Create `quest-template/` in the realm. [New](new.md#workspace-setup) copies
-   its contents into every new quest, so it holds what each quest starts with,
-   such as agent or editor settings. It stays empty until the realm has
-   something to put there.
+- For code, name the repository that `worktrees/1` is cloned from, and only
+  what it does differently from the skill's checkout rules, such as a default
+  branch other than `main` or how branches are named. Keep an established
+  alternative, such as worktrees of the realm's repository or one shared
+  checkout, and ask before changing it; for such a realm, record where a
+  quest's code lives and how its commands load quest configuration.
+- When a quest needs values of its own, such as a port, a database name, or a
+  socket path, say how a new quest chooses and records them. Prefer the realm's
+  existing allocator. Otherwise pick an available port, compare it with those
+  active quests record, and record it in `QUEST.md`; a check is not a
+  reservation. Checkouts in one quest share its values unless the section says
+  otherwise.
+- Keep provisioning, checkout creation, dependency installation, and service
+  startup as separate instructions, each subject to its own authorization.
 
-Add only the workspace conventions applicable to the realm:
-
-1. For realms whose quests work on code, name the repository that a quest's
-   `worktrees/1` is cloned from under the skill's Documents And Code rules, and
-   add only what the repository does differently, such as a default branch other
-   than `main` or how branches are named.
-   Preserve an established alternative, such as worktrees of the realm's
-   repository or one shared checkout, and ask before changing it; for such a
-   realm, record where a quest's code lives and how its commands load quest
-   configuration without overwriting shared configuration.
-   Do not create checkouts during `realm init`.
-2. When a quest needs values of its own, such as a port, a database name, or a
-   socket path, say in the setup section how a new quest chooses and records
-   them. The skill copies the template unchanged and fills in nothing. For
-   ports, prefer the realm's existing allocator or registry. Otherwise select
-   an explicit available port, compare with recorded active quests, and record
-   it in `QUEST.md`. An availability check is not a port reservation. Multiple
-   checkouts in one quest share the quest's values by default; document one
-   running instance per quest, or explicit per-instance overrides where
-   services run concurrently.
-3. Keep provisioning, checkout creation, trusting configuration, dependency
-   installation, and service startup as separate realm-specific instructions
-   subject to their own authorization.
-
-Do not overwrite or empty an existing `quest-template/`; propose only needed
-changes to it. Never put secrets in a template, since every quest gets a copy.
-Files copied from the template are snapshotted with the quest's records unless
-an ignore rule covers them, so a template can include the quest's `.gitignore`,
-as the skill's Versioned Checkpoints rules describe. Application-repository
-ignore rules do not apply to files outside that repository.
-
-Validate the resulting instructions and layout. Report files
-changed, unresolved setup choices, and any validation limits.
+Validate the result, and report the files changed, setup choices left open,
+and any validation limits.

@@ -6,21 +6,18 @@ description: >
   realm, or to create, open, list, sync, hand off, distill, or archive a quest,
   and to keep its records current while working inside one.
 metadata:
-  version: "6.0.0"
+  version: "6.1.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
 
 # Quest
 
-A quest is one directory for one task. It gathers three things in a single
-place: `QUEST.md`, the memory that lets an agent resume the task without the
-conversation that produced it; the documents the task generates; and the code
-checkouts the task works in.
-
-This skill covers finding, creating, maintaining, and archiving that directory.
-How the work itself is done is outside it: follow the user's direction and the
-instructions of the realm and its repository.
+A quest is one directory for one task. It holds `QUEST.md`, the record that
+lets an agent resume the task without the conversation that produced it, along
+with the task's documents and code checkouts. This skill finds, creates,
+maintains, and archives that directory; how the work is done is up to the user
+and the instructions of the realm and its repository.
 
 ## Layout
 
@@ -32,64 +29,42 @@ instructions of the realm and its repository.
 ├── <repository>/              # the realm's code, usually kept here
 └── quests/                    # the quest root
     ├── <slug>/
-    │   ├── QUEST.md           # the memory record; the only required file
+    │   ├── QUEST.md           # the record; the only required file
     │   ├── research/          # findings and evidence, read on demand
     │   ├── local-data/        # private or non-reproducible local files
     │   └── worktrees/         # code checkouts, numbered from 1
-    │       ├── 1/             # by default, a clone of the realm's repository
-    │       └── <n>/           # by default, a worktree of that clone
-    └── .archived/<slug>/      # archived quests, not active
+    └── .archived/<slug>/      # archived quests
 ```
 
-A realm is a project set up for quests: the directory that holds its quest
-root, `quests/`, and whose `AGENTS.md` lists its lore. `realm init` makes one.
-A realm is never inside a repository, so its quests and lore stay out of the code, and its
-repository is the one its quests clone.
-
-Read [Lore](references/lore.md) whenever a task touches lore. It says what
-belongs there and how the realm's `AGENTS.md` lists it.
-
-A slug matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and other names.
-Create a file or directory only when there is something to put in it. Follow a
-layout the realm's instructions configure, and any coherent structure a quest
-already has, rather than rearranging it to match this one.
+A realm, made by `realm init`, is never inside a repository, so its quests and
+lore stay out of the code. Read [Lore](references/lore.md) whenever a task
+touches `lore/`. A slug matches `^[a-z0-9]+(?:-[a-z0-9]+)*$`; reject paths and
+other names. Create a file or directory only when there is something to put in
+it, and keep a layout the realm or the quest already uses.
 
 ## Resolve The Quest
 
-Resolve the quest root once per operation, starting from the session's current
-working directory (never the skill directory), and use its absolute path for
-every quest read, write, and search in that operation.
+Resolve the quest root once per operation, from the session's working
+directory (never the skill directory), and use its absolute path throughout:
 
-1. Look at the working directory and its ancestors for a directory that has a
-   slug name, contains `QUEST.md`, and sits directly inside a directory named
-   `quests`. That directory is the current quest and its parent is the root.
-   This check comes first so that a session started inside a quest, including
-   inside one of its checkouts, identifies it without any configuration.
+1. If the working directory or an ancestor is a slug-named directory holding
+   `QUEST.md` directly inside a directory named `quests`, that is the current
+   quest, even from inside one of its checkouts, and its parent is the root.
 2. Otherwise use the nearest `quests` directory: the working directory or an
-   ancestor that is named `quests` or contains a `quests` directory. Skip one
-   inside a Git repository, where it or a parent holds a `.git` entry, since
-   that belongs to the repository and a realm never lies inside one. A session
-   started in a realm's repository finds the realm's `quests` this way.
-3. Otherwise stop and report which directories were checked. Creating a
-   `quests` directory so that resolution succeeds puts records where nobody
-   will look for them.
+   ancestor that is named `quests` or contains one, skipping any inside a Git
+   repository.
+3. Otherwise stop and report which directories you checked. Never create
+   `quests` to make resolution succeed.
 
-`realm init` is the exception: it sets up a realm that may not have a root
-yet.
-
-A command acts on an explicit slug in the resolved root. Without one it acts on
-the current quest or, in a session outside any quest, on the quest that session
-last created or opened. When none of these applies, ask which quest is meant.
-`archive` is stricter, as its guide says. A session does not have to run in the
-quest directory, so resolve relative paths in a quest's records from that
-quest's directory. Only `new` creates a quest, and nothing replaces an existing
-quest directory or file.
+Without a slug, a command acts on the current quest, or else on the one the
+session last created or opened; when neither applies, ask. Resolve relative
+paths in a record from its quest's directory. Only `new` creates a quest, and
+nothing replaces an existing quest directory or file.
 
 ## Quest Record
 
-`QUEST.md` is the only required record and `Current State` its only required
-section. A new record starts like this, with `quest_skill_version` set to this
-skill's `metadata.version`:
+A new `QUEST.md` starts like this, with `quest_skill_version` set to this
+skill's `metadata.version` and never changed afterwards:
 
 ```markdown
 ---
@@ -109,181 +84,200 @@ quest_skill_version: "<metadata.version>"
 - Blockers: None, or the unresolved blockers and decisions waiting on the user.
 ```
 
-`quest_skill_version` records the version a quest was created under, so leave it
-unchanged afterwards. Records without it are valid.
-
-`Current State` is the handoff. An agent with no session history should be able
-to read it, follow only the links relevant to the next step, and continue
-correctly. The template's fields say what that takes; they are a starting
-point, so use the prose or bullets that suit the work. Keep this section near
-the top and short enough to read in one pass, linking to detail instead of
-including it.
-
-Larger quests can add two sections: `Backlog` for pending or deferred work
-outside the immediate next actions, and `References` as an annotated index of
-supporting material that says why each link matters.
+`Current State` is the handoff: an agent with no session history must be able
+to read it, follow only the links the next step needs, and continue correctly.
+Keep it near the top and short, linking to detail. Larger quests can add
+`Backlog` for deferred work and `References`, an index saying why each link
+matters.
 
 An unchecked checklist item is pending; check it once its outcome is recorded.
-Prefix an item with `Approval:` when it needs an explicit decision from the
-user, and check it only on their explicit authorization. While one is waiting,
-say so under Blockers and make the next action the request for that decision.
+Prefix an item with `Approval:` when it needs the user's explicit decision,
+check it only on their explicit authorization, and while it waits, name it
+under Blockers and make asking for it the next action. Work already done
+toward it waits on the user; do not repeat it.
 
-## Shared Update Contract
+## Update Rules
 
-These rules apply to `QUEST.md` and to every supporting file.
+These apply to `QUEST.md` and every supporting file.
 
-**Write what is true now.** The record is a maintained description of the task,
-not a log of the sessions that worked on it. When something changes, replace the
-old checkpoint, next action, plan, or decision instead of adding a new entry
-beside it, and correct any linked file the change makes misleading. A reader who
-finds two statements that disagree has to investigate which one is current, and
-sparing them that investigation is what the record is for.
+1. **Write what is true now.** The record describes the task, not the sessions
+   that worked on it. Replace an old checkpoint, next action, plan, or
+   decision instead of adding an entry beside it, and correct linked files the
+   change makes misleading. A reader who finds two statements that disagree
+   cannot tell which is current.
+2. **Keep only what matters later**: what prevents a worse decision, a
+   repeated investigation, a forgotten obligation, or a wrong resumption, plus
+   deliverables. Remove the rest rather than marking it superseded; for an
+   abandoned approach, keep one line: "Rejected A because X." Ask before
+   deleting material whose owner or purpose is unclear.
+3. **Keep each fact in one place**, linking to its owner. Active work,
+   blockers, and next actions belong in `Current State`. Leave out what Git or
+   another tool reports live, such as whether a commit is pushed.
+4. **Record who decided**, the user or the agent. Revisit an agent's choice
+   when facts change; ask before changing the user's. Write an open question
+   as open, and replace a plan that stopped holding with the gap, not a guess.
+5. **Tie evidence to the revision or time it tested.** Record a failed or
+   partial attempt as such, with what resuming it needs.
+6. **Update when durable context changes**: a new checkpoint, decision,
+   blocker, or next action. Reread just before editing and edit narrowly.
+   Chat, terminal output, and running processes die with the session.
+7. **Tell the user too**: the outcome and the recommended next step.
 
-**Apply the retention test.** Keep an item when losing it could cause a worse
-decision, a repeated investigation, a forgotten obligation, or a wrong
-resumption, or when it is a requested deliverable or needed for audit. Remove
-what fails the test rather than labelling it superseded. When an abandoned
-approach would otherwise be rediscovered, keep one line: "Rejected A because X."
-Ask before deleting material whose owner or purpose is unclear.
+Supporting documents live in the quest directory by subject: extend the file
+that owns a subject rather than adding one per session, and link it from
+`QUEST.md`. Put findings in `research/` with their sources and when they were
+observed, keep in `QUEST.md` only the conclusions needed to act, and recheck a
+finding before acting on it.
 
-**Keep each fact in one place.** Link to the file or authoritative source that
-owns a fact instead of copying it. Volatile state, such as active work, blockers,
-and next actions, belongs in `Current State` so that supporting files stay
-stable. Leave out state that Git or another tool reports live, such as whether
-a commit is pushed or how far a branch is ahead or behind: it goes stale as
-soon as someone acts, and the tool remains its owner. When such a step is the
-quest's own pending work, record it as a next action.
+## Code Checkouts
 
-**Record who made each decision.** Say whether the user or the agent made it. A
-resuming agent may revisit an agent's choice when the facts change, but must
-ask before changing the user's. Write an open question as open. If a change
-invalidates a plan and its replacement is not yet decided, remove the stale
-plan and state the gap instead of inventing one.
+Checkouts live under `worktrees/`, numbered from 1, and each is recorded in
+`Current State`. Inside one, its repository's instructions govern the work;
+read them as [Open](#open) describes before working there.
 
-**Keep evidence tied to what it tested.** Name the revision or observation time
-a result applies to, and do not let it stand for later work. Record a failed or
-partial attempt as such, with what is needed to resume it or avoid repeating it.
+**Never `cd` into a checkout**, not even as `cd <checkout> && <command>`: the
+shell stays there for every later command. Use the tool's directory option,
+such as `git -C <checkout>` or `make -C <checkout>`, or absolute paths.
 
-**Update when durable context changes**, not after every action: a new
-checkpoint, decision, blocker, or next action. Reread the affected content just
-before editing so that concurrent updates survive, and edit narrowly. Chat
-history, terminal output, running processes, and session IDs do not outlive the
-session, so anything needed later has to be written into the record.
-
-The record does not replace talking to the user. Tell them the outcome and the
-recommended next step directly as well as recording it.
-
-## Documents And Code
-
-Supporting documents, such as research, designs, plans, evidence, and
-deliverables, live in the quest directory, organized by subject. Extend the file
-that already owns a subject rather than adding one per session, worker, or
-activity. Start a separate file when the detail would obscure `QUEST.md` or when
-the file is itself a deliverable, and link it from `QUEST.md`. Keep the layout
-shallow.
-
-`research/` keeps code exploration and source research available without loading
-it by default. Put synthesized findings there, with their sources and the
-revision or date observed when freshness matters, and keep in `QUEST.md` only
-the conclusions needed to act. Read research files selectively, when a decision
-needs their detail, and recheck a finding against the current code or live state
-before acting on it. Anything an agent must know to act correctly belongs in the
-plan or `Current State`, not only in background research.
-
-Keep the evidence that substantiates a result rather than the output of every
-run.
-
-Code checkouts live under `worktrees/`, numbered from 1. Record each one in
-`Current State`. Inside a checkout, that repository's own instructions govern
-the work.
-
-Do not `cd` into a checkout. A `cd` outlives the command that ran it, so every
-later command, and the harness, would run inside the checkout. Point commands
-at the checkout instead, for example `git -C <checkout>` or `make -C
-<checkout>`.
-
-Unless the realm's instructions arrange checkouts another way, `worktrees/1`
-is a copy-on-write clone of the realm's repository and every further checkout
-is a Git worktree of that clone. Always make the clone from the repository's local
-`main`, after bringing `main` up to date with `origin`:
+Unless the realm arranges checkouts another way, `worktrees/1` is a
+copy-on-write clone of the realm's repository, taken from `main` once `main`
+is up to date, and further checkouts are worktrees of that clone:
 
 ```sh
 git -C <repository> pull --ff-only origin main
 cp -a --reflink=always <repository> <quest>/worktrees/1
+rm -rf <quest>/worktrees/1/.git/worktrees
 git -C <quest>/worktrees/1 worktree add -b <branch> ../<n>
 ```
 
-The clone has its own `.git`, so the quest's branches and worktree
-registrations stay inside `worktrees/`, and removing `worktrees/` leaves
-nothing behind in the realm's repository. Removing it also discards any commit
-that exists only there, which is why archiving checks for unmerged work first.
+- The repository must have `main` checked out, with `.git` a directory. If it
+  is on another branch, or `main` cannot fast-forward, stop and say so; do not
+  switch branches or merge.
+- The `rm` drops the source's worktree registrations. The copy also carries
+  the source's uncommitted changes: discard those that are not the quest's.
+- Without reflinks the copy fails, leaving empty directories. Remove them and
+  run `git -C <repository> worktree add -b <branch> <quest>/worktrees/1 main`
+  instead; say in `Current State` that the quest's branches then live in the
+  realm's repository, and remove such checkouts with `git worktree remove`.
 
-The copy is of a whole checkout, so:
+## Snapshots
 
-- The repository must have `main` checked out, in a checkout whose `.git` is a
-  directory, not a linked worktree. If it is on another branch, or `main`
-  cannot fast-forward, stop and say so instead of switching branches or
-  merging.
-- Right after copying, delete the copy's `.git/worktrees/` if it exists. It
-  holds the source's worktree registrations, which point outside the quest.
-- The copy includes the source's uncommitted changes. Discard those that are
-  not the quest's.
-- On a filesystem without reflinks the copy fails and leaves empty directories.
-  Remove them and make `worktrees/1` a worktree of the realm's repository
-  instead: `git -C <repository> worktree add -b <branch> <quest>/worktrees/1
-  main`. The quest's branches and registrations then live in that repository,
-  so say so in `Current State` and remove those checkouts with
-  `git worktree remove`.
-
-## Versioned Checkpoints
-
-`quest snapshot`, a command of the skill's `bin/quest`, makes each active
-quest directory its own Git repository and commits the quest's records there,
-including partial state and other writers' edits. A harness hook runs it
-around every turn, so snapshots need nothing from the agent.
-[Snapshots](references/snapshot.md) describes the command and the hook.
-
-The command owns each quest's `.git`; do not initialize it or commit to it by
-hand. It refuses a quest root that is inside a repository, and leaves
-`worktrees/`, `local-data/`, and nested repositories out of
-snapshots. Put other private or generated material in those excluded locations,
-or add a rule to the quest's own `.gitignore` before creating it.
-
-Snapshots are recovery points. The current files remain the only thing a
-resuming agent should need to read. Check the quest's own `git log` before
-counting on history to recover removed material.
-
-Archiving keeps the quest's `.git` directory and ends its snapshots.
-
-## Opening A Quest
-
-Always read `QUEST.md` first, then the first checkout's instructions:
-`worktrees/1/CLAUDE.md` when you are Claude Code and `worktrees/1/AGENTS.md`
-otherwise, falling back to the other file when yours does not exist. They
-govern the work in the checkout, and a session started outside that checkout
-does not load them on its own. When the prompt only opens a quest, read nothing
-else and brief the user as the [Open](references/open.md#the-summary) guide
-describes: in plain language, what the quest is about, where the work left off,
-and what to do next, not a retelling of the record. Then wait. Recorded next
-actions describe where the work stands; they are not a request to carry them
-out. When the same prompt also asks for something, load what that request
-needs and proceed in the same turn.
-
-After that, load context for the decision at hand, starting with the records
-that govern the active task, rather than reading the whole quest.
+A hook runs `quest snapshot` (the skill's `bin/quest`) around every turn. It
+commits each active quest's records to the quest's own `.git`, leaving out
+`worktrees/`, `local-data/`, and nested repositories. Never initialize or
+commit to that `.git` by hand. Keep other private or generated files in those
+excluded places, or add a `.gitignore` rule before creating them.
+[Snapshots](references/snapshot.md) covers the command and other harnesses.
 
 ## Commands
 
-Route by intent, whether it arrives as a command or in plain language, and read
-the matching guide before acting.
+Route by intent, whether a command or plain language. Before `realm init` or
+`archive`, read [Realm init](references/realm-init.md) or
+[Archive](references/archive.md). The other commands follow.
 
-| Command | Use when | Guide |
-| --- | --- | --- |
-| `realm init` | Setting up a project for quests, making it a realm. | [Realm init](references/realm-init.md) |
-| `new` | Creating a quest and capturing its goal. | [New](references/new.md) |
-| `open` | Opening an existing quest. | [Open](references/open.md) |
-| `list` | Listing quests. | [List](references/list.md) |
-| `sync` | Bringing the record up to date with the session. | [Sync](references/sync.md) |
-| `handoff` | Preparing for a reset, transfer, or pause, or checking that another agent could resume. | [Sync: recoverability check](references/sync.md#recoverability-check) |
-| `distill` | Moving quest findings into the realm's maintained documentation. | [Knowledge transfer](references/distill.md) |
-| `archive` | Archiving a quest and cleaning up its checkouts. | [Archive](references/archive.md) |
+### New
+
+`new <slug>` refuses an invalid or existing slug, then creates
+`<root>/<slug>/QUEST.md` from the template above. Capture the objective,
+background, and constraints the user supplied, linking substantial material.
+Keep what the user stated apart from what was only suggested, and record a
+missing objective as unresolved rather than inventing one. Current State
+starts with no task begun and a checkpoint that the quest was created.
+
+Copy the realm's `quest-template/` in unchanged, unless the realm's
+instructions say otherwise, and do the setup they require, such as choosing a
+port, recording paths and ports but never secrets:
+
+```sh
+cp -a <realm>/quest-template/. <root>/<slug>/
+```
+
+Make checkouts only when authorized, and no `git init`. Then summarize the
+captured goal and ask the smallest useful question only if a gap could change
+the work. Creating a quest starts no research, planning, or implementation
+unless the same request asks for it. For an issue, a slug keeps the issue
+number first; for a pull request, it is `pr-<number>-<description>`.
+
+### Open
+
+`open [slug]` opens the named quest, or the one resolution selects; with
+neither, ask which and show the `list`. For a slug with no exact match, open a
+single clearly similar one and say so, or list several and ask.
+
+Read `QUEST.md`, then the first checkout's instructions:
+`worktrees/1/CLAUDE.md` when you are Claude Code and `worktrees/1/AGENTS.md`
+otherwise, falling back to the other file. A session started outside that
+checkout does not load them on its own. Read nothing else, and change nothing.
+
+When the prompt only opens the quest, brief the user and then wait: recorded
+next actions say where the work stands, not that you should do them. When it
+also asks for something, load what that needs and proceed in the same turn.
+
+The user arrives cold, often from another task. Brief them as a colleague
+would in half a minute, from `QUEST.md` alone, under three headings:
+
+1. **The quest**: the slug and title as a first-level heading, then one or two
+   sentences, in your own words, on the problem and the outcome wanted.
+2. **Where we left off**: three to five sentences on what is now known or
+   built, and where the work stopped and why: under way, waiting on the user,
+   paused, or complete. The result, not its history.
+3. **What to do next**: a numbered list of at most three one-sentence items the
+   user can answer with a number. Decisions and approvals waiting on the user
+   come first, as questions naming the options. Then the step you would take
+   on their go-ahead: the recorded next action or, failing one, a suggestion
+   marked as such.
+
+Leave out constraints and authorizations, decisions already made, the
+workspace and ports, revisions, dates, measurements, evidence, how a finding
+was reached, and how things work inside, unless an item depends on one. Write
+a dozen sentences at most, whatever the record's size: plain words, one idea
+per sentence, keeping "because", "so", and "but". Describe a thing rather than
+using the record's name for it, and say "probably" when unsure. For example:
+
+```markdown
+# slow-invoice-export: Invoice export times out for large accounts
+
+Customers with many invoices cannot download their yearly export, because the request times out. You want the export to work for an account of any size.
+
+## Where we left off
+
+We found the cause. The export loads every invoice into memory before it writes the file, and that takes too long for the largest accounts. A version that writes the file as it reads is built and passes its tests, but it has not been tried on a large account. The work stopped there because that trial needs a copy of production data, which you have not approved.
+
+## What to do next
+
+1. May I use a copy of production data to try the new export on a large account?
+2. Suggestion: if not, I build a large account locally and try it on that.
+```
+
+### List
+
+`list` shows the root's quest directories, sorted by slug, marking one without
+`QUEST.md` as invalid. Leave out `.archived` unless asked.
+
+### Sync And Handoff
+
+`sync` brings the quest's records up to date with the session under the
+update rules; with nothing material to add, it changes nothing. It neither
+pushes nor continues the work.
+
+`handoff`, or preparing for a reset, transfer, or pause, is a thorough sync
+that makes the record enough to resume from. Write down results and decisions
+still only in chat, repair stale or contradictory records, and keep done,
+attempted, in-flight, and unstarted work distinct. Then read Current State as
+a fresh agent: the goal, constraints, checkpoint, evidence limits, blockers,
+and exact next action of each active task must be clear without a
+chronology. When you can, give an agent with no session history only
+`QUEST.md` and ask what it leaves out or says two ways; a record's author
+reads past its own gaps. Report whether the record is ready, or the exact gap.
+
+### Distill
+
+`distill` moves findings later work needs into the realm's maintained
+documentation, such as [lore](references/lore.md), docs, or runbooks. Update
+the file that owns a subject rather than writing a per-quest learnings file,
+check findings against the current code, and keep tentative findings and
+one-off workarounds out of standing rules. Make in-scope documentation edits;
+propose, and wait for approval of, changes to shared instructions or policy,
+another repository, or a decision the user reserved. Distilling authorizes no
+commit or publication. Report what changed and any obligation still open;
+nothing to transfer is a valid result.
