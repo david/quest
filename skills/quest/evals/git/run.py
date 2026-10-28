@@ -44,8 +44,10 @@ ISOLATION_ENV = {
 JUDGE_VOTES = 3
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+def main(cases_dir=HERE, plugins=None, tools=TOOLS, description=None):
+    """Run the cases in cases_dir. plugins maps each arm to the plugin
+    directories it loads; by default only the "with" arm loads this skill."""
+    parser = argparse.ArgumentParser(description=description or __doc__.splitlines()[0])
     parser.add_argument("--case", default="*", help="glob over case names")
     parser.add_argument("--runs", type=int, help="runs per arm (default: the case's, else 3)")
     parser.add_argument("--arms", default="with,without", help="with, without, or both")
@@ -62,10 +64,12 @@ def main():
     parser.add_argument("--keep", action="store_true", help="keep each run's directory")
     parser.add_argument("--output", type=Path, help="write all results as JSON here")
     args = parser.parse_args()
+    args.plugins = plugins or {"with": [PLUGIN], "without": []}
+    args.tools = tools
 
     cases = [
         load_case(path.parent)
-        for path in sorted(HERE.glob("*/case.json"))
+        for path in sorted(Path(cases_dir).glob("*/case.json"))
         if fnmatch.fnmatch(path.parent.name, args.case)
     ]
     if not cases:
@@ -117,7 +121,10 @@ def run_job(job, args, spent):
         print(f"  {case['name']} [{arm}] run {index + 1}: skipped, cost ceiling reached")
         return None
     result = run_once(case, arm, args, spent)
-    lines = [f"  {case['name']} [{arm}] run {index + 1}: score {result['score']:.2f}  ${result['cost']:.2f}"]
+    lines = [
+        f"  {case['name']} [{arm}] run {index + 1}: score {result['score']:.2f}  "
+        f"${result['cost']:.2f}  main context {result.get('main_context', 0):,}"
+    ]
     if result.get("error"):
         lines.append(f"    ! {result['error']}")
     for grade in result["graders"]:
@@ -146,7 +153,9 @@ def run_once(case, arm, args, spent):
         "GIT_CONFIG_NOSYSTEM": "1",
         "QUEST_EVAL_OWN_RUNNER": "1",
     }
-    result = {"case": case["name"], "arm": arm, "score": 0.0, "cost": 0.0, "graders": []}
+    result = {
+        "case": case["name"], "arm": arm, "score": 0.0, "cost": 0.0, "main_context": 0, "graders": [],
+    }
     try:
         scaffold = subprocess.run(
             ["bash", str(case["dir"] / "scaffold.sh")],
@@ -156,9 +165,12 @@ def run_once(case, arm, args, spent):
             result["error"] = f"scaffold failed: {scaffold.stderr.strip()[-500:]}"
             return result
 
+        prompt = case["prompt"]
+        if isinstance(prompt, dict):
+            prompt = prompt[arm]
         command = [
-            "claude", "-p", case["prompt"],
-            "--allowed-tools", *TOOLS,
+            "claude", "-p", prompt,
+            "--allowed-tools", *args.tools,
             "--setting-sources", "project,local",
             "--settings", json.dumps(SANDBOX),
             "--strict-mcp-config",
@@ -168,8 +180,8 @@ def run_once(case, arm, args, spent):
             "--model", args.model,
             "--no-session-persistence",
         ]
-        if arm == "with":
-            command += ["--plugin-dir", str(PLUGIN)]
+        for plugin in args.plugins.get(arm, []):
+            command += ["--plugin-dir", str(plugin)]
         # Repositories made inside the run get no hooks, which the sandbox
         # would refuse to write.
         env = {**os.environ, **ISOLATION_ENV, "GIT_TEMPLATE_DIR": str(template)}
@@ -188,6 +200,7 @@ def run_once(case, arm, args, spent):
         (run / "trace.jsonl").write_text(stdout)
         trace = parse_trace(stdout)
         result["cost"] = trace["cost"]
+        result["main_context"] = trace["main_context"]
         spent.add(trace["cost"])
 
         context = {"cwd": cwd, "env": scaffold_env, "trace": trace, "args": args, "run": run}
@@ -196,8 +209,10 @@ def run_once(case, arm, args, spent):
             # not part of the score, as in `claude plugin eval`.
             if grader["type"] == "skill" and arm != "with":
                 continue
+            if arm not in grader.get("arms", [arm]):
+                continue
             grade = GRADERS[grader["type"]](grader, context)
-            scored = grader["type"] != "skill"
+            scored = grader["type"] != "skill" and not grader.get("indicator")
             result["graders"].append({"name": grader["name"], "scored": scored, **grade})
         scored = [grade for grade in result["graders"] if grade["scored"]]
         result["score"] = sum(grade["passed"] for grade in scored) / len(scored) if scored else 0.0
@@ -211,20 +226,37 @@ def run_once(case, arm, args, spent):
 
 
 def parse_trace(stdout):
-    trace = {"last_message": "", "commands": [], "tools": [], "cost": 0.0}
+    """Tool calls, cost, the main agent's last message, and its peak context.
+    A subagent's events carry the id of the Agent call that started it."""
+    trace = {
+        "last_message": "", "commands": [], "tools": [], "calls": [],
+        "cost": 0.0, "main_context": 0,
+    }
     for line in stdout.splitlines():
         try:
             event = json.loads(line)
         except json.JSONDecodeError:
             continue
         if event.get("type") == "assistant":
-            for block in event.get("message", {}).get("content", []):
+            agent = "sub" if event.get("parent_tool_use_id") else "main"
+            message = event.get("message", {})
+            for block in message.get("content", []):
                 if block.get("type") == "tool_use":
                     trace["tools"].append(block["name"])
+                    trace["calls"].append(
+                        {"agent": agent, "name": block["name"], "input": block.get("input", {})}
+                    )
                     if block["name"] == "Bash":
                         trace["commands"].append(block["input"].get("command", ""))
-                elif block.get("type") == "text":
+                elif block.get("type") == "text" and agent == "main":
                     trace["last_message"] = block["text"]
+            if agent == "main":
+                usage = message.get("usage") or {}
+                context = sum(
+                    usage.get(key) or 0
+                    for key in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
+                )
+                trace["main_context"] = max(trace["main_context"], context)
         elif event.get("type") == "result":
             trace["cost"] = event.get("total_cost_usd") or 0.0
             if event.get("result"):
@@ -246,6 +278,28 @@ def grade_commands(grader, context):
     hits = [command for command in context["trace"]["commands"] if pattern.search(command)]
     if grader.get("match", "contains") == "not_contains":
         return {"passed": not hits, "detail": "none matched" if not hits else f"matched: {hits[0][:200]}"}
+    return {"passed": bool(hits), "detail": f"{len(hits)} matched"}
+
+
+def grade_tool_calls(grader, context):
+    """Calls by the main agent or its subagents (agent), to the named tools,
+    whose input fields (all of the input by default) match pattern."""
+    pattern = re.compile(grader.get("pattern", ""))
+    fields = grader.get("fields")
+    hits = []
+    for call in context["trace"]["calls"]:
+        if grader.get("agent", call["agent"]) != call["agent"]:
+            continue
+        if call["name"] not in grader.get("tools", [call["name"]]):
+            continue
+        if fields:
+            text = "\n".join(str(call["input"].get(field, "")) for field in fields)
+        else:
+            text = json.dumps(call["input"])
+        if pattern.search(text):
+            hits.append(f"{call['name']} {text[:200]}")
+    if grader.get("match", "contains") == "not_contains":
+        return {"passed": not hits, "detail": "none matched" if not hits else f"matched: {hits[0]}"}
     return {"passed": bool(hits), "detail": f"{len(hits)} matched"}
 
 
@@ -295,7 +349,13 @@ def grade_llm(grader, context):
     return {"passed": passed, "detail": f"judge votes: {tally}. {reason}".strip()}
 
 
-GRADERS = {"sh": grade_sh, "commands": grade_commands, "skill": grade_skill, "llm": grade_llm}
+GRADERS = {
+    "sh": grade_sh,
+    "commands": grade_commands,
+    "tool_calls": grade_tool_calls,
+    "skill": grade_skill,
+    "llm": grade_llm,
+}
 
 
 def report(cases, arms, results, total):
@@ -314,6 +374,13 @@ def report(cases, arms, results, total):
         )
         if set(arms) == {"with", "without"} and None not in scores.values():
             line += f"{scores['with'] - scores['without']:>+9.2f}"
+        print(line)
+    print(f"\n{'MAIN CONTEXT':<20}" + "".join(f"{arm.upper():>9}" for arm in arms))
+    for case in cases:
+        line = f"{case['name']:<20}"
+        for arm in arms:
+            runs = [r["main_context"] for r in results if r["case"] == case["name"] and r["arm"] == arm]
+            line += f"{sum(runs) / len(runs) / 1000:>8.0f}k" if runs else f"{'-':>9}"
         print(line)
     print(f"\n{len(results)} run(s) · ${total:.2f}")
 

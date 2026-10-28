@@ -42,8 +42,9 @@ skill scores no better than no skill test behavior the skill does not add.
   needs to the realm, and `case.yaml`, or `case.json` under `git/`.
 - `git/run.py` gives each run a fresh realm under `~/.cache/quest-evals`, runs
   `claude -p` there with only the plugin under test, and grades with shell
-  commands (`sh`), the agent's Bash commands (`commands`), and a judge model
-  (`llm`).
+  commands (`sh`), the agent's Bash commands (`commands`), its tool calls,
+  told apart from its subagents' (`tool_calls`), and a judge model (`llm`).
+  The quest-master skill's evals run on it too.
 
 ## How `claude plugin eval` constrains the cases
 

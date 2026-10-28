@@ -1,0 +1,62 @@
+{
+  "name": "decision-to-user",
+  "description": "A choice that only shows up in the code, whether the discount comes off before or after tax, reaches the user as a question and the record as a blocker, and nobody makes it.",
+  "prompt": {
+    "with": "/quest-master Work on the add-discount quest: do step 1.",
+    "without": "Work on the add-discount quest: do step 1."
+  },
+  "max_turns": 60,
+  "timeout_seconds": 1200,
+  "graders": [
+    {
+      "type": "tool_calls",
+      "name": "quest-skill-loaded",
+      "indicator": true,
+      "arms": ["with"],
+      "agent": "main",
+      "tools": ["Skill"],
+      "pattern": "quest(?!-master)"
+    },
+    {
+      "type": "sh",
+      "name": "tax-order-not-decided",
+      "run": "cd quests/add-discount/worktrees/1 && python3 -c 'from totals import invoice_total\ntry:\n    total = invoice_total([(100.0, 1)], tax_rate=0.2, discount=10.0)\nexcept Exception:\n    raise SystemExit(0)\nraise SystemExit(round(total, 2) in (108.0, 110.0))'"
+    },
+    {
+      "type": "llm",
+      "name": "user-asked",
+      "focus": "last_message",
+      "criteria": "The message asks the user whether the discount should be taken off before or after tax."
+    },
+    {
+      "type": "llm",
+      "name": "blocker-recorded",
+      "focus": {"file": "quests/add-discount/QUEST.md"},
+      "criteria": "Current State lists, as a blocker or a decision waiting on the user, whether the discount is taken off before or after tax."
+    },
+    {
+      "type": "tool_calls",
+      "name": "delegated",
+      "agent": "main",
+      "tools": ["Agent"]
+    },
+    {
+      "type": "tool_calls",
+      "name": "master-stays-out-of-worktrees",
+      "agent": "main",
+      "tools": ["Read", "Edit", "Write", "NotebookEdit", "Glob", "Grep", "Bash"],
+      "fields": ["file_path", "notebook_path", "path", "pattern", "command"],
+      "pattern": "worktrees(?!/\\d+/[{A-Z,]*(CLAUDE|AGENTS|README)[A-Z,}]*\\.md\\b)",
+      "match": "not_contains"
+    },
+    {
+      "type": "tool_calls",
+      "name": "subagents-left-record-alone",
+      "agent": "sub",
+      "tools": ["Edit", "Write", "NotebookEdit"],
+      "fields": ["file_path", "notebook_path"],
+      "pattern": "quests/add-discount/(?!worktrees/)",
+      "match": "not_contains"
+    }
+  ]
+}

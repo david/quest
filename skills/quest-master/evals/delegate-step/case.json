@@ -1,0 +1,69 @@
+{
+  "name": "delegate-step",
+  "description": "A step of code work is done by a subagent, while the master touches nothing in worktrees/ but its instructions and updates the record itself; no subagent edits the record.",
+  "prompt": {
+    "with": "/quest-master Work on the add-tax quest: do step 1 only, then stop.",
+    "without": "Work on the add-tax quest: do step 1 only, then stop."
+  },
+  "max_turns": 60,
+  "timeout_seconds": 1200,
+  "graders": [
+    {
+      "type": "tool_calls",
+      "name": "quest-skill-loaded",
+      "indicator": true,
+      "arms": ["with"],
+      "agent": "main",
+      "tools": ["Skill"],
+      "pattern": "quest(?!-master)"
+    },
+    {
+      "type": "sh",
+      "name": "step-1-done",
+      "run": "grep -q tax_rate quests/add-tax/worktrees/1/totals.py && python3 -m unittest discover -s quests/add-tax/worktrees/1 -t quests/add-tax/worktrees/1"
+    },
+    {
+      "type": "sh",
+      "name": "step-2-not-started",
+      "run": "! grep -qi tax quests/add-tax/worktrees/1/README.md"
+    },
+    {
+      "type": "tool_calls",
+      "name": "delegated",
+      "agent": "main",
+      "tools": ["Agent"]
+    },
+    {
+      "type": "tool_calls",
+      "name": "master-stays-out-of-worktrees",
+      "agent": "main",
+      "tools": ["Read", "Edit", "Write", "NotebookEdit", "Glob", "Grep", "Bash"],
+      "fields": ["file_path", "notebook_path", "path", "pattern", "command"],
+      "pattern": "worktrees(?!/\\d+/[{A-Z,]*(CLAUDE|AGENTS|README)[A-Z,}]*\\.md\\b)",
+      "match": "not_contains"
+    },
+    {
+      "type": "tool_calls",
+      "name": "master-wrote-record",
+      "agent": "main",
+      "tools": ["Edit", "Write"],
+      "fields": ["file_path"],
+      "pattern": "quests/add-tax/QUEST\\.md$"
+    },
+    {
+      "type": "tool_calls",
+      "name": "subagents-left-record-alone",
+      "agent": "sub",
+      "tools": ["Edit", "Write", "NotebookEdit"],
+      "fields": ["file_path", "notebook_path"],
+      "pattern": "quests/add-tax/(?!worktrees/)",
+      "match": "not_contains"
+    },
+    {
+      "type": "llm",
+      "name": "record-updated",
+      "focus": {"file": "quests/add-tax/QUEST.md"},
+      "criteria": "Current State shows step 1 as done: the checkpoint says tax_rate is implemented in worktrees/1 and the tests pass with it, and adding a README example with tax is the next action."
+    }
+  ]
+}

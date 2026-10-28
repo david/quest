@@ -20,6 +20,7 @@ Or clone this repository and link the skill into your agent's skills directory:
 ```sh
 git clone https://github.com/david/quest.git
 ln -s "$PWD/quest/skills/quest" ~/.claude/skills/quest
+ln -s "$PWD/quest/skills/quest-master" ~/.claude/skills/quest-master
 ```
 
 Then set up a project with `/quest realm init`. This makes it a realm: it creates
@@ -45,6 +46,16 @@ it refuses to run there.
 | `archive` | Archive a quest after checking its checkouts for unmerged work. |
 
 Commands can also be asked for in plain language.
+
+## Quest master
+
+`/quest-master` loads the quest skill and makes the session the master of a
+quest: your one point of contact for it. The session keeps the quest's
+records and lore, and hands all work in the quest's checkouts to subagents.
+Subagents may read the quest's files but never write them; they report to
+the master, which updates the record and brings their questions to you. This
+lasts for the rest of the session. Pass a quest command to start with it, as
+in `/quest-master open <slug>`.
 
 ## Layout
 

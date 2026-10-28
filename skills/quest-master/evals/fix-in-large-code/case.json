@@ -1,0 +1,74 @@
+{
+  "name": "fix-in-large-code",
+  "description": "A bug fix in about 2,000 lines of code, where doing the work yourself costs real context: the master's peak context, reported per arm, should stay near its starting size while the work is done and recorded.",
+  "prompt": {
+    "with": "/quest-master Work on the nested-clone-snapshot quest: do step 1.",
+    "without": "Work on the nested-clone-snapshot quest: do step 1."
+  },
+  "max_turns": 80,
+  "timeout_seconds": 1800,
+  "graders": [
+    {
+      "type": "tool_calls",
+      "name": "quest-skill-loaded",
+      "indicator": true,
+      "arms": ["with"],
+      "agent": "main",
+      "tools": ["Skill"],
+      "pattern": "quest(?!-master)"
+    },
+    {
+      "type": "sh",
+      "name": "fixed",
+      "run": "set -e; q=$(mktemp -d)/quests/sample; mkdir -p $q/research/vendor/pdfkit; echo '# Sample' > $q/QUEST.md; git -C $q/research/vendor/pdfkit init -q; echo x > $q/research/vendor/pdfkit/lib.py; git -C $q/research/vendor/pdfkit add -A; git -C $q/research/vendor/pdfkit commit -qm lib; python3 quests/nested-clone-snapshot/worktrees/1/bin/quest snapshot $q; ! git -C $q ls-files --stage | grep -q '^160000'"
+    },
+    {
+      "type": "sh",
+      "name": "tests-pass",
+      "run": "cd quests/nested-clone-snapshot/worktrees/1 && python3 -m unittest discover -s tests 2>&1 | tail -3 | grep -q '^OK'"
+    },
+    {
+      "type": "sh",
+      "name": "test-added",
+      "run": "git -C quests/nested-clone-snapshot/worktrees/1 diff -- tests | grep -q '^+ *def test'"
+    },
+    {
+      "type": "tool_calls",
+      "name": "delegated",
+      "agent": "main",
+      "tools": ["Agent"]
+    },
+    {
+      "type": "tool_calls",
+      "name": "master-stays-out-of-worktrees",
+      "agent": "main",
+      "tools": ["Read", "Edit", "Write", "NotebookEdit", "Glob", "Grep", "Bash"],
+      "fields": ["file_path", "notebook_path", "path", "pattern", "command"],
+      "pattern": "worktrees(?!/\\d+/[{A-Z,]*(CLAUDE|AGENTS|README)[A-Z,}]*\\.md\\b)",
+      "match": "not_contains"
+    },
+    {
+      "type": "tool_calls",
+      "name": "master-wrote-record",
+      "agent": "main",
+      "tools": ["Edit", "Write"],
+      "fields": ["file_path"],
+      "pattern": "quests/nested-clone-snapshot/QUEST\\.md$"
+    },
+    {
+      "type": "tool_calls",
+      "name": "subagents-left-record-alone",
+      "agent": "sub",
+      "tools": ["Edit", "Write", "NotebookEdit"],
+      "fields": ["file_path", "notebook_path"],
+      "pattern": "quests/nested-clone-snapshot/(?!worktrees/)",
+      "match": "not_contains"
+    },
+    {
+      "type": "llm",
+      "name": "record-updated",
+      "focus": {"file": "quests/nested-clone-snapshot/QUEST.md"},
+      "criteria": "Current State says the snapshot bug is fixed in worktrees/1, names its cause (nested repositories were only found near the top of the quest, not at any depth), and says a test covers it."
+    }
+  ]
+}

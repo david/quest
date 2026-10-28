@@ -1,0 +1,12 @@
+{
+  "name": "quest-master",
+  "description": "The quest-master skill: the session keeps a quest's records and hands work in its checkouts to subagents.",
+  "author": {
+    "name": "David Leal"
+  },
+  "homepage": "https://github.com/david/quest",
+  "license": "MIT",
+  "skills": [
+    "./"
+  ]
+}
