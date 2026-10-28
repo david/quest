@@ -1,0 +1,47 @@
+{
+  "name": "checkout-setup",
+  "description": "Setting up a quest's checkout brings the realm's main up to date first, makes worktrees/1 from it, leaves no foreign worktree registrations in it, leaves the realm's repository on main, never cds into the checkout, and records it.",
+  "prompt": "Set up a code checkout for the add-currency quest.",
+  "max_turns": 40,
+  "timeout_seconds": 900,
+  "graders": [
+    {"type": "skill", "name": "skill-fired"},
+    {
+      "type": "sh",
+      "name": "checkout-made",
+      "run": "git -C quests/add-currency/worktrees/1 rev-parse --is-inside-work-tree && test -f quests/add-currency/worktrees/1/totals.py"
+    },
+    {
+      "type": "sh",
+      "name": "realm-main-pulled",
+      "run": "test \"$(git -C app rev-parse main)\" = \"$(git -C upstream/app.git rev-parse main)\""
+    },
+    {
+      "type": "sh",
+      "name": "checkout-from-latest-main",
+      "run": "git -C quests/add-currency/worktrees/1 merge-base --is-ancestor \"$(git -C upstream/app.git rev-parse main)\" HEAD"
+    },
+    {
+      "type": "sh",
+      "name": "no-foreign-registrations",
+      "run": "! git -C quests/add-currency/worktrees/1 worktree list --porcelain | grep -q app-scratch"
+    },
+    {
+      "type": "sh",
+      "name": "realm-repo-on-main",
+      "run": "test \"$(git -C app symbolic-ref --short HEAD)\" = main"
+    },
+    {
+      "type": "commands",
+      "name": "no-cd-into-checkout",
+      "pattern": "(^|[;&|(]\\s*)cd\\s+[^;&|]*worktrees",
+      "match": "not_contains"
+    },
+    {
+      "type": "llm",
+      "name": "recorded",
+      "focus": {"file": "quests/add-currency/QUEST.md"},
+      "criteria": "Current State's workspace entry names the checkout's path (worktrees/1) and its branch."
+    }
+  ]
+}

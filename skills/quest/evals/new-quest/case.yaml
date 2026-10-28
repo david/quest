@@ -1,0 +1,45 @@
+schema_version: "1.0"
+name: new-quest
+description: >
+  Creating a quest writes QUEST.md with the skill's frontmatter and Current
+  State, copies the realm's quest template, and starts no work.
+tags: [new]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: >
+    Create a new quest, add-discounts: customers should be able to apply a
+    percentage discount code at checkout. Don't start on the work yet.
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+  - type: file_exists
+    name: record-created
+    path: quests/add-discounts/QUEST.md
+  - type: regex
+    name: has-current-state
+    target: {source: file, path: quests/add-discounts/QUEST.md}
+    pattern: "^## Current State"
+    flags: m
+  - type: regex
+    name: records-skill-version
+    target: {source: file, path: quests/add-discounts/QUEST.md}
+    pattern: 'quest_skill_version: "\d+\.\d+\.\d+"'
+  - type: file_exists
+    name: template-copied
+    path: quests/add-discounts/research/README.md
+  - type: file_exists
+    name: no-checkout-yet
+    path: quests/add-discounts/worktrees
+    exists: false
+  - type: llm
+    name: goal-captured
+    focus: {source: file, path: quests/add-discounts/QUEST.md}
+    criteria: >
+      The record states the objective (customers apply a percentage discount
+      code at checkout) without inventing requirements the user did not give,
+      and Current State shows that no work has started yet.

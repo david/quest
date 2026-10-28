@@ -1,0 +1,33 @@
+schema_version: "1.0"
+name: new-quest-existing
+description: >
+  Creating a quest whose slug already exists leaves the existing record
+  untouched and tells the user, instead of overwriting it or quietly making a
+  second quest.
+tags: [new]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "Create a new quest fix-rounding: invoice totals round half-cents the wrong way."
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+  - type: regex
+    name: record-untouched
+    target: {source: file, path: quests/fix-rounding/QUEST.md}
+    pattern: "Checkpoint: cause found: float `round\\(\\)` rounds half to even\\."
+  - type: file_exists
+    name: no-second-quest
+    path: quests/fix-rounding-2
+    exists: false
+  - type: llm
+    name: told-user
+    focus: last_message
+    criteria: >
+      The reply tells the user that a fix-rounding quest already exists and
+      offers to open or continue it, or asks how to proceed. It does not
+      report having created a new quest.

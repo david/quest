@@ -1,0 +1,32 @@
+schema_version: "1.0"
+name: new-quest-bad-slug
+description: >
+  A quest name that is a path is refused: nothing is created outside quests/,
+  and no quest is made under a different name without asking.
+tags: [new]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "Create a new quest named ../billing: move billing into its own service."
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+  - type: file_exists
+    name: nothing-outside-quests
+    path: billing
+    exists: false
+  - type: file_exists
+    name: no-renamed-quest
+    path: quests/billing
+    exists: false
+  - type: llm
+    name: refused
+    focus: last_message
+    criteria: >
+      The reply says that "../billing" cannot be used as a quest name and asks
+      the user for a valid name, possibly suggesting one such as "billing". It
+      does not report having created a quest.

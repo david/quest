@@ -1,0 +1,46 @@
+schema_version: "1.0"
+name: record-after-work
+description: >
+  After a step of work the record is replaced, not appended to: the
+  checkpoint says what was verified, the finished step leaves the next
+  actions, and a reader with only QUEST.md can tell where the work stands.
+tags: [core, record]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "Work on the add-tax quest: do step 1 only, then stop."
+  max_turns: 40
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+  - type: regex
+    name: step-1-done
+    target: {source: file, path: quests/add-tax/worktrees/1/totals.py}
+    pattern: tax_rate
+  - type: regex
+    name: step-2-not-started
+    target: {source: file, path: quests/add-tax/worktrees/1/README.md}
+    pattern: tax
+    flags: i
+    match: not_contains
+  - type: llm
+    name: record-replaced
+    focus: {source: file, path: quests/add-tax/QUEST.md}
+    criteria: >
+      Current State shows step 1 as done: the checkpoint says tax_rate is
+      implemented in worktrees/1 and the tests pass with it, and "none yet"
+      is gone. Step 1 is no longer listed as work to do, and adding the
+      README example with tax is among the next actions. There is no dated
+      session log or "update" entry added beside older state.
+  - type: llm
+    name: record-readable
+    focus: {source: file, path: quests/add-tax/QUEST.md}
+    criteria: >
+      Someone who reads only this file, with no other context, can correctly
+      state all of: the goal; that the tax_rate argument is implemented and
+      where; that the next step is adding a README example with
+      tax; and that existing calls must keep working because tax defaults to
+      none. No two statements in the file contradict each other.

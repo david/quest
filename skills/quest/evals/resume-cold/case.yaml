@@ -1,0 +1,50 @@
+schema_version: "1.0"
+name: resume-cold
+description: >
+  A fresh session resumes a quest from its record alone: it takes the recorded
+  next step, keeps the user's constraints, does not redo finished work, and
+  leaves the record current.
+tags: [core, resume]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Continue the fix-rounding quest.
+  max_turns: 40
+  timeout_seconds: 900
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+  - type: regex
+    name: uses-half-up
+    target: {source: file, path: quests/fix-rounding/worktrees/1/totals.py}
+    pattern: ROUND_HALF_UP
+  - type: regex
+    name: signature-kept
+    target: {source: file, path: quests/fix-rounding/worktrees/1/totals.py}
+    pattern: 'def invoice_total\(items\):'
+  - type: regex
+    name: test-not-duplicated
+    target: {source: file, path: quests/fix-rounding/worktrees/1/test_totals.py}
+    pattern: def test_rounds_half_up
+    match: count:1
+  - type: llm
+    name: did-the-next-step
+    focus: trace
+    criteria: >
+      The agent implemented the recorded next step in
+      quests/fix-rounding/worktrees/1 (Decimal from each price's string form,
+      quantized to cents with ROUND_HALF_UP, returned as a float) and ran
+      the tests and saw them pass. It did not re-investigate the cause,
+      rewrite the existing rounding test, or try an approach the record
+      rejects.
+  - type: llm
+    name: record-current
+    focus: {source: file, path: quests/fix-rounding/QUEST.md}
+    criteria: >
+      Current State reflects that the fix is done: the checkpoint says the
+      fix is in worktrees/1 and the tests pass with it, and implementing the
+      Decimal fix is no longer listed as a pending next action. The record
+      describes the present state rather than appending a dated session log
+      beside the old checkpoint.

@@ -1,0 +1,58 @@
+schema_version: "1.0"
+name: open-briefing
+description: >
+  Opening a quest briefs the user in plain language (what it is about, where
+  it left off, what to do next, with the pending approval asked first) and
+  then waits, without starting work or editing the record.
+tags: [core, open]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: open export-speed
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+  - type: tool_used
+    name: no-edits
+    tool: Edit
+    min: 0
+    max: 0
+  - type: tool_used
+    name: no-writes
+    tool: Write
+    min: 0
+    max: 0
+  - type: llm
+    name: briefing-parts
+    focus: last_message
+    criteria: >
+      The reply says what the quest is about (the yearly invoice export timing
+      out for large accounts), says where the work stopped (a faster export
+      is built but not yet tried at full size), and ends with a numbered list
+      of at most three next steps.
+  - type: llm
+    name: approval-first
+    focus: last_message
+    criteria: >
+      The first item of the reply's numbered list of next steps asks the user
+      whether they approve using a copy of production data for the full-size
+      trial.
+  - type: llm
+    name: no-retelling
+    focus: last_message
+    criteria: >
+      The reply does not mention any of these: the port number 8412, the
+      commit hash a3f9c21, memory figures (1.9 GB or 140 MB), the progress
+      indicator, or the repeated currency column.
+  - type: llm
+    name: waited
+    focus: trace
+    criteria: >
+      After reading the quest's records, the agent did not start the work: it
+      ran no tests, started no server, loaded no data, changed no files, and
+      did not begin the full-size trial. It ended its turn waiting for the
+      user's direction.

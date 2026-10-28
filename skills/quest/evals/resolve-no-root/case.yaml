@@ -1,0 +1,27 @@
+schema_version: "1.0"
+name: resolve-no-root
+description: >
+  Opening a quest where no quest root exists stops and says so, instead of
+  creating a quests directory or a quest.
+tags: [resolve]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Open the fix-rounding quest.
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+  - type: file_exists
+    name: no-root-created
+    path: quests
+    exists: false
+  - type: llm
+    name: reported
+    focus: last_message
+    criteria: >
+      The reply says that no quest named fix-rounding, or no quests directory,
+      was found, and does not claim to have created one.

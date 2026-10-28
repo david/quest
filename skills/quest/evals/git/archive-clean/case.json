@@ -1,0 +1,36 @@
+{
+  "name": "archive-clean",
+  "description": "Archiving a finished quest whose work is merged removes its checkout and branch, moves its records to quests/.archived, and says so in the record, leaving the realm's repository and upstream alone.",
+  "prompt": "Archive the readme-title quest.",
+  "max_turns": 40,
+  "timeout_seconds": 900,
+  "graders": [
+    {"type": "skill", "name": "skill-fired"},
+    {
+      "type": "sh",
+      "name": "archived",
+      "run": "test -f quests/.archived/readme-title/QUEST.md && ! test -e quests/readme-title"
+    },
+    {
+      "type": "sh",
+      "name": "checkout-removed",
+      "run": "! test -e quests/.archived/readme-title/worktrees"
+    },
+    {
+      "type": "sh",
+      "name": "realm-repo-untouched",
+      "run": "test \"$(git -C app symbolic-ref --short HEAD)\" = main && git -C app diff --quiet && test -z \"$(git -C app status --porcelain)\""
+    },
+    {
+      "type": "sh",
+      "name": "upstream-untouched",
+      "run": "git -C upstream/app.git log --format=%s main | head -1 | grep -qx 'Name the shop in the README title' && ! git -C upstream/app.git rev-parse --verify -q readme-title"
+    },
+    {
+      "type": "llm",
+      "name": "record-says-archived",
+      "focus": {"file": "quests/.archived/readme-title/QUEST.md"},
+      "criteria": "Current State says the quest is archived and that its checkout was removed."
+    }
+  ]
+}
