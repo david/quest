@@ -230,6 +230,24 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(self.git(archive, "show", "HEAD:QUEST.md"), "# Existing records")
         self.assertEqual(self.git(sibling, "show", "HEAD:QUEST.md"), "# Sibling after archive")
 
+    def test_a_named_archived_quest_is_snapshotted_alone(self):
+        sibling = self.add_quest("sibling-quest", "# Existing sibling\n")
+        self.snapshot_ok()
+        archive = self.root / ".archived" / "sample-quest"
+        archive.parent.mkdir()
+        self.quest.rename(archive)
+        (archive / "QUEST.md").write_text("# Archived edit\n")
+        (sibling / "QUEST.md").write_text("# Sibling edit\n")
+        self.assertEqual(
+            self.snapshot_ok("--quest", archive, cwd=self.base),
+            "sample-quest: Snapshot quest records: 1 path (QUEST.md)\n")
+        self.assertEqual(self.git(archive, "show", "HEAD:QUEST.md"), "# Archived edit")
+        self.assertEqual(self.commits(sibling), 1)
+
+        result = self.snapshot("--quest", self.root, cwd=self.base)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("not a quest directory", result.stderr)
+
     def test_root_inside_a_repository_is_refused(self):
         for repository in (self.root, self.project):
             self.git(repository, "init", "--quiet")

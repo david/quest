@@ -3,13 +3,13 @@ name: quest
 description: >
   Maintain quests: one directory per task holding a QUEST.md memory record plus
   the documents and code checkouts that belong to that task. Use to set up a
-  realm, or to create, open, list, sync, hand off, distill, or archive a quest,
-  and to keep its records current while working inside one.
+  realm, or to create, open, list, distill, or archive a quest, and to keep
+  its records current while working inside one.
 metadata:
-  version: "6.1.0"
+  version: "7.0.0"
 ---
 
-<!-- argument-hint: <realm init|new|open|list|sync|handoff|distill|archive> [path|slug] -->
+<!-- argument-hint: <realm init|new|open|list|distill|archive> [path|slug] -->
 
 # Quest
 
@@ -104,24 +104,36 @@ These apply to `QUEST.md` and every supporting file.
    that worked on it. Replace an old checkpoint, next action, plan, or
    decision instead of adding an entry beside it, and correct linked files the
    change makes misleading. A reader who finds two statements that disagree
-   cannot tell which is current.
+   cannot tell which is current. Name the machine rather than writing "here"
+   or "this computer", since a realm can move to another.
 2. **Keep only what matters later**: what prevents a worse decision, a
    repeated investigation, a forgotten obligation, or a wrong resumption, plus
-   deliverables. Remove the rest rather than marking it superseded; for an
-   abandoned approach, keep one line: "Rejected A because X." Ask before
-   deleting material whose owner or purpose is unclear.
+   deliverables. Remove the rest rather than marking it superseded. Keep each
+   decision's reason with it; for an abandoned approach, keep one line:
+   "Rejected A because X." Ask before deleting material whose owner or
+   purpose is unclear.
 3. **Keep each fact in one place**, linking to its owner. Active work,
    blockers, and next actions belong in `Current State`. Leave out what Git or
    another tool reports live, such as whether a commit is pushed.
 4. **Record who decided**, the user or the agent. Revisit an agent's choice
    when facts change; ask before changing the user's. Write an open question
    as open, and replace a plan that stopped holding with the gap, not a guess.
-5. **Tie evidence to the revision or time it tested.** Record a failed or
+5. **Record agreed plans in full.** When a plan, a list of cases, or targets
+   are settled in chat, write down their numbers, names, lists, and what they
+   leave out, in a supporting file when long. An agent given only a summary
+   sets its own targets.
+6. **Tie evidence to the revision or time it tested.** Record a failed or
    partial attempt as such, with what resuming it needs.
-6. **Update when durable context changes**: a new checkpoint, decision,
-   blocker, or next action. Reread just before editing and edit narrowly.
-   Chat, terminal output, and running processes die with the session.
-7. **Tell the user too**: the outcome and the recommended next step.
+7. **Update in the same turn** that durable context changes: a checkpoint,
+   decision, blocker, or next action; a question put to the user, under
+   Blockers until answered; work you say you will do, or that is deferred or
+   left out of scope for later, as a next action or an unchecked Backlog
+   item. Chat, terminal output, and running processes die with the session,
+   which can end on the turn that asked the question. Reread just before
+   editing and edit narrowly, then reread `Current State` for statements the
+   edit left stale, contradictory, or garbled, and keep done, attempted,
+   in-flight, and unstarted work apart.
+8. **Tell the user too**: the outcome and the recommended next step.
 
 Supporting documents live in the quest directory by subject: extend the file
 that owns a subject rather than adding one per session, and link it from
@@ -253,22 +265,6 @@ We found the cause. The export loads every invoice into memory before it writes 
 
 `list` shows the root's quest directories, sorted by slug, marking one without
 `QUEST.md` as invalid. Leave out `.archived` unless asked.
-
-### Sync And Handoff
-
-`sync` brings the quest's records up to date with the session under the
-update rules; with nothing material to add, it changes nothing. It neither
-pushes nor continues the work.
-
-`handoff`, or preparing for a reset, transfer, or pause, is a thorough sync
-that makes the record enough to resume from. Write down results and decisions
-still only in chat, repair stale or contradictory records, and keep done,
-attempted, in-flight, and unstarted work distinct. Then read Current State as
-a fresh agent: the goal, constraints, checkpoint, evidence limits, blockers,
-and exact next action of each active task must be clear without a
-chronology. When you can, give an agent with no session history only
-`QUEST.md` and ask what it leaves out or says two ways; a record's author
-reads past its own gaps. Report whether the record is ready, or the exact gap.
 
 ### Distill
 

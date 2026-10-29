@@ -1,14 +1,16 @@
 # Snapshots
 
 ```sh
-python3 <quest-skill-directory>/bin/quest snapshot [directory ...]
+python3 <quest-skill-directory>/bin/quest snapshot [--quest <directory>] [directory ...]
 ```
 
 `quest snapshot` needs Python 3.9 or newer and Git, on Linux or macOS. From
 each directory given, or else the current one, it resolves the quest root by
 the skill's rules and snapshots every active quest directly under it, so a
 session started in the realm covers the quest it edits. It skips archived
-quests, and finding no root is not an error.
+quests, and finding no root is not an error. `--quest <directory>`, which
+can repeat, commits that quest's records too, even an archived one; with only
+`--quest`, nothing else is resolved.
 
 For each quest it creates `.git` on the first run, and writes the rules in
 `assets/snapshot-exclude`, plus one for each nested repository, to

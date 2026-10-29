@@ -40,6 +40,13 @@ skill scores no better than no skill test behavior the skill does not add.
   to commit.
 - Each case is a directory with the `scaffold.sh` that adds what the case
   needs to the realm, and `case.yaml`, or `case.json` under `git/`.
+- A case that starts in the middle of a chat, such as `plan-from-chat`, has
+  `history.jsonl`, a session log that `context.history_file` resumes. It is
+  made from the case's `turns.json`, alternating user and assistant texts:
+  `python3 _fixture/history.py <case>/history.jsonl <case>/turns.json`.
+  Each run writes the session it resumed next to `history.jsonl`, under the
+  session's id; `.gitignore` keeps those out. Such a case runs only with the
+  skill, so compare it across skill versions rather than with no skill.
 - `git/run.py` gives each run a fresh realm under `~/.cache/quest-evals`, runs
   `claude -p` there with only the plugin under test, and grades with shell
   commands (`sh`), the agent's Bash commands (`commands`), its tool calls,

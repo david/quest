@@ -229,7 +229,7 @@ def snapshot_command(args: argparse.Namespace) -> int:
         print(f"quest snapshot: {subject}: {error}", file=sys.stderr)
 
     roots = []
-    for directory in args.directory or [Path(".")]:
+    for directory in args.directory or ([] if args.quest else [Path(".")]):
         try:
             root = find_root(directory)
         except FileNotFoundError:
@@ -240,14 +240,31 @@ def snapshot_command(args: argparse.Namespace) -> int:
             continue
         if root and root not in roots:
             roots.append(root)
+    # Named quests, archived ones included: archiving edits the record after the move.
+    named = []
+    for directory in args.quest:
+        quest = Path(os.path.realpath(directory))
+        if is_quest(quest):
+            named.append(quest)
+        else:
+            report(directory, QuestError("not a quest directory"))
 
-    if not roots:
+    if not roots and not named:
         return 1 if failed else 0
     try:
         rules = default_rules()
     except OSError as error:
         report(DEFAULT_RULES, error)
         return 1
+
+    def record(quest: Path) -> None:
+        try:
+            subject = snapshot(quest, rules)
+        except (OSError, QuestError) as error:
+            report(quest, error)
+        else:
+            if subject:
+                print(f"{quest.name}: {subject}")
 
     for root in roots:
         try:
@@ -257,13 +274,14 @@ def snapshot_command(args: argparse.Namespace) -> int:
             report(root, error)
             continue
         for quest in quests:
-            try:
-                subject = snapshot(quest, rules)
-            except (OSError, QuestError) as error:
-                report(quest, error)
-            else:
-                if subject:
-                    print(f"{quest.name}: {subject}")
+            record(quest)
+    for quest in named:
+        try:
+            refuse_enclosing(find_root(quest))
+        except (OSError, QuestError) as error:
+            report(quest, error)
+        else:
+            record(quest)
     return 1 if failed else 0
 
 
@@ -916,7 +934,11 @@ def main() -> int:
         description="Commit each active quest's records to that quest's own Git repository.")
     snapshot_parser.add_argument(
         "directory", nargs="*", type=Path,
-        help="resolve the quest root from here (default: the current directory)")
+        help="resolve the quest root from here (default: the current directory, "
+             "unless --quest is given)")
+    snapshot_parser.add_argument(
+        "--quest", action="append", type=Path, default=[],
+        help="also commit this quest's records, even if it is archived; repeat for more")
     snapshot_parser.set_defaults(run=snapshot_command)
 
     archive_parser = commands.add_parser(

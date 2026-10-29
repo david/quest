@@ -1,0 +1,49 @@
+schema_version: "1.0"
+name: plan-from-chat
+description: >
+  A plan settled in chat for work that comes after the quest being created
+  (the currency support, agreed in detail, then put after a rounding fix)
+  reaches that quest's record with its specifics, as deferred work, rather
+  than as a one-line mention or not at all.
+tags: [core, record]
+context:
+  scaffold_script: scaffold.sh
+  history_file: history.jsonl
+execution:
+  prompt: "Create a quest for the rounding fix, fix-rounding-first. Don't start the work yet."
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+  - type: file_exists
+    name: record-created
+    path: quests/fix-rounding-first/QUEST.md
+  - type: regex
+    name: four-currencies
+    target: {source: file, path: quests/fix-rounding-first/QUEST.md}
+    pattern: CHF
+  - type: regex
+    name: weekly-rates
+    target: {source: file, path: quests/fix-rounding-first/QUEST.md}
+    pattern: Monday
+  - type: regex
+    name: rates-file
+    target: {source: file, path: quests/fix-rounding-first/QUEST.md}
+    pattern: rates\.json
+  - type: regex
+    name: out-of-scope
+    target: {source: file, path: quests/fix-rounding-first/QUEST.md}
+    pattern: "[Cc]redit notes?"
+  - type: llm
+    name: deferred-not-started
+    focus: {source: file, path: quests/fix-rounding-first/QUEST.md}
+    criteria: >
+      The record presents the currency support as agreed work that follows
+      the rounding fix, not as work begun or as part of this fix.
+  - type: file_exists
+    name: no-checkout-yet
+    path: quests/fix-rounding-first/worktrees
+    exists: false

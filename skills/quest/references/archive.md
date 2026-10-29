@@ -17,12 +17,23 @@ quest is already archived and change nothing. Read `QUEST.md` and the realm's
 instructions. For several quests, finish steps 2 to 4 for all of them before
 removing anything.
 
-## 2. Settle knowledge transfer
+## 2. Settle what only the quest holds
 
-If the record shows documentation still owed, [distill](../SKILL.md#distill)
-it, or record the follow-up somewhere that outlives the quest. Make these
-edits before the check so that it sees them. The archive request does not
-authorize committing or publishing them.
+Nobody reads an archived quest, so anything left open in it is dropped.
+
+- Write down results, decisions, questions, and plans from the session that
+  are still only in chat.
+- Move each open item, such as an unchecked Backlog item, deferred scope, a
+  check still owed, or a follow-up, to a place still in use: another quest,
+  lore, or the repository's docs. If documentation is owed,
+  [distill](../SKILL.md#distill) it. Ask the user when no place fits or an
+  item may no longer be wanted.
+- Have an agent with no session history read only `QUEST.md` and report what
+  it leaves out, what is stale, and what it says two ways; a record's author
+  reads past its own gaps. Fix what it finds.
+
+Make these edits before the check so that it sees them. The archive request
+does not authorize committing or publishing them.
 
 ## 3. Run the check
 
@@ -105,7 +116,7 @@ partial archive complete.
 
 - Update `Current State` in the archived `QUEST.md`: that the quest is
   archived, what became of each checkout, the check's verdict, anything kept
-  and where, any obligation still open, and how to resume. Leave unchecked
+  and where, where each open item went, and how to resume. Leave unchecked
   goals unchecked.
 - Repair relative links inside the archive and known links into it. Pin a
   source reference still needed to a revision, and mark old checkout paths as
@@ -113,5 +124,8 @@ partial archive complete.
 - Verify that the old path is gone, that the archive holds `QUEST.md`, its
   `.git`, and the kept documents, that the removed checkouts and branches are
   gone, and that nothing else was touched.
+- Snapshot the reconciled record, which no hook will, since snapshots skip
+  archived quests:
+  `python3 <quest-skill-directory>/bin/quest snapshot --quest <archived-quest-directory>`.
 - Tell the user the archive path, what was removed and kept, and anything left
   incomplete.

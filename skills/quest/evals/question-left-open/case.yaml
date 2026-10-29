@@ -1,0 +1,38 @@
+schema_version: "1.0"
+name: question-left-open
+description: >
+  A question the agent puts to the user in a reply that changes no code
+  reaches the record in that same turn, as a blocker waiting on the user,
+  because the session may end before the user answers.
+tags: [core, record]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: >
+    Before you implement the fix-rounding quest's next step: refunds are
+    negative line items. How should they round at a half cent? Propose
+    something, but don't change any code until I say.
+  max_turns: 20
+  timeout_seconds: 600
+  allowed_tools: [Read, Glob, Grep, Skill, Bash, Write, Edit]
+graders:
+  - type: tool_used
+    name: skill-fired
+    tool: Skill
+  - type: regex
+    name: question-recorded
+    target: {source: file, path: quests/fix-rounding/QUEST.md}
+    pattern: refund|negative
+    flags: i
+  - type: llm
+    name: blocker-waiting
+    focus: {source: file, path: quests/fix-rounding/QUEST.md}
+    criteria: >
+      Current State records, as a blocker or open question waiting on the
+      user, how refunds (negative line items) should round at a half cent.
+  - type: regex
+    name: no-code-changed
+    target: {source: file, path: quests/fix-rounding/worktrees/1/totals.py}
+    pattern: decimal
+    flags: i
+    match: not_contains

@@ -1,2 +1,4 @@
 __pycache__/
 skills/quest/evals/results/
+skills/*/evals/*/*.jsonl
+!skills/*/evals/*/history.jsonl

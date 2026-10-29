@@ -40,8 +40,6 @@ it refuses to run there.
 | `new` | Create a quest and capture its goal. |
 | `open` | Open a quest and summarize where it stands. |
 | `list` | List quests. |
-| `sync` | Bring the record up to date with the session. |
-| `handoff` | Check that another agent could resume from the record. |
 | `distill` | Move findings into the realm's own documentation. |
 | `archive` | Archive a quest after checking its checkouts for unmerged work. |
 
