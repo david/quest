@@ -4,8 +4,8 @@ An agent skill that gives each task its own directory: a quest. A quest holds
 `QUEST.md`, a short record that lets an agent pick the task up again without
 the conversation that started it, plus the task's documents and code checkouts.
 
-The skill covers creating, opening, updating, handing off, and archiving
-quests. It does not prescribe how the work itself is done.
+The skill covers creating, opening, updating, and archiving quests. It does not
+prescribe how the work itself is done.
 
 ## Install
 
@@ -31,6 +31,13 @@ section to `AGENTS.md` that links to each of its files, and creates an empty
 `quest-template/` directory whose contents are copied into each new quest. Run
 it from a directory that holds the repository, not from inside the repository;
 it refuses to run there.
+
+**Security scanners.** `npx skills` may show medium-risk warnings for
+`quest-master`. They come from two things. Its eval files load the repository's
+own test runner and push to a throwaway local repository they create; see
+`skills/quest-master/evals/`. And the skill reads subagent reports and can read
+the web, which any such skill must trust to some degree. Read the skill and its
+evals before installing if you want to check.
 
 ## Use
 
