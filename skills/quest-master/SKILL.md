@@ -6,7 +6,7 @@ description: >
   Use only when the user invokes quest-master.
 disable-model-invocation: true
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 <!-- argument-hint: [quest command] [slug] -->
@@ -32,7 +32,7 @@ to subagents; what you need in order to decide well, you read yourself.
 
 Use tools only for these:
 
-- Read and write the current quest's files, except under `worktrees/`.
+- Read and write the current quest's files.
 - Read and write the realm's `lore/`.
 - Read the realm's `AGENTS.md` and the web.
 - Read the project's documents, in a checkout or the realm's repository: its
@@ -57,9 +57,9 @@ Brief each subagent with the quest's path, the checkout to work in, the task,
 and what the user has authorized. It may read the quest's files for context.
 Tell it:
 
-- Never create, change, or delete the quest's files outside `worktrees/`, or
-  files in `lore/`, even when the `quest` skill or a checkout's instructions
-  say to update the record. Report instead.
+- Never create, change, or delete the quest's files or files in `lore/`,
+  even when the `quest` skill or a checkout's instructions say to update the
+  record. Report instead.
 - Ask the user nothing. When the work needs a decision or an approval, stop
   and report what is needed and the options.
 - End with a short report: what changed, on which branch and revision; what

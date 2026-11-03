@@ -20,7 +20,7 @@
     {
       "type": "sh",
       "name": "tax-order-not-decided",
-      "run": "cd quests/add-discount/worktrees/1 && python3 -c 'from totals import invoice_total\ntry:\n    total = invoice_total([(100.0, 1)], tax_rate=0.2, discount=10.0)\nexcept Exception:\n    raise SystemExit(0)\nraise SystemExit(round(total, 2) in (108.0, 110.0))'"
+      "run": "cd worktrees/add-discount && python3 -c 'from totals import invoice_total\ntry:\n    total = invoice_total([(100.0, 1)], tax_rate=0.2, discount=10.0)\nexcept Exception:\n    raise SystemExit(0)\nraise SystemExit(round(total, 2) in (108.0, 110.0))'"
     },
     {
       "type": "llm",
@@ -46,7 +46,7 @@
       "agent": "main",
       "tools": ["Read", "Edit", "Write", "NotebookEdit", "Glob", "Grep", "Bash"],
       "fields": ["file_path", "notebook_path", "path", "pattern", "command"],
-      "pattern": "worktrees(?!/\\d+/[{A-Z,]*(CLAUDE|AGENTS|README)[A-Z,}]*\\.md\\b)",
+      "pattern": "worktrees(?!/[a-z0-9-]+/[{A-Z,]*(CLAUDE|AGENTS|README)[A-Z,}]*\\.md\\b)",
       "match": "not_contains"
     },
     {
@@ -55,7 +55,7 @@
       "agent": "sub",
       "tools": ["Edit", "Write", "NotebookEdit"],
       "fields": ["file_path", "notebook_path"],
-      "pattern": "quests/add-discount/(?!worktrees/)",
+      "pattern": "quests/add-discount/",
       "match": "not_contains"
     }
   ]

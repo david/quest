@@ -18,11 +18,11 @@ graders:
     tool: Skill
   - type: regex
     name: step-1-done
-    target: {source: file, path: quests/add-tax/worktrees/1/totals.py}
+    target: {source: file, path: worktrees/add-tax/totals.py}
     pattern: tax_rate
   - type: regex
     name: step-2-not-started
-    target: {source: file, path: quests/add-tax/worktrees/1/README.md}
+    target: {source: file, path: worktrees/add-tax/README.md}
     pattern: tax
     flags: i
     match: not_contains
@@ -31,7 +31,7 @@ graders:
     focus: {source: file, path: quests/add-tax/QUEST.md}
     criteria: >
       Current State shows step 1 as done: the checkpoint says tax_rate is
-      implemented in worktrees/1 and the tests pass with it, and "none yet"
+      implemented in worktrees/add-tax and the tests pass with it, and "none yet"
       is gone. Step 1 is no longer listed as work to do, and adding the
       README example with tax is among the next actions. There is no dated
       session log or "update" entry added beside older state.

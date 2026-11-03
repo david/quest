@@ -1,9 +1,8 @@
 # Archive
 
 Archive a quest only on explicit request. The request authorizes removing the
-quest's checkouts, deleting the local branches they were on, and moving the
-quest to `<quest-root>/.archived/<slug>`, its `.git` included; snapshots skip
-it from then on. It does not authorize merging, rebasing, committing,
+quest's checkouts and moving the quest to `<quest-root>/.archived/<slug>`, its
+`.git` included; snapshots skip it from then on. It does not authorize merging, rebasing, committing,
 stashing, deleting remote branches, deploying, changing credentials, or
 stopping processes. When work would be lost, or the quest looks unfinished,
 the user decides first.
@@ -39,26 +38,27 @@ does not authorize committing or publishing them.
 
 ```sh
 python3 <quest-skill-directory>/bin/quest archive --check <quest-directory> \
-  [--source <repository>] [--target <remote>/<branch>]
+  --checkout <path> ... [--source <repository>] [--target <remote>/<branch>]
 ```
 
-It needs Python 3.9 and Git 2.38 or newer, and changes nothing except to fetch
-the target. It exits 0 with no findings, 1 with findings, each marked `!`, and
-2 when it could not finish. After a 2, remove nothing: fix what it names, or
-ask the user, and run it again. It reports uncommitted and untracked files in
-every checkout, anything in `worktrees/` that is not a checkout, branches and
-detached heads whose work is not on the target, stashes, and processes running
-in a checkout.
+Pass `--checkout` for each checkout `Current State` records on this computer.
+The check needs Python 3.9 and Git 2.38 or newer, and changes nothing except
+to fetch the target. It exits 0 with no findings, 1 with findings, each marked
+`!`, and 2 when it could not finish. After a 2, remove nothing: fix what it
+names, or ask the user, and run it again. It reports uncommitted and untracked
+files in every checkout, other worktrees of a clone that removing it would
+break, branches and detached heads whose work is not on the target, a clone's
+stashes, and processes running in a checkout.
 
-Pass `--source` when `worktrees/1` is a copy of the realm's repository, so that
-what it inherited from there is skipped. Pass `--target` when the work was
+Pass `--source` when a checkout is a copy of another repository, so that what
+it inherited from there is skipped. Pass `--target` when the work was
 integrated somewhere other than `origin/main`, taking it from the realm's
 instructions or the pull request; it must be a branch on a remote.
 
 The check skips ignored files, submodules, and reflogs. Ignored files worth
 keeping belong in `<quest>/local-data/`, which archiving keeps. Check by hand
-any other checkout or branch `QUEST.md` records, and services that use the
-quest's ports or paths.
+a checkout on another computer, any branch `QUEST.md` records, and services
+that use the quest's ports or paths.
 
 ## 4. Ask once
 
@@ -69,45 +69,35 @@ anyway. Say that archiving removes the reported work for good, and neither
 merges it nor cancels automation on the remote. With no findings and no open
 work, go on without asking.
 
-- **Archive anyway** permits forcing the removal of the reported checkouts and
-  deleting their unmerged local branches, nothing wider and nothing on a
-  remote. A running process is the user's to stop.
+- **Archive anyway** permits removing the reported checkouts with their
+  work, nothing wider and nothing on a remote. A running process is the
+  user's to stop.
 - **Not yet** leaves everything as it is. If the user wants to keep something
   first, do it as they direct, then run the check again.
 
 ## 5. Remove and move
 
-1. Record in `QUEST.md` what will be removed: checkout paths, branches, the
-   target and the check's verdict, and what the user chose to lose.
+1. Record in `QUEST.md` what will be removed: checkout paths, the target and
+   the check's verdict, and what the user chose to lose.
 2. Move the session's working directory out of the checkouts.
-3. When the check had no findings, archive with the options it used:
+3. Remove each checkout with the tool that made it, such as the harness's
+   worktree command, as the realm's instructions say; when you cannot, ask the
+   user to remove them, and wait. Checkouts a quest made before version 8.0.0
+   are in `<quest>/worktrees/`: remove a worktree of another repository with
+   `git worktree remove`, delete the rest, the clone last, then the empty
+   `worktrees/`. Remove no checkout the record does not list, and nothing
+   on a remote.
+4. Move the quest:
 
    ```sh
    python3 <quest-skill-directory>/bin/quest archive <quest-directory> \
-     [--source <repository>] [--target <remote>/<branch>]
+     --checkout <path> ...
    ```
 
-   It runs the check again and changes nothing if that finds anything, exiting
-   1: take any finding the user has not seen back to them. Otherwise it takes
-   a last snapshot, removes the checkouts and their merged branches, and moves
-   the quest to `.archived/<slug>`. It exits 0 when done, and 2 when it
-   stopped, having printed each step it finished.
-4. When the user chose to archive anyway, the command refuses, so run the
-   check again, take any new finding back to the user, and archive by hand:
-   - For each worktree of a repository outside the quest, run the removal
-     command the check printed, with `--force` only if the user chose to lose
-     its uncommitted work. Then delete its branch with `git branch -d`. Use
-     `-D` only when `-d` refuses a branch the check reported merged, or for one
-     whose work the user chose to lose, and only while it is at the commit the
-     check saw. Delete no other branch, none another worktree uses, and
-     nothing on a remote. Do not run `git worktree prune` or `repair`.
-   - For a repository inside the quest, delete the checkout directories the
-     check listed, the clone last, then the empty `worktrees/`. Never delete a
-     parent directory, another quest's checkout, or anything outside the
-     quest. If a file resists removal, fix permissions only inside that
-     checkout.
-   - Confirm that `.archived/<slug>` is still absent, create `.archived` if
-     needed, and move the quest directory there.
+   It refuses while a listed checkout or `<quest>/worktrees/` exists.
+   Otherwise it takes a last snapshot and moves the quest to
+   `.archived/<slug>`. It exits 0 when done, and 2 when it stopped, having
+   printed each step it finished.
 
 If a step fails, stop and report what was done and what remains. Do not call a
 partial archive complete.
@@ -122,8 +112,8 @@ partial archive complete.
   source reference still needed to a revision, and mark old checkout paths as
   historical. Clear a realm pointer that selects this quest.
 - Verify that the old path is gone, that the archive holds `QUEST.md`, its
-  `.git`, and the kept documents, that the removed checkouts and branches are
-  gone, and that nothing else was touched.
+  `.git`, and the kept documents, that the removed checkouts are gone, and
+  that nothing else was touched.
 - Snapshot the reconciled record, which no hook will, since snapshots skip
   archived quests:
   `python3 <quest-skill-directory>/bin/quest snapshot --quest <archived-quest-directory>`.

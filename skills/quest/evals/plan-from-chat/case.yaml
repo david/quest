@@ -45,5 +45,5 @@ graders:
       the rounding fix, not as work begun or as part of this fix.
   - type: file_exists
     name: no-checkout-yet
-    path: quests/fix-rounding-first/worktrees
+    path: worktrees/fix-rounding-first
     exists: false

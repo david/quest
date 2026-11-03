@@ -8,10 +8,6 @@ printf '# Changelog\n\n- Totals are rounded to cents.\n' >"$changes/CHANGELOG.md
 upstream_commit "$changes" "Start a changelog"
 rm -rf "$changes"
 
-# ./app has a linked worktree of its own, outside the realm, so a copy of its
-# .git carries a registration that points outside the quest.
-git -C "$REALM/app" worktree add -q -b scratch "$HOME/app-scratch"
-
 make_quest add-currency <<'EOF'
 ---
 quest_skill_version: "6.0.0"

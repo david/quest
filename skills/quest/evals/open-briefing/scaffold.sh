@@ -36,7 +36,7 @@ quest_skill_version: "6.0.0"
   (about 180,000 invoices) finishes in under 30 seconds.
 - Constraints: No schema changes (user). Production data only with the user's
   explicit approval.
-- Workspace: `worktrees/1`, branch `export-speed`. Local server on port 8412.
+- Workspace: `@REALM@/worktrees/export-speed`, branch `export-speed`. Local server on port 8412.
 - Active work: validating the streaming export.
 - Checkpoint: Streaming export implemented in a3f9c21; unit tests pass at that
   commit. On a synthetic 20,000-invoice account it takes 4.1 s, down from

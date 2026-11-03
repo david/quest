@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "7.0.0"
+  version: "8.0.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|distill|archive> [path|slug] -->
@@ -31,10 +31,12 @@ and the instructions of the realm and its repository.
     ├── <slug>/
     │   ├── QUEST.md           # the record; the only required file
     │   ├── research/          # findings and evidence, read on demand
-    │   ├── local-data/        # private or non-reproducible local files
-    │   └── worktrees/         # code checkouts, numbered from 1
+    │   └── local-data/        # private or non-reproducible local files
     └── .archived/<slug>/      # archived quests
 ```
+
+A quest's code checkouts are not part of this layout: see
+[Code Checkouts](#code-checkouts).
 
 A realm, made by `realm init`, is never inside a repository, so its quests and
 lore stay out of the code. Read [Lore](references/lore.md) whenever a task
@@ -49,11 +51,15 @@ directory (never the skill directory), and use its absolute path throughout:
 
 1. If the working directory or an ancestor is a slug-named directory holding
    `QUEST.md` directly inside a directory named `quests`, that is the current
-   quest, even from inside one of its checkouts, and its parent is the root.
+   quest, and its parent is the root.
 2. Otherwise use the nearest `quests` directory: the working directory or an
    ancestor that is named `quests` or contains one, skipping any inside a Git
    repository.
-3. Otherwise stop and report which directories you checked. Never create
+3. Otherwise, as in a checkout outside the realm, use the quest the user
+   names: by its path, or by its slug in the output of
+   `python3 <quest-skill-directory>/bin/quest list`, which gives each quest's
+   `dir`. Ask when the user names none, or several quests match.
+4. Otherwise stop and report which directories you checked. Never create
    `quests` to make resolution succeed.
 
 Without a slug, a command acts on the current quest, or else on the one the
@@ -77,7 +83,7 @@ quest_skill_version: "<metadata.version>"
 
 - Objective: The desired outcome and what would count as success.
 - Constraints: What the user has and has not authorized, and other material limits.
-- Workspace: Each checkout's path, branch, and purpose, with any ports or services allocated to the quest, or none.
+- Workspace: Each checkout's absolute path, computer, branch, and purpose, with any ports or services allocated to the quest, or none.
 - Active work: The active tasks, or none.
 - Checkpoint: The latest durable result, what has been verified on which revision, and where to check it.
 - Next actions: The exact resumption step for each active task, or that the work is complete or paused.
@@ -143,42 +149,34 @@ finding before acting on it.
 
 ## Code Checkouts
 
-Checkouts live under `worktrees/`, numbered from 1, and each is recorded in
-`Current State`. Inside one, its repository's instructions govern the work;
-read them as [Open](#open) describes before working there.
+The harness makes a quest's code checkouts, such as OpenCode's worktrees, or
+the realm's instructions say how; this skill does not choose where they live.
+Make one only when authorized, and start it from the realm repository's `main`
+once that is up to date:
+
+```sh
+git -C <repository> pull --ff-only origin main
+```
+
+If the repository is on another branch, or `main` cannot fast-forward, stop
+and say so; do not switch branches or merge. Record each checkout in `Current
+State`: its absolute path, the computer it is on, its branch, and its purpose.
+Inside one, its repository's instructions govern the work; read them as
+[Open](#open) describes before working there.
 
 **Never `cd` into a checkout**, not even as `cd <checkout> && <command>`: the
 shell stays there for every later command. Use the tool's directory option,
 such as `git -C <checkout>` or `make -C <checkout>`, or absolute paths.
 
-Unless the realm arranges checkouts another way, `worktrees/1` is a
-copy-on-write clone of the realm's repository, taken from `main` once `main`
-is up to date, and further checkouts are worktrees of that clone:
-
-```sh
-git -C <repository> pull --ff-only origin main
-cp -a --reflink=always <repository> <quest>/worktrees/1
-rm -rf <quest>/worktrees/1/.git/worktrees
-git -C <quest>/worktrees/1 worktree add -b <branch> ../<n>
-```
-
-- The repository must have `main` checked out, with `.git` a directory. If it
-  is on another branch, or `main` cannot fast-forward, stop and say so; do not
-  switch branches or merge.
-- The `rm` drops the source's worktree registrations. The copy also carries
-  the source's uncommitted changes: discard those that are not the quest's.
-- Without reflinks the copy fails, leaving empty directories. Remove them and
-  run `git -C <repository> worktree add -b <branch> <quest>/worktrees/1 main`
-  instead; say in `Current State` that the quest's branches then live in the
-  realm's repository, and remove such checkouts with `git worktree remove`.
-
 ## Snapshots
 
 A hook runs `quest snapshot` (the skill's `bin/quest`) around every turn. It
 commits each active quest's records to the quest's own `.git`, leaving out
-`worktrees/`, `local-data/`, and nested repositories. Never initialize or
-commit to that `.git` by hand. Keep other private or generated files in those
-excluded places, or add a `.gitignore` rule before creating them.
+`local-data/` and nested repositories. Never initialize or commit to that
+`.git` by hand. Keep other private or generated files in those excluded
+places, or add a `.gitignore` rule before creating them. A session started
+outside the realm, as in a checkout, finds no quest root, so after editing a
+quest's records there, run `quest snapshot --quest <quest-directory>`.
 [Snapshots](references/snapshot.md) covers the command and other harnesses.
 
 ## Commands
@@ -216,8 +214,8 @@ number first; for a pull request, it is `pr-<number>-<description>`.
 neither, ask which and show the `list`. For a slug with no exact match, open a
 single clearly similar one and say so, or list several and ask.
 
-Read `QUEST.md`, then the first checkout's instructions:
-`worktrees/1/CLAUDE.md` when you are Claude Code and `worktrees/1/AGENTS.md`
+Read `QUEST.md`, then the instructions of the first checkout `Current State`
+records: its `CLAUDE.md` when you are Claude Code and its `AGENTS.md`
 otherwise, falling back to the other file. A session started outside that
 checkout does not load them on its own. Read nothing else, and change nothing.
 

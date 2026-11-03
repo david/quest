@@ -2,7 +2,7 @@
 make_realm
 make_checkout readme-title readme-title
 
-checkout=$REALM/quests/readme-title/worktrees/1
+checkout=$REALM/worktrees/readme-title
 sed -i 's/^# Invoicing$/# Shop invoicing/' "$checkout/README.md"
 sha=$(commit_all "$checkout" "Name the shop in the README title")
 git -C "$checkout" push -q origin readme-title:main
@@ -18,7 +18,7 @@ quest_skill_version: "6.0.0"
 
 - Objective: The README's title names the shop.
 - Constraints: none beyond the repository's.
-- Workspace: \`worktrees/1\`, branch \`readme-title\`.
+- Workspace: \`@REALM@/worktrees/readme-title\`, branch \`readme-title\`.
 - Active work: none.
 - Checkpoint: $sha is on origin/main.
 - Next actions: none; the work is complete and merged.

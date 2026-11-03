@@ -58,20 +58,18 @@ make_realm() {
   git -C "$REALM/app" push -q -u origin main
 }
 
-# A quest directory with QUEST.md read from standard input.
+# A quest directory with QUEST.md read from standard input, where @REALM@
+# stands for the realm's absolute path.
 make_quest() {
   local slug=$1
   mkdir -p "$REALM/quests/$slug"
-  cat >"$REALM/quests/$slug/QUEST.md"
+  sed "s|@REALM@|$REALM|g" >"$REALM/quests/$slug/QUEST.md"
 }
 
-# The quest's worktrees/1, made the way the skill makes it, on a new branch.
+# The quest's checkout, made the way the realm's AGENTS.md says, on a new branch.
 make_checkout() {
-  local slug=$1 branch=$2 checkout="$REALM/quests/$1/worktrees/1"
-  mkdir -p "$REALM/quests/$slug/worktrees"
-  cp -a "$REALM/app" "$checkout"
-  rm -rf "$checkout/.git/worktrees"
-  git -C "$checkout" switch -q -c "$branch"
+  local slug=$1 branch=$2
+  git -C "$REALM/app" worktree add -q -b "$branch" "$REALM/worktrees/$slug" main
 }
 
 # Commit everything in a checkout and print the short hash.

@@ -35,12 +35,12 @@ Rerunning must keep existing files and add no duplicate instructions.
 
 Add only the conventions the realm needs:
 
-- For code, name the repository that `worktrees/1` is cloned from, and only
-  what it does differently from the skill's checkout rules, such as a default
-  branch other than `main` or how branches are named. Keep an established
-  alternative, such as worktrees of the realm's repository or one shared
-  checkout, and ask before changing it; for such a realm, record where a
-  quest's code lives and how its commands load quest configuration.
+- For code, name the realm's repository and how a quest's checkouts are made
+  and removed, such as with the harness's worktrees, and what differs from
+  the skill's checkout rules, such as a default branch other than `main` or
+  how branches are named. Keep an established arrangement, such as one shared
+  checkout, and ask before changing it. Record how a checkout's commands load
+  quest configuration.
 - When a quest needs values of its own, such as a port, a database name, or a
   socket path, say how a new quest chooses and records them. Prefer the realm's
   existing allocator. Otherwise pick an available port, compare it with those

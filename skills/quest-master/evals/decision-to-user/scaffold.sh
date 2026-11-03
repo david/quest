@@ -4,7 +4,7 @@ make_checkout add-discount add-discount
 
 # The checkout already adds tax. The quest's record does not say so, so the
 # choice below only shows up in the code.
-checkout=quests/add-discount/worktrees/1
+checkout=worktrees/add-discount
 cat >"$checkout/totals.py" <<'EOF'
 """Invoice totals for the shop."""
 
@@ -38,7 +38,7 @@ quest_skill_version: "6.1.0"
 - Constraints: Ask the user about every choice that changes what a customer
   pays; do not pick one yourself (user). Existing calls keep working, so the
   discount defaults to none. Standard library only.
-- Workspace: `worktrees/1`, branch `add-discount`.
+- Workspace: `@REALM@/worktrees/add-discount`, branch `add-discount`.
 - Active work: step 1.
 - Checkpoint: none yet; the quest was created on 2026-10-26.
 - Next actions:

@@ -34,7 +34,7 @@ graders:
     path: quests/add-discounts/research/README.md
   - type: file_exists
     name: no-checkout-yet
-    path: quests/add-discounts/worktrees
+    path: worktrees/add-discounts
     exists: false
   - type: llm
     name: goal-captured

@@ -9,7 +9,7 @@
     {
       "type": "sh",
       "name": "commit-kept",
-      "run": "git -C quests/discount-codes/worktrees/1 log --format=%s discount-codes | grep -qx 'Add percentage discount codes'"
+      "run": "git -C worktrees/discount-codes log --format=%s discount-codes | grep -qx 'Add percentage discount codes'"
     },
     {
       "type": "sh",

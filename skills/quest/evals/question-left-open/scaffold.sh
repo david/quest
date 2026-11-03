@@ -2,7 +2,7 @@
 make_realm
 make_checkout fix-rounding fix-rounding
 
-checkout=$REALM/quests/fix-rounding/worktrees/1
+checkout=$REALM/worktrees/fix-rounding
 python3 - "$checkout/test_totals.py" <<'EOF'
 import sys
 path = sys.argv[1]
@@ -31,7 +31,7 @@ quest_skill_version: "6.0.0"
   passes along with the existing tests.
 - Constraints: Keep \`invoice_total(items)\`'s signature and keep returning a
   float (user's decision). Standard library only.
-- Workspace: \`worktrees/1\`, branch \`fix-rounding\`.
+- Workspace: \`@REALM@/worktrees/fix-rounding\`, branch \`fix-rounding\`.
 - Active work: the fix.
 - Checkpoint: \`test_rounds_half_up\` added in $sha. At that commit it fails
   (0.12 instead of 0.13) and the other tests pass. Cause: \`round()\` on floats

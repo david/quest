@@ -2,7 +2,7 @@
 make_realm
 make_checkout discount-codes discount-codes
 
-checkout=$REALM/quests/discount-codes/worktrees/1
+checkout=$REALM/worktrees/discount-codes
 cat >"$checkout/discounts.py" <<'EOF'
 """Percentage discount codes."""
 
@@ -26,7 +26,7 @@ quest_skill_version: "6.0.0"
 
 - Objective: Customers can apply a percentage discount code to an invoice.
 - Constraints: none beyond the repository's.
-- Workspace: \`worktrees/1\`, branch \`discount-codes\`.
+- Workspace: \`@REALM@/worktrees/discount-codes\`, branch \`discount-codes\`.
 - Active work: none.
 - Checkpoint: \`apply_code\` implemented in $sha; tests pass at that commit.
 - Next actions: none; the work is complete.

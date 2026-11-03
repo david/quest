@@ -32,7 +32,7 @@ graders:
       user, how refunds (negative line items) should round at a half cent.
   - type: regex
     name: no-code-changed
-    target: {source: file, path: quests/fix-rounding/worktrees/1/totals.py}
+    target: {source: file, path: worktrees/fix-rounding/totals.py}
     pattern: decimal
     flags: i
     match: not_contains

@@ -14,7 +14,7 @@
     {
       "type": "sh",
       "name": "checkout-removed",
-      "run": "! test -e quests/.archived/readme-title/worktrees"
+      "run": "! test -e worktrees/readme-title"
     },
     {
       "type": "sh",

@@ -73,16 +73,14 @@ in `/quest-master open <slug>`.
 └── quests/
     ├── <slug>/
     │   ├── QUEST.md        # the record; the only required file
-    │   ├── research/       # findings, read on demand
-    │   └── worktrees/
-    │       ├── 1/          # a copy-on-write clone of the realm's repository
-    │       └── <n>/        # Git worktrees of that clone
+    │   └── research/       # findings, read on demand
     └── .archived/<slug>/
 ```
 
 A realm is a project set up for quests. It sits outside the repository, so
-quests and lore never end up in the code. Each quest's code lives inside the
-quest, so removing the quest leaves nothing behind in the repository.
+quests and lore never end up in the code. Your agent's harness makes a
+quest's code checkouts, such as OpenCode's worktrees, wherever it keeps them;
+the quest records their paths.
 
 ## The `quest` command
 
@@ -94,9 +92,9 @@ an agent, and lists quests for other tools, such as a status bar widget:
 - `quest realm show <realm>` and `quest show <realm> <slug>` print one realm
   or quest, with its directory.
 - `quest snapshot` commits each quest's records, as described below.
-- `quest archive <quest>` checks a quest's checkouts for work that archiving
-  would lose. When it finds none, it removes them and moves the quest to
-  `.archived/`. With `--check` it only reports.
+- `quest archive --check <quest> --checkout <path>` checks a quest's
+  checkouts for work that removing them would lose. Once they are removed,
+  `quest archive <quest>` moves the quest to `.archived/`.
 
 Run it as `python3 skills/quest/bin/quest`, or link it into your `PATH`.
 
@@ -141,9 +139,6 @@ Other agents need their own hook. See
 
 - Git.
 - Python 3.9 or newer, for `bin/quest`.
-- A filesystem with reflink support (such as Btrfs, XFS, or APFS) for the
-  copy-on-write clone. Without it, the first checkout falls back to a Git
-  worktree of the realm's repository.
 
 ## Tests
 

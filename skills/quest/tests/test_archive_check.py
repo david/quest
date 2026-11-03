@@ -38,7 +38,10 @@ class ArchiveCheckTests(unittest.TestCase):
         self.quest = self.project / "quests" / "sample-quest"
         self.quest.mkdir(parents=True)
         (self.quest / "QUEST.md").write_text("# Sample\n")
-        self.worktrees = self.quest / "worktrees"
+        # Where these tests keep checkouts; the harness that makes them chooses.
+        self.worktrees = self.project / "worktrees"
+        # The checkouts the quest's record lists, passed as --checkout.
+        self.listed = []
 
     def git(self, directory, *args):
         result = subprocess.run(
@@ -53,15 +56,27 @@ class ArchiveCheckTests(unittest.TestCase):
         self.git(checkout, "commit", "--quiet", "-m", subject)
         return self.git(checkout, "rev-parse", "--short", "HEAD")
 
+    def listing(self):
+        return [option for path in self.listed for option in ("--checkout", str(path))]
+
     def clone(self):
-        """Copy the project repository as the skill does, without needing reflinks."""
+        """Copy the project repository, as a harness might, without needing reflinks."""
         self.worktrees.mkdir(exist_ok=True)
         shutil.copytree(self.repository, self.worktrees / "1", symlinks=True)
+        self.listed.append(self.worktrees / "1")
         return self.worktrees / "1"
+
+    def worktree(self, repository, *options, name):
+        path = self.worktrees / name
+        self.worktrees.mkdir(exist_ok=True)
+        self.git(repository, "worktree", "add", "--quiet", *options, str(path))
+        self.listed.append(path)
+        return path
 
     def check(self, *options, quest=None):
         return subprocess.run(
-            [sys.executable, str(QUEST), "archive", "--check", *options, str(quest or self.quest)],
+            [sys.executable, str(QUEST), "archive", "--check", *self.listing(), *options,
+             str(quest or self.quest)],
             cwd=self.base, env=self.env, capture_output=True, text=True,
         )
 
@@ -75,7 +90,7 @@ class ArchiveCheckTests(unittest.TestCase):
 
     def archive(self, *options):
         return subprocess.run(
-            [sys.executable, str(QUEST), "archive", *options, str(self.quest)],
+            [sys.executable, str(QUEST), "archive", *self.listing(), *options, str(self.quest)],
             cwd=self.base, env=self.env, capture_output=True, text=True,
         )
 
@@ -96,9 +111,9 @@ class ArchiveCheckTests(unittest.TestCase):
     def test_quest_without_checkouts(self):
         found, report = self.findings()
         self.assertEqual(found, [])
-        self.assertIn("No checkouts in worktrees/.", report)
+        self.assertIn("No checkouts listed.", report)
 
-    def test_uncommitted_and_stray_files(self):
+    def test_uncommitted_files(self):
         checkout = self.clone()
         (checkout / "app.txt").write_text("changed\n")
         (checkout / "notes.txt").write_text("untracked\n")
@@ -106,15 +121,9 @@ class ArchiveCheckTests(unittest.TestCase):
         for directory in ("node_modules", "web/node_modules"):
             (checkout / directory).mkdir(parents=True)
             (checkout / directory / "package.js").write_text("generated\n")
-        (self.worktrees / "scratch").mkdir()
-        (self.worktrees / "scratch" / "data.csv").write_text("1\n")
-        (self.worktrees / "empty").mkdir()
         found, report = self.findings()
-        self.assertEqual(found, [
-            "2 uncommitted paths", "in worktrees/ but not a checkout, so removed with it:"])
+        self.assertEqual(found, ["2 uncommitted paths"])
         self.assertIn("         M app.txt\n        ?? notes.txt\n", report)
-        self.assertIn("        worktrees/scratch\n", report)
-        self.assertNotIn("worktrees/empty", report)
         # Ignored files are not reported: what is worth keeping belongs in local-data/.
         self.assertNotIn("debug.log", report)
         self.assertNotIn("node_modules", report)
@@ -176,18 +185,17 @@ class ArchiveCheckTests(unittest.TestCase):
 
     def test_worktrees_of_the_clone(self):
         checkout = self.clone()
-        self.git(checkout, "worktree", "add", "--quiet", "-b", "second", "../2")
-        self.git(checkout, "worktree", "add", "--quiet", "--detach", "../10")
-        self.commit(self.worktrees / "10", "loose.txt", "loose\n", "Try something")
+        self.worktree(checkout, "-b", "second", name="2")
+        self.commit(self.worktree(checkout, "--detach", name="10"), "loose.txt", "loose\n", "Try something")
         outside = self.base / "elsewhere"
         self.git(checkout, "worktree", "add", "--quiet", "-b", "outside", str(outside))
         found, report = self.findings()
         self.assertEqual(found, [
-            "outside the quest's worktrees/; removing its repository breaks it",
+            "not one of the quest's listed checkouts; removing its repository breaks it",
             "detached HEAD of worktrees/10: 1 commit not in origin/main",
         ])
         self.assertIn("        Try something\n", report)
-        # Numbered checkouts in order, then what lies outside worktrees/.
+        # The listed checkouts in order, then the others.
         lines = [line for line in report.splitlines() if line and not line.startswith(" ")]
         self.assertEqual([line.split(":")[0] for line in lines[2:6]],
                          ["worktrees/1", "worktrees/2", "worktrees/10", str(outside)])
@@ -196,16 +204,14 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertIn(f"    outside ({outside}): merged into origin/main\n", report)
 
     def test_worktree_of_a_repository_that_outlives_the_quest(self):
-        self.worktrees.mkdir()
-        self.git(self.repository, "worktree", "add", "--quiet", "-b", "quest/sample", str(self.worktrees / "1"))
+        self.worktree(self.repository, "-b", "quest/sample", name="1")
         self.git(self.repository, "branch", "someone-elses", "main")
         self.git(self.repository, "switch", "--quiet", "someone-elses")
         self.commit(self.repository, "theirs.txt", "theirs\n", "Not the quest's")
         found, report = self.findings()
         self.assertEqual(found, [])
-        self.assertIn(f"worktrees/1: worktree of {self.repository}, on quest/sample at ", report)
-        self.assertIn(f"Repository {self.repository / '.git'}: outside the quest, and outlives it\n", report)
-        self.assertIn(f"    remove a worktree with: git -C {self.repository} worktree remove <path>\n", report)
+        self.assertIn("worktrees/1: worktree of repo, on quest/sample at ", report)
+        self.assertIn("Repository repo/.git: outlives the quest's checkouts\n", report)
         self.assertIn("    quest/sample (worktrees/1): merged into origin/main\n", report)
         self.assertNotIn("someone-elses", report)
 
@@ -237,8 +243,7 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertNotIn("inherited stash", report)
 
     def test_inherited_worktree_registrations_are_not_the_quests(self):
-        other = self.project / "quests" / "other-quest" / "worktrees" / "1"
-        other.parent.mkdir(parents=True)
+        other = self.base / "other-quest-checkout"
         self.git(self.repository, "worktree", "add", "--quiet", "-b", "other", str(other))
         (other / "dirty.txt").write_text("another quest's work\n")
         gone = self.base / "gone"
@@ -277,7 +282,6 @@ class ArchiveCheckTests(unittest.TestCase):
             self.git(checkout, "stash", "push", "--quiet", "-m", message)
         self.git(checkout, "switch", "--quiet", "-c", "topic\u2028odd")
         self.commit(checkout, "feature.txt", "feature\n", "Add\x0bthe feature")
-        (self.worktrees / "\u00b2").mkdir()
         found, report = self.findings()
         self.assertEqual(found, ["topic\u2028odd (worktrees/1): 1 commit not in origin/main", "2 stash entries"])
         self.assertIn("        stash@{1}: On main: part one\u2028part two\n", report)
@@ -290,16 +294,20 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertIn("is a symbolic link", self.refusal(quest=link))
         self.assertIn("rev-parse", self.refusal("--source", str(self.base)))
         checkout = self.clone()
-        self.assertIn("is inside the quest", self.refusal("--source", str(checkout)))
+        self.assertIn("belongs to the quest", self.refusal("--source", str(checkout)))
         shutil.rmtree(self.worktrees)
+        self.listed = []
 
         archived = self.quest.parent / ".archived" / "sample-quest"
         archived.mkdir(parents=True)
         self.assertIn("exists already", self.refusal())
         archived.rmdir()
 
+        self.assertIn("does not exist", self.refusal("--checkout", str(self.base / "absent")))
+        self.assertIn("is not the top of a checkout", self.refusal("--checkout", str(self.base)))
+
         checkout = self.clone()
-        self.git(checkout, "worktree", "add", "--quiet", "-b", "second", "../2")
+        self.worktree(checkout, "-b", "second", name="2")
         shutil.rmtree(checkout / ".git" / "worktrees" / "2")
         error = self.refusal()
         self.assertIn("any report above is incomplete", error)
@@ -321,7 +329,8 @@ class ArchiveCheckTests(unittest.TestCase):
         def state():
             return sorted(
                 (str(path), path.lstat().st_mtime_ns, path.lstat().st_size)
-                for path in self.quest.rglob("*") if not path.is_dir())
+                for root in (self.quest, self.worktrees)
+                for path in root.rglob("*") if not path.is_dir())
 
         before = state()
         self.assertEqual(self.findings()[0], [
@@ -370,49 +379,32 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertIn(f"        {sleeper.pid} sleep: {checkout}\n", report)
 
 
-    def test_archive_removes_the_quests_clone_and_moves_the_quest(self):
+    def test_archive_waits_until_the_checkouts_are_gone(self):
         checkout = self.clone()
-        self.git(checkout, "worktree", "add", "--quiet", "-b", "second", "../2")
-        (checkout / "debug.log").write_text("ignored\n")
-        (self.worktrees / "empty").mkdir()
         (self.quest / "notes.md").write_text("notes\n")
         result = self.archive()
-        self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
-        self.assertIn(
-            "  last snapshot: Initialize quest records: 2 paths (QUEST.md, notes.md)\n"
-            "  deleted worktrees/2\n  deleted worktrees/1\n  deleted worktrees/\n", result.stdout)
-        archived = self.project / "quests" / ".archived" / "sample-quest"
-        self.assertFalse(self.quest.exists())
-        self.assertEqual(sorted(path.name for path in archived.iterdir()), [".git", "QUEST.md", "notes.md"])
-        self.assertEqual(self.git(archived, "ls-files"), "QUEST.md\nnotes.md")
-        self.assertEqual(self.git(self.repository, "branch", "--format=%(refname:short)"), "main")
-
-    def test_archive_with_findings_changes_nothing(self):
-        checkout = self.clone()
-        (checkout / "app.txt").write_text("changed\n")
-        result = self.archive()
-        self.assertEqual(result.returncode, 1, result.stderr)
-        self.assertTrue(result.stdout.endswith("\nNothing was archived.\n"), result.stdout)
-        self.assertEqual((checkout / "app.txt").read_text(), "changed\n")
+        self.assertEqual(result.returncode, 2, result.stdout)
+        self.assertIn(f"remove the quest's checkouts first: {checkout}", result.stderr)
+        self.assertTrue(self.quest.is_dir())
         self.assertFalse((self.quest / ".git").exists())
         self.assertFalse((self.project / "quests" / ".archived").exists())
 
-    def test_archive_removes_worktrees_and_merged_branches_of_a_repository_that_outlives_it(self):
-        self.worktrees.mkdir()
-        self.git(self.repository, "worktree", "add", "--quiet", "-b", "quest/sample", str(self.worktrees / "1"))
-        self.commit(self.worktrees / "1", "feature.txt", "feature\n", "Add the feature")
-        self.git(self.repository, "branch", "someone-elses", "main")
-        # Upstream takes the work as another commit, which git branch -d does not see as merged.
-        self.commit(self.repository, "feature.txt", "feature\n", "Add the feature (#1)")
-        self.git(self.repository, "push", "--quiet", "origin", "main")
+        shutil.rmtree(checkout)
         result = self.archive()
         self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
-        self.assertIn("  removed the worktree worktrees/1\n", result.stdout)
-        self.assertIn(f"  deleted the merged branch quest/sample in {self.repository}\n", result.stdout)
-        self.assertEqual(
-            self.git(self.repository, "branch", "--format=%(refname:short)"), "main\nsomeone-elses")
-        self.assertEqual(self.git(self.repository, "worktree", "list", "--porcelain").count("worktree "), 1)
-        self.assertTrue((self.project / "quests" / ".archived" / "sample-quest" / "QUEST.md").is_file())
+        self.assertIn("  last snapshot: Initialize quest records: 2 paths (QUEST.md, notes.md)\n", result.stdout)
+        archived = self.project / "quests" / ".archived" / "sample-quest"
+        self.assertTrue(result.stdout.endswith(f"  moved the quest to {archived}\n"), result.stdout)
+        self.assertFalse(self.quest.exists())
+        self.assertEqual(sorted(path.name for path in archived.iterdir()), [".git", "QUEST.md", "notes.md"])
+        self.assertEqual(self.git(archived, "ls-files"), "QUEST.md\nnotes.md")
+
+    def test_archive_waits_for_checkouts_in_the_old_layout(self):
+        (self.quest / "worktrees" / "1").mkdir(parents=True)
+        result = self.archive()
+        self.assertEqual(result.returncode, 2, result.stdout)
+        self.assertIn(f"remove the quest's checkouts first: {self.quest / 'worktrees'}", result.stderr)
+        self.assertTrue(self.quest.is_dir())
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ git -C app add -A
 git -C app commit -q -m "Replace the invoicing code with the quest command"
 git -C app push -q origin main
 
-sed -i 's/`worktrees\/1` is a clone of `.\/app`, the shop'"'"'s invoicing code./`worktrees\/1` is a clone of `.\/app`, the quest command./' AGENTS.md
+sed -i 's/`.\/app` is the shop'"'"'s invoicing code./`.\/app` is the quest command./' AGENTS.md
 grep -q 'the quest command' AGENTS.md
 make_checkout nested-clone-snapshot nested-clone-snapshot
 
@@ -56,7 +56,7 @@ quest_skill_version: "6.1.0"
   `research/vendor/pdfkit`, and every snapshot of it fails with "a nested
   repository appeared while staging; refusing to record it".
 - Constraints: Standard library only. Keep the existing tests passing (user).
-- Workspace: `worktrees/1`, branch `nested-clone-snapshot`.
+- Workspace: `@REALM@/worktrees/nested-clone-snapshot`, branch `nested-clone-snapshot`.
 - Active work: step 1.
 - Checkpoint: none yet; the quest was created on 2026-10-27.
 - Next actions:

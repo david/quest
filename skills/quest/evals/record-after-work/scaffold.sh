@@ -15,7 +15,7 @@ quest_skill_version: "6.0.0"
   customer pays. Done when both steps below are finished and tested.
 - Constraints: Existing calls keep working, so tax defaults to none (user).
   Standard library only.
-- Workspace: `worktrees/1`, branch `add-tax`.
+- Workspace: `@REALM@/worktrees/add-tax`, branch `add-tax`.
 - Active work: step 1.
 - Checkpoint: none yet; the plan was agreed with the user on 2026-10-25.
 - Next actions:

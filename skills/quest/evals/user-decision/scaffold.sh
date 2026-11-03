@@ -15,7 +15,7 @@ quest_skill_version: "6.0.0"
   when `save_invoice` and `load_invoice` work against the database, with
   tests.
 - Constraints: Standard library plus the database driver.
-- Workspace: `worktrees/1`, branch `persist-invoices`.
+- Workspace: `@REALM@/worktrees/persist-invoices`, branch `persist-invoices`.
 - Active work: the storage module.
 - Checkpoint: none yet.
 - Next actions: Write `storage.py` with `save_invoice(invoice)` and
