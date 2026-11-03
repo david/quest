@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""List worlds, realms, and quests; check a quest's checkouts for work that
-removing them would lose; and archive the quest."""
+"""List worlds, realms, and quests; tell which quest a directory is in; create quests; check a quest's
+checkouts for work that removing them would lose; and archive the quest."""
 
 # Annotations stay unevaluated, so Python 3.9, as on macOS, accepts X | None.
 from __future__ import annotations
@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+import shutil
 import socket
 import subprocess
 import sys
@@ -429,6 +430,112 @@ def archive_command(args: argparse.Namespace) -> int:
     return 0
 
 
+# quest where and quest new
+
+RECORD = """---
+quest_skill_version: "{version}"
+---
+
+# {title}
+
+## Current State
+
+- Objective: The desired outcome and what would count as success.
+- Constraints: What the user has and has not authorized, and other material limits.
+- Workspace: Each checkout's absolute path, computer, branch, and purpose, with any ports or services allocated to the quest, or none.
+- Active work: none; no task begun.
+- Checkpoint: the quest was created.
+- Next actions: The exact resumption step for each active task, or that the work is complete or paused.
+- Blockers: None, or the unresolved blockers and decisions waiting on the user.
+"""
+VERSION = re.compile(r'^metadata:\n(?:[ \t]+.*\n)*?[ \t]+version:[ \t]*"?([^"\n]+?)"?[ \t]*$', re.MULTILINE)
+
+
+def in_repository(directory: Path) -> bool:
+    return any(os.path.lexists(place / ".git") for place in (directory, *directory.parents))
+
+
+def where(start: Path) -> dict:
+    """The quest, quest root, and realm that the skill's Resolve The Quest
+    finds from a directory, without asking the user; None for any not found."""
+    start = Path(os.path.realpath(start))
+    if not start.is_dir():
+        raise QuestError(f"{start} is not a directory")
+    places = (start, *start.parents)
+    for place in places:
+        if place.parent.name == "quests" and SLUG.fullmatch(place.name) and (place / "QUEST.md").is_file():
+            return {"quest": str(place), "root": str(place.parent), "realm": str(place.parent.parent)}
+    for place in places:
+        root = place if place.name == "quests" else place / "quests"
+        if root.is_dir() and not in_repository(root):
+            return {"quest": None, "root": str(root), "realm": str(root.parent)}
+    return {"quest": None, "root": None, "realm": None}
+
+
+def where_command(args: argparse.Namespace) -> int:
+    found = where(args.directory)
+    if found["root"] is None:
+        print(f"quest where: {os.path.realpath(args.directory)} is in no quest or realm; "
+              "to look a quest up by its slug, use quest list or quest show", file=sys.stderr)
+        emit(found)
+        return 1
+    emit(found)
+    return 0
+
+
+def skill_version() -> str:
+    skill = Path(os.path.realpath(__file__)).parents[1] / "SKILL.md"
+    match = VERSION.search(skill.read_text(**TEXT))
+    if not match:
+        raise QuestError(f"{skill}: no metadata.version")
+    return match.group(1)
+
+
+def new(slug: str, title: str, root: Path | None) -> Path:
+    """Create a quest, refusing an invalid slug or an existing quest."""
+    if not SLUG.fullmatch(slug):
+        raise QuestError(f"not a slug: {slug!r}")
+    title = title.strip()
+    if not title or re.search(r"[\x00-\x1f\x7f]", title):
+        raise QuestError(f"not a one-line title: {title!r}")
+    if root is None:
+        found = where(Path.cwd())
+        if found["root"] is None:
+            raise QuestError(f"no quest root in {Path.cwd()} or any directory above it; pass --root")
+        root = Path(found["root"])
+    root = Path(os.path.realpath(root))
+    if not root.is_dir():
+        raise QuestError(f"{root} is not a directory")
+    version = skill_version()
+    quest = root / slug
+    # mkdir claims the directory, failing if anything has that name.
+    try:
+        quest.mkdir()
+    except FileExistsError:
+        raise QuestError(f"{quest} exists already") from None
+    template = root.parent / "quest-template"
+    try:
+        if template.is_dir():
+            shutil.copytree(template, quest, symlinks=True, dirs_exist_ok=True)
+        # "x" refuses a QUEST.md that the template brought.
+        with open(quest / "QUEST.md", "x", **TEXT) as record:
+            record.write(RECORD.format(version=version, title=title))
+    except BaseException:
+        # Leave no half-made quest behind; the directory was made just above.
+        shutil.rmtree(quest, ignore_errors=True)
+        raise
+    return quest
+
+
+def new_command(args: argparse.Namespace) -> int:
+    try:
+        quest = new(args.slug, args.title, args.root)
+    except (OSError, shutil.Error) as error:
+        raise QuestError(f"nothing was created: {error}") from None
+    emit({"dir": str(quest), "record": str(quest / "QUEST.md")})
+    return 0
+
+
 # quest world, quest realm, quest list, and quest show
 
 PLACE = re.compile(r"([^:/]+):(.*)", re.DOTALL)
@@ -716,6 +823,26 @@ def main() -> int:
     show_parser.add_argument("slug", help="the quest's slug")
     show_parser.add_argument("--world", action="append", help=worlds)
     show_parser.set_defaults(run=show_command, name="quest show")
+
+    where_parser = commands.add_parser(
+        "where", help="print the quest, quest root, and realm a directory is in, as JSON",
+        description="From a directory up, find the quest it is in, or else the nearest quest "
+                    "root outside a Git repository, and print them with the realm as JSON. "
+                    "Exits 1 when there is neither. This searches no other quests: for those, "
+                    "use quest list or quest show.")
+    where_parser.add_argument(
+        "directory", nargs="?", type=Path, default=Path("."),
+        help="where to start (default: the working directory)")
+    where_parser.set_defaults(run=where_command, name="quest where")
+
+    new_parser = commands.add_parser(
+        "new", help="create a quest", description="Create a quest: copy the realm's "
+        "quest-template in, then write QUEST.md. Refuses an invalid slug or an existing quest.")
+    new_parser.add_argument("slug", help="the quest's slug")
+    new_parser.add_argument("--title", required=True, help="the quest's title, one line")
+    new_parser.add_argument(
+        "--root", type=Path, help="the quest root (default: as quest where finds it)")
+    new_parser.set_defaults(run=new_command, name="quest new")
 
     args = parser.parse_args()
     try:
