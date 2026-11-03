@@ -91,6 +91,12 @@ an agent, and lists quests for other tools, such as a status bar widget:
   the realms in them, and their quests, as described below.
 - `quest realm show <realm>` and `quest show <realm> <slug>` print one realm
   or quest, with its directory.
+- `quest where [<directory>]` prints the quest, quest root, and realm a
+  directory is in, looking only upward from it. To look a quest up by slug,
+  use `quest list` or `quest show`.
+- `quest new <slug> --title <title>` creates a quest: it refuses an invalid
+  slug or an existing quest, copies the realm's `quest-template/` in, and
+  writes `QUEST.md`.
 - `quest archive --check <quest> --checkout <path>` checks a quest's
   checkouts for work that removing them would lose. Once they are removed,
   `quest archive <quest>` moves the quest to `.archived/`.

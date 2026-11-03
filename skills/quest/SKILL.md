@@ -6,7 +6,7 @@ description: >
   realm, or to create, open, list, distill, or archive a quest, and to keep
   its records current while working inside one.
 metadata:
-  version: "8.0.0"
+  version: "8.1.0"
 ---
 
 <!-- argument-hint: <realm init|new|open|list|distill|archive> [path|slug] -->
@@ -47,7 +47,10 @@ it, and keep a layout the realm or the quest already uses.
 ## Resolve The Quest
 
 Resolve the quest root once per operation, from the session's working
-directory (never the skill directory), and use its absolute path throughout:
+directory (never the skill directory), and use its absolute path throughout.
+Run `python3 <quest-skill-directory>/bin/quest where`, which carries out the
+first two steps from the working directory and prints the `quest`, `root`,
+and `realm` it finds as JSON, null for each it does not:
 
 1. If the working directory or an ancestor is a slug-named directory holding
    `QUEST.md` directly inside a directory named `quests`, that is the current
@@ -58,7 +61,9 @@ directory (never the skill directory), and use its absolute path throughout:
 3. Otherwise, as in a checkout outside the realm, use the quest the user
    names: by its path, or by its slug in the output of
    `python3 <quest-skill-directory>/bin/quest list`, which gives each quest's
-   `dir`. Ask when the user names none, or several quests match.
+   `dir`. Ask when the user names none, or several quests match. `where`
+   looks only upward from one directory, so a quest it does not find may
+   still exist: look it up here before concluding it does not.
 4. Otherwise stop and report which directories you checked. Never create
    `quests` to make resolution succeed.
 
@@ -176,20 +181,26 @@ Route by intent, whether a command or plain language. Before `realm init` or
 
 ### New
 
-`new <slug>` refuses an invalid or existing slug, then creates
-`<root>/<slug>/QUEST.md` from the template above. Capture the objective,
-background, and constraints the user supplied, linking substantial material.
-Keep what the user stated apart from what was only suggested, and record a
-missing objective as unresolved rather than inventing one. Current State
-starts with no task begun and a checkpoint that the quest was created.
-
-Copy the realm's `quest-template/` in unchanged, unless the realm's
-instructions say otherwise, and do the setup they require, such as choosing a
-port, recording paths and ports but never secrets:
+`new <slug>` creates the quest with the command, giving the root that
+resolution found:
 
 ```sh
-cp -a <realm>/quest-template/. <root>/<slug>/
+python3 <quest-skill-directory>/bin/quest new <slug> --title <title> --root <root>
 ```
+
+It refuses an invalid slug or an existing quest, copies the realm's
+`quest-template/` in unchanged, then writes `QUEST.md` from the template
+above, stamped with this skill's version, with no task begun and a checkpoint
+that the quest was created. It prints the quest's `dir` and `record`. When it
+refuses, report why and change nothing; never create the quest by hand. Pass
+`--no-template` when the realm's instructions say not to copy the template.
+
+Then fill in the record: capture the objective, background, and constraints
+the user supplied, linking substantial material. Keep what the user stated
+apart from what was only suggested, and record a missing objective as
+unresolved rather than inventing one. Do the setup the realm's instructions
+require, such as choosing a port, recording paths and ports but never
+secrets.
 
 Make checkouts only when authorized, and no `git init`. Then summarize the
 captured goal and ask the smallest useful question only if a gap could change

@@ -126,6 +126,28 @@ class WhereNewTests(unittest.TestCase):
         self.assertEqual((quest / ".env").read_text(), "PORT=\n")
         self.assertTrue((quest / "QUEST.md").is_file())
 
+    def test_leaves_out_the_template_when_asked(self):
+        template = self.realm / "quest-template"
+        template.mkdir()
+        (template / "notes.md").write_text("notes\n")
+        result = self.run_quest("new", "fix-it", "--title", "Fix it", "--no-template")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(sorted(path.name for path in (self.root / "fix-it").iterdir()), ["QUEST.md"])
+
+    def test_the_record_follows_the_skills_template(self):
+        # The skill shows the record's template; the command must write the same
+        # sections and bullets, in the same order.
+        shown = re.search(r"```markdown\n(---\n.*?)```", SKILL.read_text(), re.DOTALL).group(1)
+        self.run_quest("new", "fix-it", "--title", "Fix it")
+        written = (self.root / "fix-it" / "QUEST.md").read_text()
+
+        def outline(text):
+            return [re.sub(r"^(- [A-Za-z ]+:).*", r"\1", line)
+                    for line in text.splitlines() if line.startswith(("#", "- ", "---", "quest_"))]
+
+        self.assertEqual(outline(written), outline(
+            shown.replace("<metadata.version>", self.version()).replace("Quest Title", "Fix it")))
+
     def test_refuses_a_template_with_a_record(self):
         template = self.realm / "quest-template"
         template.mkdir()

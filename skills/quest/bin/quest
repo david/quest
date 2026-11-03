@@ -491,7 +491,7 @@ def skill_version() -> str:
     return match.group(1)
 
 
-def new(slug: str, title: str, root: Path | None) -> Path:
+def new(slug: str, title: str, root: Path | None, copy_template: bool = True) -> Path:
     """Create a quest, refusing an invalid slug or an existing quest."""
     if not SLUG.fullmatch(slug):
         raise QuestError(f"not a slug: {slug!r}")
@@ -515,7 +515,7 @@ def new(slug: str, title: str, root: Path | None) -> Path:
         raise QuestError(f"{quest} exists already") from None
     template = root.parent / "quest-template"
     try:
-        if template.is_dir():
+        if copy_template and template.is_dir():
             shutil.copytree(template, quest, symlinks=True, dirs_exist_ok=True)
         # "x" refuses a QUEST.md that the template brought.
         with open(quest / "QUEST.md", "x", **TEXT) as record:
@@ -529,7 +529,7 @@ def new(slug: str, title: str, root: Path | None) -> Path:
 
 def new_command(args: argparse.Namespace) -> int:
     try:
-        quest = new(args.slug, args.title, args.root)
+        quest = new(args.slug, args.title, args.root, copy_template=not args.no_template)
     except (OSError, shutil.Error) as error:
         raise QuestError(f"nothing was created: {error}") from None
     emit({"dir": str(quest), "record": str(quest / "QUEST.md")})
@@ -842,6 +842,8 @@ def main() -> int:
     new_parser.add_argument("--title", required=True, help="the quest's title, one line")
     new_parser.add_argument(
         "--root", type=Path, help="the quest root (default: as quest where finds it)")
+    new_parser.add_argument(
+        "--no-template", action="store_true", help="do not copy the realm's quest-template")
     new_parser.set_defaults(run=new_command, name="quest new")
 
     args = parser.parse_args()
