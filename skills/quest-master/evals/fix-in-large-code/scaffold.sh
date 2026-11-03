@@ -1,16 +1,13 @@
 . "$(dirname "$0")/../../../quest/evals/_fixture/realm.sh"
 make_realm
 
-# The app is the quest command, about 2,000 lines with its tests, so doing the
-# work costs real context. It finds nested repositories only two levels deep,
-# so a clone at research/vendor/pdfkit breaks snapshots. The existing tests
-# nest only two levels, so they still pass.
-skill="$FIXTURE_DIR/../.."
+# The app is the quest command as of quest 8.0.0's checkout change, frozen
+# in ./app with its snapshot code, about 2,000 lines with its tests, so doing
+# the work costs real context. It finds nested repositories only two levels
+# deep, so a clone at research/vendor/pdfkit breaks snapshots. The existing
+# tests nest only two levels, so they still pass.
 git -C app rm -q -r .
-mkdir -p app/bin app/assets app/tests
-cp "$skill/bin/quest" app/bin/quest
-cp "$skill/assets/snapshot-exclude" app/assets/
-cp "$skill"/tests/test_*.py app/tests/
+cp -a "$(dirname "$0")/app/." app/
 python3 - app/bin/quest <<'EOF'
 import sys
 path = sys.argv[1]

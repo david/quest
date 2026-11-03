@@ -1,10 +1,9 @@
 # Archive
 
 Archive a quest only on explicit request. The request authorizes removing the
-quest's checkouts and moving the quest to `<quest-root>/.archived/<slug>`, its
-`.git` included; snapshots skip it from then on. It does not authorize merging, rebasing, committing,
-stashing, deleting remote branches, deploying, changing credentials, or
-stopping processes. When work would be lost, or the quest looks unfinished,
+quest's checkouts and moving the quest to `<quest-root>/.archived/<slug>`. It
+does not authorize merging, rebasing, committing, stashing, deleting remote
+branches, deploying, changing credentials, or stopping processes. When work would be lost, or the quest looks unfinished,
 the user decides first.
 
 ## 1. Resolve the quest
@@ -95,9 +94,8 @@ work, go on without asking.
    ```
 
    It refuses while a listed checkout or `<quest>/worktrees/` exists.
-   Otherwise it takes a last snapshot and moves the quest to
-   `.archived/<slug>`. It exits 0 when done, and 2 when it stopped, having
-   printed each step it finished.
+   Otherwise it moves the quest to `.archived/<slug>`. It exits 0 when done,
+   and 2 when it stopped.
 
 If a step fails, stop and report what was done and what remains. Do not call a
 partial archive complete.
@@ -111,11 +109,8 @@ partial archive complete.
 - Repair relative links inside the archive and known links into it. Pin a
   source reference still needed to a revision, and mark old checkout paths as
   historical. Clear a realm pointer that selects this quest.
-- Verify that the old path is gone, that the archive holds `QUEST.md`, its
-  `.git`, and the kept documents, that the removed checkouts are gone, and
-  that nothing else was touched.
-- Snapshot the reconciled record, which no hook will, since snapshots skip
-  archived quests:
-  `python3 <quest-skill-directory>/bin/quest snapshot --quest <archived-quest-directory>`.
+- Verify that the old path is gone, that the archive holds `QUEST.md` and
+  the kept documents, that the removed checkouts are gone, and that nothing
+  else was touched.
 - Tell the user the archive path, what was removed and kept, and anything left
   incomplete.

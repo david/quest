@@ -80,4 +80,3 @@ stay out of both arms. It runs in Claude Code's sandbox with writes confined
 to the realm; `allowGitConfig` lets it write `.git/config`, and the fixture's
 repositories have no hooks directory, which the sandbox would refuse to copy.
 Repositories the agent makes get none either, through `GIT_TEMPLATE_DIR`.
-The plugin's hooks run outside the sandbox, as they would in a real session.

@@ -1,6 +1,6 @@
 {
   "name": "quest",
-  "description": "The quest skill, with hooks that snapshot quest records into each quest's own Git repository.",
+  "description": "The quest skill: one directory per task, holding its record and documents.",
   "author": {
     "name": "David Leal"
   },

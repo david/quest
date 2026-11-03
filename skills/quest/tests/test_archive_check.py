@@ -386,18 +386,15 @@ class ArchiveCheckTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2, result.stdout)
         self.assertIn(f"remove the quest's checkouts first: {checkout}", result.stderr)
         self.assertTrue(self.quest.is_dir())
-        self.assertFalse((self.quest / ".git").exists())
         self.assertFalse((self.project / "quests" / ".archived").exists())
 
         shutil.rmtree(checkout)
         result = self.archive()
         self.assertEqual((result.returncode, result.stderr), (0, ""), result.stdout)
-        self.assertIn("  last snapshot: Initialize quest records: 2 paths (QUEST.md, notes.md)\n", result.stdout)
         archived = self.project / "quests" / ".archived" / "sample-quest"
-        self.assertTrue(result.stdout.endswith(f"  moved the quest to {archived}\n"), result.stdout)
+        self.assertEqual(result.stdout, f"Moved the quest to {archived}\n")
         self.assertFalse(self.quest.exists())
-        self.assertEqual(sorted(path.name for path in archived.iterdir()), [".git", "QUEST.md", "notes.md"])
-        self.assertEqual(self.git(archived, "ls-files"), "QUEST.md\nnotes.md")
+        self.assertEqual(sorted(path.name for path in archived.iterdir()), ["QUEST.md", "notes.md"])
 
     def test_archive_waits_for_checkouts_in_the_old_layout(self):
         (self.quest / "worktrees" / "1").mkdir(parents=True)

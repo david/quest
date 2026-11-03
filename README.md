@@ -91,7 +91,6 @@ an agent, and lists quests for other tools, such as a status bar widget:
   the realms in them, and their quests, as described below.
 - `quest realm show <realm>` and `quest show <realm> <slug>` print one realm
   or quest, with its directory.
-- `quest snapshot` commits each quest's records, as described below.
 - `quest archive --check <quest> --checkout <path>` checks a quest's
   checkouts for work that removing them would lose. Once they are removed,
   `quest archive <quest>` moves the quest to `.archived/`.
@@ -120,20 +119,12 @@ include the worlds and realms that could not be listed. For a world on another h
 there over `ssh`, sending its own code, so that host needs only `python3` and
 `ssh <host>` must work without a prompt.
 
-## Snapshots
+## Upgrading from 7.x
 
-`quest snapshot` commits each quest's records to the quest's own Git
-repository, so earlier states can be recovered. Code checkouts and private
-files are left out. It is meant to run from a harness hook, not by the agent.
-
-For Claude Code, the skill directory is also a plugin. Claude Code loads it
-from `~/.claude/skills/quest` as `quest@skills-dir` and runs the hooks in
-[`hooks/hooks.json`](skills/quest/hooks/hooks.json) in every session, so there
-are no settings to edit. If you added the snapshot hooks to
-`~/.claude/settings.json` by hand, remove them.
-
-Other agents need their own hook. See
-[Snapshots](skills/quest/references/snapshot.md) for what it must do.
+Version 8.0.0 drops snapshots: no hook commits quest records any more. A
+quest's `.git` from earlier snapshots is left in place; delete it if you no
+longer want that history. If you added snapshot hooks to
+`~/.claude/settings.json` or another harness by hand, remove them.
 
 ## Requirements
 

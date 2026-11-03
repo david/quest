@@ -1,0 +1,972 @@
+#!/usr/bin/env python3
+"""List worlds, realms, and quests; snapshot quests' records; check a quest's
+checkouts for work that removing them would lose; and archive the quest."""
+
+# Annotations stay unevaluated, so Python 3.9, as on macOS, accepts X | None.
+from __future__ import annotations
+
+import argparse
+import concurrent.futures
+import contextlib
+import fcntl
+import json
+import os
+from pathlib import Path
+import re
+import shlex
+import socket
+import subprocess
+import sys
+import tempfile
+import time
+
+
+SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+ROUTING = {
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE",
+    "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_PREFIX",
+}
+# surrogateescape carries bytes that are not UTF-8, as in file names, through unchanged.
+TEXT = {"encoding": "utf-8", "errors": "surrogateescape"}
+
+
+class QuestError(Exception):
+    pass
+
+
+def git(directory: Path, *args: str, check: bool = True, stdin: str = "",
+        env: dict[str, str] | None = None, timeout: int | None = None) -> str | None:
+    # Never inherit a caller's alternate Git repository or index, never refresh
+    # an index or start a file monitor while inspecting, and never wait at a
+    # credential prompt.
+    environment = {key: value for key, value in os.environ.items() if key not in ROUTING}
+    environment |= {"GIT_OPTIONAL_LOCKS": "0", "GIT_TERMINAL_PROMPT": "0", **(env or {})}
+    # Messages name the Git command, the first argument that is not an option.
+    command = next((arg for arg in args if not arg.startswith("-")), "")
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(directory), "-c", "core.fsmonitor=false", *args],
+            env=environment, input=stdin, capture_output=True, timeout=timeout, **TEXT,
+        )
+    except subprocess.TimeoutExpired:
+        raise QuestError(f"git {command} in {directory}: no answer in {timeout} seconds") from None
+    if result.returncode:
+        if not check:
+            return None
+        detail = result.stderr.strip() or f"exit status {result.returncode}"
+        raise QuestError(f"git {command} in {directory}: {detail}")
+    return result.stdout.rstrip("\n")
+
+
+# quest snapshot
+
+# .parent rather than .parents[1], which fails for a script read from standard
+# input at /, as when listing a world on another host.
+DEFAULT_RULES = Path(__file__).resolve().parent.parent / "assets" / "snapshot-exclude"
+UNSCANNED = {".git", "local-data", "node_modules", ".cache", "__pycache__"}
+LOCK_WAIT_SECONDS = 30
+
+
+def is_quest(directory: Path) -> bool:
+    parent = directory.parent
+    return (
+        SLUG.fullmatch(directory.name) is not None
+        and (directory / "QUEST.md").exists()
+        and (parent.name == "quests"
+             or (parent.name == ".archived" and parent.parent.name == "quests"))
+    )
+
+
+def enclosing_repository(directory: Path) -> Path | None:
+    """The directory itself or the nearest parent that holds a .git entry."""
+    return next((path for path in (directory, *directory.parents) if os.path.lexists(path / ".git")), None)
+
+
+def find_root(directory: Path) -> Path | None:
+    directory = Path(os.path.realpath(directory))
+    ancestors = [directory, *directory.parents]
+    for ancestor in ancestors:
+        if is_quest(ancestor):
+            parent = ancestor.parent
+            return parent.parent if parent.name == ".archived" else parent
+    # Otherwise the nearest quests directory, as a realm's is to its repository.
+    # One inside a repository is that repository's own: a realm never is.
+    for ancestor in ancestors:
+        for candidate in (ancestor, ancestor / "quests"):
+            if candidate.name == "quests" and candidate.is_dir() and not enclosing_repository(candidate):
+                return Path(os.path.realpath(candidate))
+    return None
+
+
+def active_quests(root: Path) -> list[Path]:
+    with os.scandir(root) as entries:
+        names = sorted(entry.name for entry in entries if entry.is_dir(follow_symlinks=False))
+    return [root / name for name in names if is_quest(root / name)]
+
+
+@contextlib.contextmanager
+def locked(directory: Path):
+    # A kernel lock on the directory itself: it needs no lock file and is
+    # released when this process dies.
+    descriptor = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        deadline = time.monotonic() + LOCK_WAIT_SECONDS
+        while True:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() >= deadline:
+                    raise QuestError(f"timed out waiting for the lock on {directory}") from None
+                time.sleep(0.05)
+        yield
+    finally:
+        os.close(descriptor)
+
+
+def ignore_pattern(relative: str) -> str:
+    escaped = re.sub(r"[\[\]*?! #]", r"\\\g<0>", relative.replace("\\", "\\\\"))
+    return f"/{escaped}/"
+
+
+def refuse_enclosing(root: Path) -> None:
+    repository = enclosing_repository(root)
+    if repository:
+        raise QuestError(f"quest storage must lie outside any repository, but {repository} is one")
+
+
+def nested_repositories(quest: Path, prefix: str = "") -> list[str]:
+    found = []
+    with os.scandir(quest / prefix) as entries:
+        names = [entry.name for entry in entries
+                 if entry.is_dir(follow_symlinks=False) and entry.name not in UNSCANNED]
+    for name in names:
+        relative = os.path.join(prefix, name)
+        directory = quest / relative
+        bare = all((directory / part).exists() for part in ("HEAD", "objects", "refs"))
+        if os.path.lexists(directory / ".git") or bare:
+            found.append(relative)
+        else:
+            found.extend(nested_repositories(quest, relative))
+    return found
+
+
+def snapshot(quest: Path, default_rules: str) -> str | None:
+    """Commit the quest's records; return the subject, or None if nothing changed."""
+    with locked(quest):
+        dotgit = quest / ".git"
+        if not os.path.lexists(dotgit):
+            git(quest, "init", "--quiet")
+        if dotgit.is_symlink() or not dotgit.is_dir():
+            raise QuestError("the quest does not own its repository")
+
+        def run(*args: str, check: bool = True, stdin: str = "") -> str | None:
+            # Pinned, so a broken .git never sends a command to an enclosing repository.
+            return git(quest, "--git-dir=.git", "--work-tree=.", *args, check=check, stdin=stdin)
+
+        def has_gitlink() -> bool:
+            return any(line.startswith("160000 ") for line in run("ls-files", "--stage").splitlines())
+
+        if not run("status", "--porcelain"):
+            return None
+
+        # The command owns this file and replaces it whenever it differs, so a
+        # change to the defaults reaches every quest. A quest's own rules live
+        # in its .gitignore, which Git reads with higher precedence.
+        rules = default_rules + "".join(
+            f"{ignore_pattern(path)}\n" for path in sorted(nested_repositories(quest)))
+        exclude = dotgit / "info" / "exclude"
+        if not exclude.is_file() or exclude.read_text(**TEXT) != rules:
+            exclude.parent.mkdir(exist_ok=True)
+            exclude.write_text(rules, **TEXT)
+        if has_gitlink():
+            raise QuestError(
+                "the quest tracks a nested repository; automatic untracking is refused")
+        # A rule added after a file was recorded takes it out of later snapshots.
+        # Earlier snapshots and the file itself are kept.
+        ignored = run("ls-files", "-z", "-ci", "--exclude-standard")
+        if ignored:
+            run("update-index", "--force-remove", "-z", "--stdin", stdin=ignored)
+        # Includes deletions and other writers' partial edits by design.
+        run("add", "-A", "--", ".")
+        if has_gitlink():
+            raise QuestError("a nested repository appeared while staging; refusing to record it")
+
+        tree = run("write-tree")
+        parent = run("rev-parse", "--verify", "--quiet", "HEAD", check=False)
+        base = parent or run("hash-object", "-t", "tree", "/dev/null")
+        if tree == run("rev-parse", f"{base}^{{tree}}"):
+            return None
+        changed = [path for path in run(
+            "diff-tree", "--no-commit-id", "--name-only", "-r", "-z", base, tree).split("\0") if path]
+        subject = "{} quest records: {} path{} ({})".format(
+            "Snapshot" if parent else "Initialize", len(changed),
+            "" if len(changed) == 1 else "s", ", ".join(changed[:2]))
+        subject = re.sub(r"[\x00-\x1f\x7f\udc80-\udcff]", "?", subject)[:100]
+
+        # Commit exactly the tree summarized above. update-ref is compare-and-swap,
+        # so a writer outside this lock cannot be overwritten.
+        signing = run("config", "--bool", "--get", "commit.gpgsign", check=False) == "true"
+        commit = run(
+            "commit-tree", tree, *(["-p", parent] if parent else []),
+            *(["-S"] if signing else []), "-m", subject)
+        run("update-ref", "-m", subject, "HEAD", commit, parent or "0" * len(commit))
+        return subject
+
+
+def default_rules() -> str:
+    rules = DEFAULT_RULES.read_text(**TEXT)
+    return rules if rules.endswith("\n") else rules + "\n"
+
+
+def snapshot_command(args: argparse.Namespace) -> int:
+    failed = False
+
+    def report(subject: Path, error: Exception) -> None:
+        nonlocal failed
+        failed = True
+        print(f"quest snapshot: {subject}: {error}", file=sys.stderr)
+
+    roots = []
+    for directory in args.directory or ([] if args.quest else [Path(".")]):
+        try:
+            root = find_root(directory)
+        except FileNotFoundError:
+            # A session can outlive its directory, as when its quest is archived.
+            continue
+        except (OSError, QuestError) as error:
+            report(directory, error)
+            continue
+        if root and root not in roots:
+            roots.append(root)
+    # Named quests, archived ones included: archiving edits the record after the move.
+    named = []
+    for directory in args.quest:
+        quest = Path(os.path.realpath(directory))
+        if is_quest(quest):
+            named.append(quest)
+        else:
+            report(directory, QuestError("not a quest directory"))
+
+    if not roots and not named:
+        return 1 if failed else 0
+    try:
+        rules = default_rules()
+    except OSError as error:
+        report(DEFAULT_RULES, error)
+        return 1
+
+    def record(quest: Path) -> None:
+        try:
+            subject = snapshot(quest, rules)
+        except (OSError, QuestError) as error:
+            report(quest, error)
+        else:
+            if subject:
+                print(f"{quest.name}: {subject}")
+
+    for root in roots:
+        try:
+            refuse_enclosing(root)
+            quests = active_quests(root)
+        except (OSError, QuestError) as error:
+            report(root, error)
+            continue
+        for quest in quests:
+            record(quest)
+    for quest in named:
+        try:
+            refuse_enclosing(find_root(quest))
+        except (OSError, QuestError) as error:
+            report(quest, error)
+        else:
+            record(quest)
+    return 1 if failed else 0
+
+
+# quest archive
+
+LISTED = 20
+FETCH_SECONDS = 120
+# The trial rebase runs in a throwaway copy, without the user's Git configuration,
+# which could sign commits, run hooks, or change how the rebase goes.
+ISOLATED = {
+    "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_AUTHOR_NAME": "archive check", "GIT_AUTHOR_EMAIL": "archive-check@example.invalid",
+    "GIT_COMMITTER_NAME": "archive check", "GIT_COMMITTER_EMAIL": "archive-check@example.invalid",
+}
+
+
+def lines(output: str | None) -> list[str]:
+    # str.splitlines would also break at form feeds and other separators that a
+    # commit subject or a branch name may contain.
+    return output.split("\n") if output else []
+
+
+class Report:
+    def __init__(self, realm: Path):
+        self.realm = realm
+        self.findings = 0
+
+    def name(self, path: Path) -> str:
+        """A path in the realm from the realm, any other in full."""
+        return str(path.relative_to(self.realm)) if path.is_relative_to(self.realm) else str(path)
+
+    def note(self, text: str, details: list[str] | None = None,
+             mark: str = " ", limit: int | None = LISTED) -> None:
+        details = details or []
+        print(f"  {mark} {text}")
+        for detail in details[:limit]:
+            print(f"        {detail}")
+        if limit is not None and len(details) > limit:
+            print(f"        and {len(details) - limit} more")
+
+    def finding(self, text: str, details: list[str] | None = None) -> None:
+        self.findings += 1
+        self.note(text, details, mark="!")
+
+
+def count(number: int, noun: str, plural: str = "") -> str:
+    return f"{number} {noun if number == 1 else plural or noun + 's'}"
+
+
+def registrations(checkout: Path) -> list[dict[str, str]]:
+    """Every worktree of the checkout's repository; the main one comes first."""
+    entries, entry = [], {}
+    for line in [*lines(git(checkout, "worktree", "list", "--porcelain")), ""]:
+        if line:
+            key, _, value = line.partition(" ")
+            entry[key] = value
+        elif entry:
+            entries.append(entry)
+            entry = {}
+    return entries
+
+
+def common_directory(checkout: Path, check: bool = False) -> Path | None:
+    """The repository a checkout belongs to, or None when it is not the top of one."""
+    if not os.path.lexists(checkout / ".git"):
+        return None
+    found = git(
+        checkout, "rev-parse", "--path-format=absolute", "--show-toplevel", "--git-common-dir",
+        check=check)
+    if found is None:
+        return None
+    top, common = lines(found)
+    return Path(os.path.realpath(common)) if Path(os.path.realpath(top)) == checkout else None
+
+
+def status(checkout: Path) -> list[str]:
+    """Uncommitted paths, untracked ones included."""
+    fields = iter(git(checkout, "status", "--porcelain=v1", "-z", "--untracked-files=all").split("\0"))
+    changed = []
+    for field in fields:
+        if field:
+            changed.append(field)
+            if "R" in field[:2] or "C" in field[:2]:
+                next(fields, None)  # The path it was renamed or copied from.
+    return changed
+
+
+def show_checkout(report: Report, path: Path, kind: str) -> None:
+    head = git(path, "rev-parse", "--short", "--verify", "--quiet", "HEAD", check=False)
+    branch = git(path, "symbolic-ref", "--quiet", "--short", "HEAD", check=False)
+    print(f"{report.name(path)}: {kind}, {'on ' + branch if branch else 'detached'}"
+          f" at {head or 'no commit'}")
+    changed = status(path)
+    if changed:
+        report.finding(count(len(changed), "uncommitted path"), changed)
+
+
+def find_target(report: Report, repository: Path, name: str) -> str | None:
+    """The commit of a remote's branch, fetched first."""
+    remote, _, branch = name.partition("/")
+    if branch and remote in lines(git(repository, "remote")):
+        try:
+            git(repository, "fetch", "--quiet", "--no-tags", "--no-write-fetch-head", remote,
+                f"+refs/heads/{branch}:refs/remotes/{name}", timeout=FETCH_SECONDS)
+        except QuestError as error:
+            report.finding(f"could not fetch {name}; merge status is as of the last fetch",
+                           [lines(str(error))[-1]])
+    # Nothing local can be the target: a local branch or tag of the same name
+    # could hold the very work that is about to be removed.
+    return git(
+        repository, "rev-parse", "--verify", "--quiet", f"refs/remotes/{name}^{{commit}}", check=False)
+
+
+def is_ancestor(repository: Path, tip: str, target: str) -> bool:
+    return git(repository, "merge-base", "--is-ancestor", tip, target, check=False) is not None
+
+
+def rebase(copy: Path, target: str) -> list[str] | None:
+    """The subjects of the commits that rebasing HEAD onto the target keeps,
+    or None when the rebase stops at a conflict."""
+    try:
+        git(copy, "rebase", "--quiet", target, env=ISOLATED)
+    except QuestError:
+        if not git(copy, "ls-files", "--unmerged"):
+            raise
+        git(copy, "rebase", "--abort", env=ISOLATED)
+        return None
+    kept = git(copy, "log", "--format=%H %s", f"{target}..HEAD")
+    return [line.split(" ", 1)[1] for line in lines(kept)]
+
+
+def unmerged(copy: Path, tip: str, target: str) -> list[str] | None:
+    """What a rebase of the tip onto the target keeps: nothing when the target has
+    the work, the subjects of the commits it lacks, or None for a conflict."""
+    # A rebase leaves out commits whose patch the target has, and commits that
+    # change nothing there, which covers rebased work.
+    git(copy, "switch", "--quiet", "--detach", tip, env=ISOLATED)
+    kept = rebase(copy, target)
+    if kept == []:
+        return kept
+    # Work squashed into one commit on the target need not rebase commit by
+    # commit, so squash it here too and try again. Work that cancels itself
+    # out squashes to nothing, which says nothing about whether the target has it.
+    base = git(copy, "merge-base", target, tip, check=False)
+    git(copy, "switch", "--quiet", "--detach", tip, env=ISOLATED)
+    if base and git(copy, "diff", "--quiet", base, tip, check=False) is None:
+        git(copy, "reset", "--quiet", "--soft", base)
+        git(copy, "commit", "--quiet", "--message", "Squashed", env=ISOLATED)
+        if rebase(copy, target) == []:
+            return []
+    return kept
+
+
+def commits(repository: Path, include: list[str], exclude: list[str], *options: str) -> list[str]:
+    revisions = [*include, *(f"^{commit}" for commit in exclude)]
+    return lines(git(repository, "rev-list", *options, "--stdin", stdin="\n".join(revisions) + "\n"))
+
+
+def held_by(source: Path, repository: Path) -> list[str]:
+    """Commits in the repository that the source also keeps on a ref, reflog, or stash."""
+    tips = git(source, "rev-list", "--no-walk", "--all", "--reflog").split()
+    present = git(repository, "cat-file", "--batch-check", stdin="".join(f"{tip}\n" for tip in tips))
+    return [line.split()[0] for line in lines(present) if " commit " in line]
+
+
+def show_repository(report: Report, common: Path, main: Path, owned: bool,
+                    checkouts: list[tuple[Path, dict[str, str]]],
+                    args: argparse.Namespace, scratch: Path) -> None:
+    via, target = checkouts[0][0], args.target
+    if owned:
+        print(f"Repository {report.name(common)}: the quest's own, lost with its checkouts")
+    else:
+        print(f"Repository {report.name(common)}: outlives the quest's checkouts")
+    target_commit = find_target(report, via, target)
+    held = held_by(args.source, via) if owned and args.source else []
+
+    # A repository the quest owns goes with its checkouts, so every local branch counts.
+    # In any other, only what the quest has checked out is known to be its own.
+    places: dict[str, list[str]] = {}
+    tips: list[tuple[str, str, str | None]] = []
+    for path, entry in checkouts:
+        if "branch" in entry:
+            places.setdefault(entry["branch"], []).append(report.name(path))
+        elif entry.get("HEAD", "0").strip("0"):
+            tips.append((f"detached HEAD of {report.name(path)}", entry["HEAD"], None))
+    for line in lines(git(via, "for-each-ref", "--format=%(objectname) %(refname)", "refs/heads")):
+        commit, ref = line.split(" ", 1)
+        if owned or ref in places:
+            where = f" ({', '.join(places[ref])})" if ref in places else ""
+            tips.append((ref.removeprefix("refs/heads/") + where, commit, ref))
+
+    copy = None
+    for label, tip, _ in tips:
+        if target_commit is None:
+            report.finding(f"{label}: there is no remote branch {target} to compare it with")
+        elif is_ancestor(via, tip, target_commit):
+            report.note(f"{label}: merged into {target}")
+        elif not commits(via, [tip], [target_commit, *held]):
+            report.note(f"{label}: not in {target}, but {args.source} keeps it")
+        else:
+            if copy is None:
+                copy = Path(tempfile.mkdtemp(dir=scratch))
+                git(copy, "clone", "--quiet", "--shared", "--no-checkout", str(common), ".", env=ISOLATED)
+            kept = unmerged(copy, tip, target_commit)
+            if kept is None:
+                report.finding(f"{label}: conflicts when rebased onto {target}")
+            elif kept:
+                report.finding(f"{label}: {count(len(kept), 'commit')} not in {target}", kept)
+            else:
+                report.note(f"{label}: merged into {target}, as other commits")
+
+    if owned:
+        stashes = [
+            line.split(" ", 1)[1] for line in lines(git(via, "stash", "list", "--format=%H %gd: %gs"))
+            if line.split()[0] not in held]
+        if stashes:
+            report.finding(count(len(stashes), "stash entry", "stash entries"), stashes)
+
+def processes(directories: list[Path]) -> list[str] | None:
+    try:
+        pids = sorted(int(name) for name in os.listdir("/proc") if name.isascii() and name.isdigit())
+    except OSError:
+        return None
+    found = []
+    for pid in pids:
+        try:
+            cwd = Path(os.readlink(f"/proc/{pid}/cwd"))
+            name = Path(f"/proc/{pid}/comm").read_text(**TEXT).strip()
+        except OSError:
+            continue
+        if pid != os.getpid() and any(cwd.is_relative_to(directory) for directory in directories):
+            found.append(f"{pid} {name}{' (ran this check)' if pid == os.getppid() else ''}: {cwd}")
+    return found
+
+
+def archive_target(args: argparse.Namespace) -> tuple[Path, Path]:
+    """The quest and where archiving moves it, refusing a quest it cannot archive."""
+    if args.quest.is_symlink():
+        raise QuestError(f"{args.quest} is a symbolic link")
+    quest = Path(os.path.realpath(args.quest))
+    root = quest.parent
+    if not (SLUG.fullmatch(quest.name) and root.name == "quests" and (quest / "QUEST.md").is_file()):
+        raise QuestError(f"{quest} is not an active quest directory")
+    destination = root / ".archived" / quest.name
+    if (root / ".archived").is_symlink() or os.path.lexists(destination):
+        raise QuestError(f"{destination} exists already, or .archived is a symbolic link")
+    return quest, destination
+
+
+def archive_check(args: argparse.Namespace) -> int:
+    """Report what removing the listed checkouts would lose; return the number of findings."""
+    quest, destination = archive_target(args)
+    checkouts: list[Path] = []
+    for given in args.checkout:
+        if not os.path.lexists(given):
+            raise QuestError(f"{given} does not exist")
+        path = Path(os.path.realpath(given))
+        if path not in checkouts:
+            checkouts.append(path)
+
+    def owned(common: Path) -> bool:
+        # A clone of the quest's own, rather than a worktree of a repository that outlives it.
+        return common.is_relative_to(quest) or any(common.is_relative_to(path) for path in checkouts)
+
+    if args.source:
+        kept = git(args.source, "rev-parse", "--path-format=absolute", "--git-common-dir")
+        if owned(Path(os.path.realpath(kept))):
+            raise QuestError(f"{args.source} belongs to the quest, so it keeps nothing once its checkouts are removed")
+
+    # The listed checkouts, then every other worktree of a repository the quest owns.
+    repositories: dict[Path, list[Path]] = {}
+    for path in checkouts:
+        common = common_directory(path, check=True)
+        if common is None:
+            raise QuestError(f"{path} is not the top of a checkout")
+        repositories.setdefault(common, []).append(path)
+    found: dict[Path, tuple[Path, dict[str, str]]] = {}
+    mains: dict[Path, Path] = {}
+    for common, paths in repositories.items():
+        listed = registrations(paths[0])
+        mains[common] = Path(os.path.realpath(listed[0]["worktree"]))
+        for entry in listed:
+            path = Path(os.path.realpath(entry["worktree"]))
+            # A copied clone still lists the worktrees of the repository it was
+            # copied from. Only one whose own .git leads back here belongs to it.
+            if path in paths or (owned(common) and common_directory(path) == common):
+                found[path] = (common, entry)
+        for path in paths:
+            if path not in found:
+                raise QuestError(f"{path} is not registered in {common}")
+
+    report = Report(quest.parent.parent)
+    print(f"Quest {quest}\nArchives to {destination}\n")
+    order = {path: index for index, path in enumerate(checkouts)}
+    for path in sorted(found, key=lambda path: order.get(path, len(order))):
+        main = mains[found[path][0]]
+        show_checkout(report, path, "clone" if path == main else f"worktree of {report.name(main)}")
+        if path not in order:
+            report.finding("not one of the quest's listed checkouts; removing its repository breaks it")
+    if not found:
+        print("No checkouts listed.")
+
+    with tempfile.TemporaryDirectory() as scratch:
+        for common in repositories:
+            print()
+            checked_out = [(path, entry) for path, (owner, entry) in found.items() if owner == common]
+            show_repository(report, common, mains[common], owned(common), checked_out, args, Path(scratch))
+
+    print()
+    running = processes(list(found))
+    if running is None:
+        print("Processes: not checked, because this system has no /proc.")
+    elif running:
+        report.finding("processes with a working directory in a checkout:", running)
+    else:
+        print("Processes: none has a working directory in a checkout.")
+    print(f"\n{count(report.findings, 'finding')}, marked \"!\"." if report.findings else "\nNo findings.")
+    return report.findings
+
+
+def archive(args: argparse.Namespace) -> None:
+    """Move the quest to .archived/, once the checkouts it lists are gone."""
+    quest, destination = archive_target(args)
+    remaining = [str(path) for path in args.checkout if os.path.lexists(path)]
+    if os.path.lexists(quest / "worktrees"):
+        # Where checkouts were kept before version 8.0.0.
+        remaining.append(str(quest / "worktrees"))
+    if remaining:
+        raise QuestError("remove the quest's checkouts first: " + ", ".join(remaining))
+    print("Archiving:")
+    # A last snapshot, since snapshots skip the quest once it is archived. The
+    # records move with the quest, so a failure here loses nothing.
+    try:
+        refuse_enclosing(quest.parent)
+        subject = snapshot(quest, default_rules())
+    except (OSError, QuestError) as error:
+        print(f"  no last snapshot: {error}")
+    else:
+        print(f"  last snapshot: {subject or 'nothing new to record'}")
+
+    # Locked, so a snapshot is not committing while the quest moves.
+    with locked(quest):
+        archived = destination.parent
+        archived.mkdir(exist_ok=True)
+        if archived.is_symlink():
+            raise QuestError(f"{archived} is a symbolic link")
+        # mkdir claims the destination, failing if it exists; the rename then
+        # replaces that empty directory.
+        destination.mkdir()
+        try:
+            os.rename(quest, destination)
+        except OSError:
+            destination.rmdir()
+            raise
+    print(f"  moved the quest to {destination}")
+
+
+def stopped(message: str, error: Exception) -> int:
+    # Any failure, a bug included, must not pass for the status that means findings.
+    detail = str(error) if isinstance(error, (OSError, QuestError)) else repr(error)
+    print(f"{message}: {detail}", file=sys.stderr)
+    return 2
+
+
+def archive_command(args: argparse.Namespace) -> int:
+    sys.stdout.reconfigure(errors="backslashreplace")
+    if args.check:
+        try:
+            return 1 if archive_check(args) else 0
+        except Exception as error:
+            return stopped("quest archive --check: stopped, so any report above is incomplete", error)
+    try:
+        archive(args)
+    except Exception as error:
+        return stopped("quest archive: stopped; the lines above say what was done", error)
+    return 0
+
+
+# quest world, quest realm, quest list, and quest show
+
+PLACE = re.compile(r"([^:/]+):(.*)", re.DOTALL)
+HOST = re.compile(r"[A-Za-z0-9._][A-Za-z0-9._-]*")
+HEADING = re.compile(r"^#[ \t]+(.*?)[ \t]*$", re.MULTILINE)
+FRONTMATTER = re.compile(r"---\r?\n.*?^---[ \t]*$", re.MULTILINE | re.DOTALL)
+SSH_SECONDS = 60
+
+
+class World:
+    """A directory of realms, on this computer or on another host."""
+
+    def __init__(self, host: str | None, path: str):
+        if host is not None and not HOST.fullmatch(host):
+            raise QuestError(f"not a host name: {host}")
+        if not path or re.search(r"[\x00-\x1f\x7f]", path):
+            raise QuestError(f"not a path: {path!r}")
+        # As written, so a list of worlds shared between computers names each
+        # world the same way on all of them.
+        self.name = f"{host}:{path}" if host else path
+        here = socket.gethostname().split(".")[0].lower()
+        self.host = None if host in (None, "localhost") or host.split(".")[0].lower() == here else host
+        self.path = path
+
+    @classmethod
+    def parse(cls, text: str) -> World:
+        match = PLACE.fullmatch(text)
+        return cls(*match.groups()) if match else cls(None, text)
+
+    def describe(self) -> dict:
+        return {"world": self.name, "host": self.host, "path": self.path}
+
+
+def worlds_file() -> Path:
+    config = os.environ.get("XDG_CONFIG_HOME", "")
+    return (Path(config) if os.path.isabs(config) else Path.home() / ".config") / "quest" / "worlds.json"
+
+
+def configured_worlds() -> list[World]:
+    path = worlds_file()
+    try:
+        entries = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return [World(None, "~/Projects")]
+    except (OSError, UnicodeDecodeError, ValueError) as error:
+        raise QuestError(f"{path}: {error}") from None
+    if not isinstance(entries, list) or not all(
+            isinstance(entry, dict) and isinstance(entry.get("path"), str)
+            and isinstance(entry.get("host", ""), (str, type(None))) for entry in entries):
+        raise QuestError(f'{path}: expected a list of {{"host", "path"}} objects')
+    try:
+        return [World(entry.get("host") or None, entry["path"]) for entry in entries]
+    except QuestError as error:
+        raise QuestError(f"{path}: {error}") from None
+
+
+def chosen_worlds(names: list[str] | None) -> list[World]:
+    return [World.parse(name) for name in names] if names else configured_worlds()
+
+
+def title(quest: Path) -> str | None:
+    try:
+        text = (quest / "QUEST.md").read_text(**TEXT)
+    except OSError:
+        return None
+    # YAML comments in front matter also start with "#".
+    match = HEADING.search(FRONTMATTER.sub("", text, count=1) if text.startswith("---") else text)
+    return match.group(1) if match else None
+
+
+def subdirectories(directory: Path, follow: bool = True) -> list[Path]:
+    with os.scandir(directory) as entries:
+        return [directory / entry.name for entry in entries if entry.is_dir(follow_symlinks=follow)]
+
+
+def local_listing(path: str, quests: bool, realm: str | None = None,
+                  archived: bool = False) -> dict[str, list]:
+    """The realms or the quests in a world on this computer, without world and host."""
+    listing: dict[str, list] = (
+        {"quests": [], "invalid": [], "failed": []} if quests else {"realms": [], "failed": []})
+    # A relative path starts at the home directory, where ssh starts on another host.
+    top = Path(os.path.realpath(Path.home() / Path(path).expanduser()))
+    try:
+        directories = subdirectories(top)
+    except OSError as error:
+        listing["failed"].append({"error": f"{top}: {error.strerror or error}"})
+        return listing
+    for directory in directories:
+        # Every directory in a world is a realm, except a hidden one.
+        if directory.name.startswith(".") or (realm is not None and directory.name != realm):
+            continue
+        # A realm's quests are in its quests directory.
+        root = directory / "quests"
+        has_root = root.is_dir()
+        entry = {"realm": directory.name, "dir": str(directory), "root": str(root) if has_root else None}
+        found = []
+        try:
+            if quests and has_root:
+                found = [(quest, False) for quest in subdirectories(root, follow=False)
+                         if quest.name != ".archived"]
+                shelf = root / ".archived"
+                if archived and shelf.is_dir() and not shelf.is_symlink():
+                    found += [(quest, True) for quest in subdirectories(shelf, follow=False)]
+        except OSError as error:
+            listing["failed"].append({"realm": directory.name, "error": str(error)})
+            found = []
+        if not quests:
+            listing["realms"].append(entry)
+            continue
+        for quest, shelved in found:
+            if is_quest(quest):
+                listing["quests"].append({
+                    "realm": directory.name, "slug": quest.name, "title": title(quest),
+                    "dir": str(quest), "archived": shelved})
+            elif not shelved:
+                listing["invalid"].append({"realm": directory.name, "dir": str(quest)})
+    return listing
+
+
+def remote_listing(world: World, arguments: list[str]) -> dict[str, list]:
+    """Run this command on the world's host, with its own source sent on standard
+    input, so the host needs only python3 and always runs this version."""
+    # ./ keeps a relative path with a colon from reading as another host there.
+    path = world.path if world.path.startswith(("/", "~")) else f"./{world.path}"
+    command = shlex.join(["python3", "-", *arguments, f"--world={path}"])
+    try:
+        source = Path(__file__).read_text(**TEXT)
+        result = subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+             "-o", "ClearAllForwardings=yes", "--", world.host, command],
+            input=source, capture_output=True, timeout=SSH_SECONDS, **TEXT)
+    except subprocess.TimeoutExpired:
+        raise QuestError(f"no answer from {world.host} in {SSH_SECONDS} seconds") from None
+    if result.returncode:
+        # The last line: ssh's own error, or the exception that ended a traceback.
+        errors = [line.strip() for line in result.stderr.splitlines() if line.strip()]
+        raise QuestError(errors[-1] if errors else f"ssh exited with status {result.returncode}")
+    try:
+        listing = json.loads(result.stdout)
+    except ValueError:
+        raise QuestError(f"unexpected output from {world.host}: {result.stdout[:200]!r}") from None
+    if not isinstance(listing, dict) or not all(isinstance(value, list) for value in listing.values()):
+        raise QuestError(f"unexpected output from {world.host}: {result.stdout[:200]!r}")
+    return listing
+
+
+def gather(worlds: list[World], quests: bool, realm: str | None = None,
+           archived: bool = False) -> dict[str, list]:
+    """List the worlds at once, adding each entry's world and host."""
+    arguments = ["list", *([f"--realm={realm}"] if realm else []), *(["--archived"] if archived else [])] \
+        if quests else ["realm", "list"]
+
+    def one(world: World) -> dict[str, list]:
+        try:
+            if world.host:
+                return remote_listing(world, arguments)
+            return local_listing(world.path, quests, realm, archived)
+        except (OSError, QuestError) as error:
+            return {"failed": [{"error": str(error)}]}
+
+    combined: dict[str, list] = (
+        {"quests": [], "invalid": [], "failed": []} if quests else {"realms": [], "failed": []})
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(len(worlds), 1)) as pool:
+        for world, listing in zip(worlds, pool.map(one, worlds)):
+            for key, entries in combined.items():
+                # Another host names the world and itself as it sees them.
+                entries += [{"world": world.name, "host": world.host,
+                             **{name: value for name, value in entry.items()
+                                if name not in ("world", "host")}}
+                            for entry in listing.get(key, []) if isinstance(entry, dict)]
+    return combined
+
+
+def emit(value: object) -> None:
+    # ASCII escapes keep the output valid JSON for any path, even one that is not UTF-8.
+    print(json.dumps(value, indent=2))
+
+
+def world_list_command(args: argparse.Namespace) -> int:
+    emit([world.describe() for world in configured_worlds()])
+    return 0
+
+
+def realm_list_command(args: argparse.Namespace) -> int:
+    emit(gather(chosen_worlds(args.world), quests=False))
+    return 0
+
+
+def list_command(args: argparse.Namespace) -> int:
+    emit(gather(chosen_worlds(args.world), quests=True, realm=args.realm, archived=args.archived))
+    return 0
+
+
+def show(command: str, what: str, matches: list[dict], failed: list[dict]) -> int:
+    for failure in failed:
+        print(f"{command}: could not search {failure['world']}"
+              f"{' ' + failure['realm'] if 'realm' in failure else ''}: {failure['error']}",
+              file=sys.stderr)
+    if len(matches) == 1:
+        emit(matches[0])
+        return 0
+    if matches:
+        print(f"{command}: {what} is in more than one world, so choose one with --world: "
+              + ", ".join(match["world"] for match in matches), file=sys.stderr)
+    else:
+        print(f"{command}: no {what}", file=sys.stderr)
+    return 1
+
+
+def realm_show_command(args: argparse.Namespace) -> int:
+    listing = gather(chosen_worlds(args.world), quests=False)
+    matches = [realm for realm in listing["realms"] if realm["realm"] == args.realm]
+    return show("quest realm show", f"realm {args.realm}", matches, listing["failed"])
+
+
+def show_command(args: argparse.Namespace) -> int:
+    listing = gather(chosen_worlds(args.world), quests=True, realm=args.realm)
+    matches = [quest for quest in listing["quests"] if quest["slug"] == args.slug]
+    return show("quest show", f"quest {args.slug} in {args.realm}", matches, listing["failed"])
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    commands = parser.add_subparsers(dest="command", required=True, metavar="command")
+
+    snapshot_parser = commands.add_parser(
+        "snapshot", help="commit each active quest's records to its own Git repository",
+        description="Commit each active quest's records to that quest's own Git repository.")
+    snapshot_parser.add_argument(
+        "directory", nargs="*", type=Path,
+        help="resolve the quest root from here (default: the current directory, "
+             "unless --quest is given)")
+    snapshot_parser.add_argument(
+        "--quest", action="append", type=Path, default=[],
+        help="also commit this quest's records, even if it is archived; repeat for more")
+    snapshot_parser.set_defaults(run=snapshot_command)
+
+    archive_parser = commands.add_parser(
+        "archive", help="check a quest's checkouts, or move the quest to .archived/",
+        description="With --check, report what removing the quest's checkouts would lose. "
+                    "Without it, once those checkouts are gone, move the quest to .archived/.")
+    archive_parser.add_argument("quest", type=Path, help="the quest directory")
+    archive_parser.add_argument(
+        "--checkout", action="append", type=Path, default=[],
+        help="a checkout the quest's record lists; repeat for each")
+    archive_parser.add_argument(
+        "--check", action="store_true", help="only report, changing nothing but fetched refs")
+    archive_parser.add_argument(
+        "--target", default="origin/main",
+        help="the remote branch the quest's work is merged into (default: origin/main)")
+    archive_parser.add_argument(
+        "--source", type=Path,
+        help="the repository a clone was copied from; commits it keeps are not the quest's")
+    archive_parser.set_defaults(run=archive_command)
+
+    worlds = ("a directory of realms, [<host>:]<path>, where a relative <path> starts at the "
+              "home directory; repeat for more (default: the worlds in the worlds file)")
+    world_parser = commands.add_parser(
+        "world", help="list the worlds",
+        description="Worlds are directories of realms, on this computer or on other hosts, "
+                    "listed in $XDG_CONFIG_HOME/quest/worlds.json as [{\"host\", \"path\"}]. "
+                    "Without that file, the one world is ~/Projects.")
+    world_commands = world_parser.add_subparsers(dest="action", required=True, metavar="command")
+    world_commands.add_parser(
+        "list", help="print the worlds as JSON", description="Print the worlds as JSON.",
+    ).set_defaults(run=world_list_command, name="quest world list")
+
+    realm_parser = commands.add_parser(
+        "realm", help="list or show realms",
+        description="Every directory in a world is a realm, except a hidden one. Its quests "
+                    "are in its quests directory; root is null when it has none.")
+    realm_commands = realm_parser.add_subparsers(dest="action", required=True, metavar="command")
+    realm_list_parser = realm_commands.add_parser(
+        "list", help="print the realms in the worlds as JSON",
+        description="Print the realms in the worlds as JSON, with the worlds that could not "
+                    "be listed.")
+    realm_list_parser.add_argument("--world", action="append", help=worlds)
+    realm_list_parser.set_defaults(run=realm_list_command, name="quest realm list")
+    realm_show_parser = realm_commands.add_parser(
+        "show", help="print one realm as JSON", description="Print one realm as JSON.")
+    realm_show_parser.add_argument("realm", help="the realm's directory name")
+    realm_show_parser.add_argument("--world", action="append", help=worlds)
+    realm_show_parser.set_defaults(run=realm_show_command, name="quest realm show")
+
+    list_parser = commands.add_parser(
+        "list", help="print the quests in the worlds as JSON",
+        description="Print the quests in the worlds as JSON, with the directories in quest "
+                    "roots that are not quests and the worlds that could not be listed.")
+    list_parser.add_argument("--world", action="append", help=worlds)
+    list_parser.add_argument("--realm", help="only the quests of this realm")
+    list_parser.add_argument("--archived", action="store_true", help="include archived quests")
+    list_parser.set_defaults(run=list_command, name="quest list")
+
+    show_parser = commands.add_parser(
+        "show", help="print one quest as JSON", description="Print one active quest as JSON.")
+    show_parser.add_argument("realm", help="the realm's directory name")
+    show_parser.add_argument("slug", help="the quest's slug")
+    show_parser.add_argument("--world", action="append", help=worlds)
+    show_parser.set_defaults(run=show_command, name="quest show")
+
+    args = parser.parse_args()
+    try:
+        return args.run(args)
+    except QuestError as error:
+        # snapshot and archive report their own errors.
+        print(f"{args.name}: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

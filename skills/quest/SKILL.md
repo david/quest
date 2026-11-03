@@ -168,17 +168,6 @@ Inside one, its repository's instructions govern the work; read them as
 shell stays there for every later command. Use the tool's directory option,
 such as `git -C <checkout>` or `make -C <checkout>`, or absolute paths.
 
-## Snapshots
-
-A hook runs `quest snapshot` (the skill's `bin/quest`) around every turn. It
-commits each active quest's records to the quest's own `.git`, leaving out
-`local-data/` and nested repositories. Never initialize or commit to that
-`.git` by hand. Keep other private or generated files in those excluded
-places, or add a `.gitignore` rule before creating them. A session started
-outside the realm, as in a checkout, finds no quest root, so after editing a
-quest's records there, run `quest snapshot --quest <quest-directory>`.
-[Snapshots](references/snapshot.md) covers the command and other harnesses.
-
 ## Commands
 
 Route by intent, whether a command or plain language. Before `realm init` or

@@ -18,8 +18,7 @@ root:` line left by an earlier version, but when it names a directory other
 than the realm's `quests`, first ask what to do with the quests there.
 Rerunning must keep existing files and add no duplicate instructions.
 
-1. Create `quests/` unless it exists. If the [snapshot command](snapshot.md)
-   refuses an existing root, keep its records and ask before moving them.
+1. Create `quests/` unless it exists.
 2. Add, or narrowly update, a quest setup section in the realm's `AGENTS.md`,
    keeping unrelated instructions. It says that quests live in `quests/`, that
    a quest's `QUEST.md` is read first and records its workspace paths, and
@@ -30,8 +29,8 @@ Rerunning must keep existing files and add no duplicate instructions.
    that format.
 4. Create `quest-template/`, whose contents every new quest copies. It stays
    empty until the realm has something each quest starts with, such as editor
-   settings or a `.gitignore`, which snapshots honor. Never put secrets in it,
-   and do not overwrite or empty an existing one; propose changes instead.
+   settings. Never put secrets in it, and do not overwrite or empty an
+   existing one; propose changes instead.
 
 Add only the conventions the realm needs:
 
