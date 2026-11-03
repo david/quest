@@ -103,6 +103,32 @@ an agent, and lists quests for other tools, such as a status bar widget:
 
 Run it as `python3 skills/quest/bin/quest`, or link it into your `PATH`.
 
+## OpenCode tools
+
+`plugins/opencode/` is an OpenCode 2 plugin that offers the `quest` command
+as tools in OpenCode and OpenChamber sessions: `quest_list`, `quest_open`,
+`quest_new`, `quest_archive_check`, `quest_archive`, and `quest_link`. It
+runs the installed quest skill's `bin/quest`, so install the skill first,
+then the plugin:
+
+```sh
+opencode plugin add 'github:david/quest#main::path:plugins/opencode'
+```
+
+`quest_link` links a session and its directory, such as a worktree outside
+the realm, to a quest. A session that later starts in that directory, or in a
+quest's own directory, is told which quest it is on. The plugin needs
+`python3` on the server's `PATH`.
+
+`quest_archive` checks the permission action `quest_archive`, with the
+quest's directory as the resource. OpenCode allows any action no rule
+covers, so to be asked before a quest is archived, add this to your
+`opencode.json`:
+
+```json
+{ "permissions": [{ "action": "quest_archive", "resource": "*", "effect": "ask" }] }
+```
+
 ## Worlds
 
 A world is a directory of realms, on this computer or on another host. List

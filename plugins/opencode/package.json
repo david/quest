@@ -1,0 +1,23 @@
+{
+  "name": "opencode-quest",
+  "version": "0.1.0",
+  "description": "OpenCode tools for quests, through the quest skill's bin/quest",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "dependencies": {
+    "@opencode/plugin": "^2.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  }
+}
